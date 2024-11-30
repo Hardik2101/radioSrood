@@ -9,17 +9,17 @@ target 'Radio Srood' do
 
   # Pods for Radio Srood
   
-#  pod 'Alamofire', '~> 4.7'
-#  pod 'SCLAlertView'
-#  pod 'AlamofireImage', '~> 3.5'
-#  pod 'OneSignal', '>= 2.6.2', '< 4.0'
-#  pod 'SWRevealViewController'
-#  pod 'VisualEffectView'
-#  pod 'Firebase/Core'
-#  pod 'Firebase/AdMob'
-#  pod 'AVPlayerViewController-Subtitles'
-#  pod 'SpotlightLyrics'
-#  pod 'GoogleUserMessagingPlatform'
+  pod 'Alamofire', '~> 4.7'
+  pod 'SCLAlertView'
+  pod 'AlamofireImage', '~> 3.5'
+  pod 'OneSignal', '>= 2.6.2', '< 4.0'
+  pod 'SWRevealViewController'
+  pod 'VisualEffectView'
+  pod 'Firebase/Core'
+  pod 'Firebase/AdMob'
+  pod 'AVPlayerViewController-Subtitles'
+  pod 'SpotlightLyrics'
+  pod 'GoogleUserMessagingPlatform'
 end
 
 
