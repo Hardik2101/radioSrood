@@ -1,0 +1,75 @@
+
+/* Class = "UILabel"; text = "Well first internet radio station in Armenia. Created in August 2012, and regular broadcasts started on September 1, 2012. Good sound from only the top hits on the radio. Good Radio website"; ObjectID = "3UF-QV-WAn"; */
+"3UF-QV-WAn.text" = "Well first internet radio station in Armenia. Created in August 2012, and regular broadcasts started on September 1, 2012. Good sound from only the top hits on the radio. Good Radio website";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "3cd-1e-5Rz"; */
+"3cd-1e-5Rz.text" = "00:00";
+
+/* Class = "UILabel"; text = "Podcast offline"; ObjectID = "8Dx-ot-fEw"; */
+"8Dx-ot-fEw.text" = "Podcast offline";
+
+/* Class = "UILabel"; text = "Title"; ObjectID = "8t2-sJ-aDi"; */
+"8t2-sJ-aDi.text" = "Title";
+
+/* Class = "UILabel"; text = "About"; ObjectID = "9KX-EG-rzI"; */
+"9KX-EG-rzI.text" = "About";
+
+/* Class = "UILabel"; text = "Podcast"; ObjectID = "BGY-mp-PY6"; */
+"BGY-mp-PY6.text" = "Podcast";
+
+/* Class = "UILabel"; text = "News"; ObjectID = "Cbr-tj-HdO"; */
+"Cbr-tj-HdO.text" = "News";
+
+/* Class = "UILabel"; text = "title"; ObjectID = "GK2-lh-tBZ"; */
+"GK2-lh-tBZ.text" = "title";
+
+/* Class = "UILabel"; text = "RADIO SROOD"; ObjectID = "M7S-b4-Zyc"; */
+"M7S-b4-Zyc.text" = "RADIO SROOD";
+
+/* Class = "UINavigationItem"; title = "Music"; ObjectID = "Ngz-fP-NGj"; */
+"Ngz-fP-NGj.title" = "Music";
+
+/* Class = "UINavigationItem"; title = "About"; ObjectID = "OuH-bQ-l0V"; */
+"OuH-bQ-l0V.title" = "About";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Raz-IS-lTj"; */
+"Raz-IS-lTj.text" = "Label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Rch-Oe-NQr"; */
+"Rch-Oe-NQr.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "WBi-Js-4Po"; */
+"WBi-Js-4Po.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "Touch To Play"; ObjectID = "ZbG-uc-elI"; */
+"ZbG-uc-elI.text" = "Touch To Play";
+
+/* Class = "UINavigationItem"; title = "TV"; ObjectID = "am6-Lb-4Dj"; */
+"am6-Lb-4Dj.title" = "TV";
+
+/* Class = "UINavigationItem"; title = "Events"; ObjectID = "bV4-ox-cE4"; */
+"bV4-ox-cE4.title" = "Events";
+
+/* Class = "UILabel"; text = "TV"; ObjectID = "cGF-1N-FRs"; */
+"cGF-1N-FRs.text" = "TV";
+
+/* Class = "UILabel"; text = "Radio"; ObjectID = "hPi-Cv-W6Y"; */
+"hPi-Cv-W6Y.text" = "Radio";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "l75-BL-Fc1"; */
+"l75-BL-Fc1.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "rqa-Cn-8jD"; */
+"rqa-Cn-8jD.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "suF-7L-8Oh"; */
+"suF-7L-8Oh.text" = "00:00";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "wp2-F1-StA"; */
+"wp2-F1-StA.text" = "Label";
+
+/* Class = "UINavigationItem"; title = "Offline Music"; ObjectID = "x5j-Ai-ddA"; */
+"x5j-Ai-ddA.title" = "Offline Music";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "xYj-aJ-EQ9"; */
+"xYj-aJ-EQ9.text" = "Label";

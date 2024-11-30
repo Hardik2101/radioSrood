@@ -1,0 +1,45 @@
+# Xcode
+.DS_Store
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Obj-C/Swift specific
+*.hmap
+
+# Swift Packages
+.build/
+## Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Archives
+*.xcarchive
+
+# Derived Data
+DerivedData/
+
+# SwiftPM
+.swiftpm/xcode/package.xcworkspace/
+
+# Others
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.log
+

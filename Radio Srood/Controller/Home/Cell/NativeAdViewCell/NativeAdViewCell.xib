@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21225" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21207"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="SourceSansPro-Semibold.otf">
+            <string>SourceSansPro-Semibold</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="NativeAdViewCell" rowHeight="125" id="IAS-ds-YlB" customClass="NativeAdViewCell" customModule="Radio_Srood" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="374" height="125"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="IAS-ds-YlB" id="WCS-qD-O0T">
+                <rect key="frame" x="0.0" y="0.0" width="374" height="125"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HIz-Ro-Df4">
+                        <rect key="frame" x="10" y="5" width="354" height="110"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.19884195130000001" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Uqr-4a-nXH" customClass="GADUnifiedNativeAdView">
+                        <rect key="frame" x="15" y="10" width="344" height="100"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="8xk-RN-wfe" customClass="GADAdChoicesView">
+                                <rect key="frame" x="0.0" y="0.0" width="15" height="15"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="15" id="7Vs-gy-C3P"/>
+                                    <constraint firstAttribute="width" constant="15" id="B7i-Ff-IcZ"/>
+                                </constraints>
+                            </view>
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DD8-ik-gMs" customClass="GADMediaView">
+                                <rect key="frame" x="0.0" y="20" width="50" height="50"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="DD8-ik-gMs" secondAttribute="height" multiplier="1:1" id="6dp-ae-xFx"/>
+                                    <constraint firstAttribute="height" constant="50" id="M6E-Fi-fqG"/>
+                                </constraints>
+                            </view>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="hYL-W1-MNm">
+                                <rect key="frame" x="0.0" y="20" width="50" height="50"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Headline" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sf0-by-jH1" userLabel="Headline View">
+                                <rect key="frame" x="55" y="20" width="289" height="18.666666666666671"/>
+                                <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="13"/>
+                                <color key="textColor" white="1" alpha="0.69999999999999996" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Body" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wzN-9p-GWV">
+                                <rect key="frame" x="55" y="41.666666666666664" width="289" height="15.666666666666664"/>
+                                <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="11"/>
+                                <color key="textColor" white="1" alpha="0.69999999999999996" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rnM-we-nad">
+                                <rect key="frame" x="0.0" y="75" width="344" height="25"/>
+                                <color key="backgroundColor" red="0.66274509800000003" green="0.1333333333" blue="0.1215686275" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="25" id="iHv-lY-Ivg"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="SourceSansPro-Semibold" family="Source Sans Pro" pointSize="13"/>
+                                <state key="normal" title="Call to Action">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="sf0-by-jH1" secondAttribute="trailing" id="1Qe-p2-FDz"/>
+                            <constraint firstItem="hYL-W1-MNm" firstAttribute="leading" secondItem="DD8-ik-gMs" secondAttribute="leading" id="39N-wm-4mv"/>
+                            <constraint firstAttribute="trailing" secondItem="wzN-9p-GWV" secondAttribute="trailing" id="3En-b0-7gb"/>
+                            <constraint firstItem="wzN-9p-GWV" firstAttribute="top" secondItem="sf0-by-jH1" secondAttribute="bottom" constant="3" id="7u7-dS-Oys"/>
+                            <constraint firstItem="sf0-by-jH1" firstAttribute="top" secondItem="DD8-ik-gMs" secondAttribute="top" id="8UB-CX-D1R"/>
+                            <constraint firstItem="rnM-we-nad" firstAttribute="top" secondItem="DD8-ik-gMs" secondAttribute="bottom" constant="5" id="HRq-IK-YZQ"/>
+                            <constraint firstItem="hYL-W1-MNm" firstAttribute="trailing" secondItem="DD8-ik-gMs" secondAttribute="trailing" id="KeP-yl-q4D"/>
+                            <constraint firstItem="8xk-RN-wfe" firstAttribute="top" secondItem="Uqr-4a-nXH" secondAttribute="top" id="Ktc-Pu-ewm"/>
+                            <constraint firstAttribute="trailing" secondItem="rnM-we-nad" secondAttribute="trailing" id="MvB-HN-4SP"/>
+                            <constraint firstItem="sf0-by-jH1" firstAttribute="leading" secondItem="DD8-ik-gMs" secondAttribute="trailing" constant="5" id="PBn-t9-i9M"/>
+                            <constraint firstItem="DD8-ik-gMs" firstAttribute="top" secondItem="Uqr-4a-nXH" secondAttribute="top" constant="20" id="QO7-r7-TnE"/>
+                            <constraint firstItem="hYL-W1-MNm" firstAttribute="bottom" secondItem="DD8-ik-gMs" secondAttribute="bottom" id="Rbm-FT-bHE"/>
+                            <constraint firstItem="8xk-RN-wfe" firstAttribute="leading" secondItem="Uqr-4a-nXH" secondAttribute="leading" id="aN8-bd-5GU"/>
+                            <constraint firstAttribute="height" constant="100" id="guH-wm-zJB"/>
+                            <constraint firstItem="rnM-we-nad" firstAttribute="leading" secondItem="Uqr-4a-nXH" secondAttribute="leading" id="iJh-0b-5lj"/>
+                            <constraint firstItem="wzN-9p-GWV" firstAttribute="leading" secondItem="DD8-ik-gMs" secondAttribute="trailing" constant="5" id="l9s-iJ-hQS"/>
+                            <constraint firstItem="DD8-ik-gMs" firstAttribute="leading" secondItem="Uqr-4a-nXH" secondAttribute="leading" id="pGK-Lh-XxN"/>
+                            <constraint firstItem="hYL-W1-MNm" firstAttribute="top" secondItem="DD8-ik-gMs" secondAttribute="top" id="qaj-Ma-F9U"/>
+                        </constraints>
+                        <connections>
+                            <outlet property="adChoicesView" destination="8xk-RN-wfe" id="8Bl-ll-u00"/>
+                            <outlet property="bodyView" destination="wzN-9p-GWV" id="x5Z-ZX-GTO"/>
+                            <outlet property="callToActionView" destination="rnM-we-nad" id="qFK-ke-EMb"/>
+                            <outlet property="headlineView" destination="sf0-by-jH1" id="Wj8-dz-yZK"/>
+                            <outlet property="imageView" destination="hYL-W1-MNm" id="BUC-Yc-jmJ"/>
+                            <outlet property="mediaView" destination="DD8-ik-gMs" id="WsB-Zf-4vb"/>
+                        </connections>
+                    </view>
+                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Ad" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hwg-Qc-wRJ">
+                        <rect key="frame" x="319" y="10" width="20" height="15"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="20" id="dij-tj-Mbh"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="10"/>
+                        <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="HIz-Ro-Df4" firstAttribute="trailing" secondItem="Uqr-4a-nXH" secondAttribute="trailing" constant="5" id="3KO-Tq-TPX"/>
+                    <constraint firstItem="HIz-Ro-Df4" firstAttribute="bottom" secondItem="Uqr-4a-nXH" secondAttribute="bottom" constant="5" id="6b6-iG-UEi"/>
+                    <constraint firstAttribute="bottom" secondItem="Uqr-4a-nXH" secondAttribute="bottom" constant="10" id="DoS-xW-xgI"/>
+                    <constraint firstItem="HIz-Ro-Df4" firstAttribute="top" secondItem="Uqr-4a-nXH" secondAttribute="top" constant="-5" id="Dto-EW-XGc"/>
+                    <constraint firstItem="hwg-Qc-wRJ" firstAttribute="trailing" secondItem="Uqr-4a-nXH" secondAttribute="trailing" constant="-20" id="FJV-uU-fLS"/>
+                    <constraint firstItem="Uqr-4a-nXH" firstAttribute="leading" secondItem="WCS-qD-O0T" secondAttribute="leading" constant="15" id="UDX-Vf-SMF"/>
+                    <constraint firstAttribute="trailing" secondItem="Uqr-4a-nXH" secondAttribute="trailing" constant="15" id="i3V-lV-72J"/>
+                    <constraint firstItem="hwg-Qc-wRJ" firstAttribute="centerY" secondItem="8xk-RN-wfe" secondAttribute="centerY" id="kHe-DK-Y5r"/>
+                    <constraint firstItem="HIz-Ro-Df4" firstAttribute="leading" secondItem="Uqr-4a-nXH" secondAttribute="leading" constant="-5" id="lLk-xX-uXo"/>
+                    <constraint firstItem="Uqr-4a-nXH" firstAttribute="top" secondItem="WCS-qD-O0T" secondAttribute="top" constant="10" id="tfo-tI-dHp"/>
+                    <constraint firstItem="hwg-Qc-wRJ" firstAttribute="top" secondItem="8xk-RN-wfe" secondAttribute="top" id="xhN-pV-XDz"/>
+                </constraints>
+            </tableViewCellContentView>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="bgView" destination="HIz-Ro-Df4" id="5yC-pf-nN6"/>
+                <outlet property="lblAd" destination="hwg-Qc-wRJ" id="S4b-fr-hnY"/>
+                <outlet property="unifiedNativeAdView" destination="Uqr-4a-nXH" id="nlz-yN-lHn"/>
+            </connections>
+            <point key="canvasLocation" x="-267.17557251908397" y="-96.126760563380287"/>
+        </tableViewCell>
+    </objects>
+</document>

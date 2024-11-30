@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="MyPlaylistCollectionViewCell" id="ECD-uo-qnk" customClass="MyPlaylistCollectionViewCell" customModule="Radio_Srood" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="134" height="180"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="ANh-YL-cKK">
+                <rect key="frame" x="0.0" y="0.0" width="134" height="180"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="SJt-be-xTE">
+                        <rect key="frame" x="0.0" y="0.0" width="134" height="180"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NDp-bW-g2Q">
+                                <rect key="frame" x="3" y="0.0" width="128" height="133"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="kMy-j3-3xJ">
+                                        <rect key="frame" x="0.0" y="5" width="128" height="128"/>
+                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="kMy-j3-3xJ" secondAttribute="height" multiplier="1:1" id="bhG-Ut-gDP"/>
+                                        </constraints>
+                                    </imageView>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstItem="kMy-j3-3xJ" firstAttribute="top" secondItem="NDp-bW-g2Q" secondAttribute="top" constant="5" id="EBG-GV-EQu"/>
+                                    <constraint firstItem="kMy-j3-3xJ" firstAttribute="leading" secondItem="NDp-bW-g2Q" secondAttribute="leading" id="rY8-PX-uMD"/>
+                                    <constraint firstAttribute="trailing" secondItem="kMy-j3-3xJ" secondAttribute="trailing" id="tr2-qD-KkP"/>
+                                    <constraint firstAttribute="bottom" secondItem="kMy-j3-3xJ" secondAttribute="bottom" id="wNx-1e-fcD"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadiusV">
+                                        <real key="value" value="12"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="borderWidthV">
+                                        <real key="value" value="0.0"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Dance" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9SH-1x-1Q1">
+                                <rect key="frame" x="5" y="140" width="119" height="24"/>
+                                <fontDescription key="fontDescription" name="KohinoorBangla-Semibold" family="Kohinoor Bangla" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="0.066666666666666666" green="0.066666666666666666" blue="0.066666666666666666" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="NDp-bW-g2Q" secondAttribute="trailing" constant="3" id="96x-bE-OSF"/>
+                            <constraint firstItem="NDp-bW-g2Q" firstAttribute="top" secondItem="SJt-be-xTE" secondAttribute="top" id="CDA-hF-mGH"/>
+                            <constraint firstItem="NDp-bW-g2Q" firstAttribute="leading" secondItem="SJt-be-xTE" secondAttribute="leading" constant="3" id="hX8-fY-RXP"/>
+                            <constraint firstItem="9SH-1x-1Q1" firstAttribute="leading" secondItem="SJt-be-xTE" secondAttribute="leading" constant="5" id="j0f-MV-1O4"/>
+                            <constraint firstAttribute="trailing" secondItem="9SH-1x-1Q1" secondAttribute="trailing" constant="10" id="nNS-LE-p0W"/>
+                            <constraint firstItem="9SH-1x-1Q1" firstAttribute="top" secondItem="NDp-bW-g2Q" secondAttribute="bottom" constant="7" id="s5t-0E-reI"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="number" keyPath="cornerRadiusV">
+                                <real key="value" value="5"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="SJt-be-xTE" firstAttribute="top" secondItem="ANh-YL-cKK" secondAttribute="top" id="Bb9-lL-0Qx"/>
+                    <constraint firstAttribute="trailing" secondItem="SJt-be-xTE" secondAttribute="trailing" id="CvY-zS-9HZ"/>
+                    <constraint firstItem="SJt-be-xTE" firstAttribute="leading" secondItem="ANh-YL-cKK" secondAttribute="leading" id="ZUj-gq-rjg"/>
+                    <constraint firstAttribute="bottom" secondItem="SJt-be-xTE" secondAttribute="bottom" id="ofy-w8-c5Q"/>
+                </constraints>
+            </collectionViewCellContentView>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <size key="customSize" width="134" height="180"/>
+            <connections>
+                <outlet property="imgSong" destination="kMy-j3-3xJ" id="ITS-dG-Ffn"/>
+                <outlet property="lblSongName" destination="9SH-1x-1Q1" id="WKO-5N-8qC"/>
+            </connections>
+            <point key="canvasLocation" x="122.13740458015266" y="23.239436619718312"/>
+        </collectionViewCell>
+    </objects>
+</document>

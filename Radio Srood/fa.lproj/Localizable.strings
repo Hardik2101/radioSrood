@@ -1,0 +1,44 @@
+/* 
+  Localizable.strings
+  GlobalOneV2
+
+  Created by appteve on 27/04/2017.
+  Copyright © 2017 Appteve. All rights reserved.
+*/
+
+//// menu section
+
+"radio_menu_label"            =  "LISTEN";
+"timeline_menu_label"         =  "TV";
+"news_menu_label"             =  "EVENTS";
+"podcast_menu_label"          =  "MUSIC";
+"offline_menu_label"          =  "OFFLINE MUSIC";
+"about_menu_label"            =  "ABOUT";
+"shop_menu_label"             =  "PURCHASE";
+
+//// timeline screen
+
+"timeline"                    =  "Timeline radio";
+"unlock_title"                =  "Unlock timeline";
+"ups"                         =  "Ups...";
+"unlock_text"                 =  "Please unlock timeline for listen this track";
+
+//// news screen
+"news"                        =  "EVENTS";
+
+
+///// podcast string
+"podcast"                     =  "MUSICt";
+"player"                      =  "Player";
+
+//// offline
+
+"offline"                     =  "OFFLINE MUSIC";
+
+///  about screen
+
+"follow"                      =  "FOLLOW";
+"about_text"                  =  "Radio Srood is an internet music station streaming live Afghan music 24/7. Radio Srood is available on iOS, Android, Chrome Extension, SmartTV and Tunein App Stores. For advertisements/feedback/suggestions please contact us.
+
+Email: support@radiosrood.coam
+Phone: +1 844-726-4788";

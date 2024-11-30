@@ -1,0 +1,45 @@
+/*
+ Localizable.strings
+ GlobalOneV2
+ 
+ Created by appteve on 27/04/2017.
+ Copyright © 2017 Appteve. All rights reserved.
+ */
+
+//// menu section
+
+"radio_menu_label"            =  "LISTEN";
+"timeline_menu_label"         =  "RADIO";
+"tv_menu_label"               =  "TV";
+"news_menu_label"             =  "EVENTS";
+"podcast_menu_label"          =  "MUSIC";
+"offline_menu_label"          =  "MY MUSIC";
+"about_menu_label"            =  "PURCHASE";
+"shop_menu_label"             =  "PURCHASE";
+
+//// timeline screen
+
+"timeline"                    =  "Timeline radio";
+"unlock_title"                =  "Unlock timeline";
+"ups"                         =  "Ups...";
+"unlock_text"                 =  "Please unlock timeline for listen this track";
+
+//// news screen
+"news"                        =  "EVENTS";
+
+
+///// podcast string
+"podcast"                     =  "MUSIC";
+"player"                      =  "Player";
+
+//// offline
+
+"offline"                     =  "OFFLINE";
+
+///  about screen
+
+"follow"                      =  "FOLLOW";
+"about_text"                  =  "Radio Srood is available on iOS, Android, Fire TV Stick, Chrome Extension, SmartTV's and Tunein App Stores. Download Labkhand app and Srood Rap app and listen to Afghan comedy shows & Afghan Rap music.
+
+Email: support@radiosrood.com
+Phone: +1 844-726-4788";

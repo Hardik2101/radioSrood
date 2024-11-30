@@ -1,0 +1,41 @@
+/* 
+  Localizable.strings
+  GlobalOneV2
+
+  Created by appteve on 27/04/2017.
+  Copyright © 2017 Appteve. All rights reserved.
+*/
+
+//// menu section
+
+"radio_menu_label"            =  "Радио";
+"timeline_menu_label"         =  "Было на радио";
+"news_menu_label"             =  "Новости";
+"podcast_menu_label"          =  "Подкаст";
+"offline_menu_label"          =  "Оффлайн";
+"about_menu_label"            =  "О радио";
+"shop_menu_label"             =  "Магазин";
+
+//// timeline screen
+
+"timeline"                    =  "Было в эфире";
+"unlock_title"                =  "Разблокировать";
+"ups"                         =  "Ups...";
+"unlock_text"                 =  "Пожалуйста разблокируйте эту функцию";
+
+//// news screen
+"news"                        =  "Новости";
+
+
+///// podcast string
+"podcast"                     =  "Подкасты";
+"player"                      =  "Плеер";
+
+//// offline
+
+"offline"                     =  "Оффлайн";
+
+///  about screen
+
+"follow"                      =  "МЫ ТУТ";
+"about_text"                  =  "We are broadcast the coolest tracks & mixes in following genres; Tech House, Deep House, Techno, Electro House, Progressive House. Good entertainment at the advertising-free program - Tune In !";

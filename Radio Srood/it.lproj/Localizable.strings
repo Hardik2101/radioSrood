@@ -1,0 +1,41 @@
+/* 
+  Localizable.strings
+  GlobalOneV2
+
+  Created by appteve on 27/04/2017.
+  Copyright © 2017 Appteve. All rights reserved.
+*/
+
+//// menu section
+
+"radio_menu_label"            =  "Radio";
+"timeline_menu_label"         =  "Timeline";
+"news_menu_label"             =  "News";
+"podcast_menu_label"          =  "Podcast";
+"offline_menu_label"          =  "Offline";
+"about_menu_label"            =  "About";
+"shop_menu_label"             =  "Shop";
+
+//// timeline screen
+
+"timeline"                    =  "Timeline radio";
+"unlock_title"                =  "Unlock timeline";
+"ups"                         =  "Ups...";
+"unlock_text"                 =  "Please unlock timeline for listen this track";
+
+//// news screen
+"news"                        =  "News";
+
+
+///// podcast string
+"podcast"                     =  "Podcast";
+"player"                      =  "Player";
+
+//// offline
+
+"offline"                     =  "Offline";
+
+///  about screen
+
+"follow"                      =  "FOLLOW";
+"about_text"                  =  "We are broadcast the coolest tracks & mixes in following genres; Tech House, Deep House, Techno, Electro House, Progressive House. Good entertainment at the advertising-free program - Tune In !";
