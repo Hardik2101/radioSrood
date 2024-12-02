@@ -159,7 +159,7 @@ class RadioWithRecentViewController: UIViewController, GADBannerViewDelegate {
 
     private func setHeaderData(headerTitle: String) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 30))
-        let lblTitle = UILabel(frame: CGRect(x: 40, y: 5, width: screenSize.width - 30, height: 20))
+        let lblTitle = UILabel(frame: CGRect(x: 15, y: 5, width: screenSize.width - 30, height: 20))
         lblTitle.text = headerTitle
         lblTitle.textColor = .white.withAlphaComponent(1.1)
         lblTitle.font = UIFont(name: "Avenir Next Ultra Light", size: 19)
@@ -276,18 +276,8 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                 cell.makeScreen(true)
             } else {
                 if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary {
-                    if let currentArtCover = currentSong.value(forKey: "currentArtCover") as? String, let url = URL(string: currentArtCover) {
-                        cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    if let url = cell.setUI(currentSong: currentSong) {
                         self.bgImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "b1.png"))
-                    }
-                    if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
-                        cell.trackTitle.text = currentTrack
-                    }
-                    if let currentArtist = currentSong.value(forKey: "currentArtist") as? String {
-                        cell.artistName.text = currentArtist
-                    }
-                    if let currentPlayCounts = currentSong.value(forKey: "currentPlayCounts") as? Int {
-                        cell.currentPlayCounts.text = "Plays: \(currentPlayCounts)"
                     }
                 }
                 if isSetupRemoteTransport {

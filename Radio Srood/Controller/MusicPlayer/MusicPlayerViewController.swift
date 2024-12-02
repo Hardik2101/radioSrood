@@ -54,6 +54,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     var isLike = false
     var isRepeat = false
     var timeObserver: Any?
+    var musicPlayPause: PlayPauseSender?
     private var lastIndex: Int? = nil
     private var parser: LyricsParser? = nil
     private var isPurchaseSuccess: Bool = false
@@ -354,10 +355,6 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             }
             self.trackTitle.text = item.track
             self.artistName.text = item.artist
-            songName = item.track
-            songController = self
-            artistSongName = item.artist
-            songImage = item.artcover
             self.isAlreadyLiked(track: item)
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
@@ -396,6 +393,14 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                     self.setupRemoteTransportControls()
                 }
             }
+            
+            AppPlayer.miniPlayerInfo = BasicDetail(
+                songImage: item.artcover,
+                artistSongName: item.artist,
+                songName: item.track,
+                songController: self
+            )
+            //config***
         }
     }
     
@@ -1007,6 +1012,11 @@ extension MusicPlayerViewController {
     func play(url: URL, isPlay: Bool = false) {
         let playerItem = AVPlayerItem(url: url)
         player = PlayObserver(playerItem: playerItem)
+        
+        musicPlayPause = PlayPauseSender(player: { player })
+        musicPlayPause?.onPlaybackStateChange = { nowPlay in
+            self.playPauseBtn.setImage(UIImage(named: nowPlay ? "ic_pause" : "ic_play"), for: .normal)
+        }
         self.playerSlider.minimumValue = 0.0
         self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
@@ -1088,9 +1098,10 @@ extension MusicPlayerViewController {
         } else if isPlayerListTap {
             player?.play()
         } else {
-            NotificationCenter.default.removeObserver(self,
-                                                      name: NSNotification.Name.AVPlayerItemDidPlayToEndTime,
-                                                      object: nil)
+            print("debug: MusicPlayerViewController / \(#function)")
+            NotificationCenter.default.removeObserver(
+                self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil
+            )
             if let track = track, selectedIndex < track.count-1 {
                 if let timeObserver = timeObserver {
                     if player != nil {
@@ -1280,10 +1291,8 @@ extension MusicPlayerViewController {
         self.playerSlider.setValue(0, animated: true)
         self.populateLabelWithTime(self.lblStartTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
-        if let timeObserver = timeObserver {
-            if player != nil {
-                player?.removeTimeObserver(timeObserver)
-            }
+        if let timeObserver = timeObserver, player != nil {
+            player?.removeTimeObserver(timeObserver)
         }
     }
 

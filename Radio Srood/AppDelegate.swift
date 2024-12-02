@@ -6,16 +6,18 @@ import AVKit
 import StoreKit
 import UserMessagingPlatform
 import AppTrackingTransparency
-//import AppReview//line no. 66//https://github.com/mezhevikin/AppReview.git
+//import AppReview//AppReview.requestIf(//https://github.com/mezhevikin/AppReview.git
 
-
-//let debugDeveloperSkipAds = false
+#if DEBUG
+let debugDeveloperSkipAds = !false
+#else
+let debugDeveloperSkipAds = false
+#endif
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.

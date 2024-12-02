@@ -153,21 +153,22 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     func handleRecentInView() {
         self.artCoverImage.layer.cornerRadius = 3
         self.artCoverImage.layer.masksToBounds = true
-        songController = self
+        var miniPlayerInfo = BasicDetail()
+        miniPlayerInfo.songController = self
         if let recentItem = recentListData {
             if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover) {
                 self.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 self.bgImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "b1.png"))
-                songImage = recentArtCover
+                miniPlayerInfo.songImage = recentArtCover
             }
             if let recentTrack = recentItem.value(forKey: "recentTrack") as? String {
                 self.trackTitle.text = recentTrack
-                songName = self.trackTitle.text ?? ""
+                miniPlayerInfo.songName = self.trackTitle.text ?? ""
               
             }
             if let recentArtist = recentItem.value(forKey: "recentArtist") as? String {
                 self.artistName.text = recentArtist
-                artistSongName = recentArtist
+                miniPlayerInfo.artistSongName = recentArtist
             }
             if let mediaPathInfo = recentItem.value(forKey: "mediaPathInfo") as? String, let urlString = mediaPathInfo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
                 if isSetMusic {
@@ -180,6 +181,8 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                 }
             }
         }
+        AppPlayer.miniPlayerInfo = miniPlayerInfo
+        //config****
     }
 
     @objc func lyricsBtnClicked() {

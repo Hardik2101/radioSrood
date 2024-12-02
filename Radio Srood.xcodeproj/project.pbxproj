@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		044B36482CFAD9F2005BF484 /* AppReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B36472CFAD9F2005BF484 /* AppReview.swift */; };
+		044B364D2CFB2953005BF484 /* MiniPlayerView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 044B364C2CFB2953005BF484 /* MiniPlayerView.xib */; };
+		044B364F2CFB2968005BF484 /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B364E2CFB2968005BF484 /* MiniPlayerView.swift */; };
 		0457CC402CDCF79C00506DA7 /* CustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0457CC3F2CDCF79C00506DA7 /* CustomButton.swift */; };
 		0457CC442CDDFCE000506DA7 /* BrowseTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0457CC432CDDFCE000506DA7 /* BrowseTableCell.xib */; };
 		0457CC452CDDFCE000506DA7 /* BrowseTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0457CC422CDDFCE000506DA7 /* BrowseTableCell.swift */; };
@@ -17,6 +19,8 @@
 		04A925212CE47587009950D9 /* BrowsePopularTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04A9251F2CE47587009950D9 /* BrowsePopularTableCell.xib */; };
 		04A925242CE476F2009950D9 /* BrowsePopularCollCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A925222CE476F2009950D9 /* BrowsePopularCollCell.swift */; };
 		04A925252CE476F2009950D9 /* BrowsePopularCollCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04A925232CE476F2009950D9 /* BrowsePopularCollCell.xib */; };
+		04ADC1C52CFC73AE00E29CE0 /* AudioObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADC1C42CFC73AE00E29CE0 /* AudioObserver.swift */; };
+		04ADC1C72CFCB88600E29CE0 /* RadioCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADC1C62CFCB88600E29CE0 /* RadioCell.swift */; };
 		04E213112CE2254100EE8F9B /* BrowseShowAllVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E213102CE2254100EE8F9B /* BrowseShowAllVC.swift */; };
 		04E213152CE22BFD00EE8F9B /* BrowseShowAllTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04E213142CE22BFD00EE8F9B /* BrowseShowAllTableCell.xib */; };
 		04E213162CE22BFD00EE8F9B /* BrowseShowAllTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E213132CE22BFD00EE8F9B /* BrowseShowAllTableCell.swift */; };
@@ -180,6 +184,8 @@
 
 /* Begin PBXFileReference section */
 		044B36472CFAD9F2005BF484 /* AppReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReview.swift; sourceTree = "<group>"; };
+		044B364C2CFB2953005BF484 /* MiniPlayerView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MiniPlayerView.xib; sourceTree = "<group>"; };
+		044B364E2CFB2968005BF484 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		0457CC3F2CDCF79C00506DA7 /* CustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomButton.swift; sourceTree = "<group>"; };
 		0457CC422CDDFCE000506DA7 /* BrowseTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseTableCell.swift; sourceTree = "<group>"; };
 		0457CC432CDDFCE000506DA7 /* BrowseTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseTableCell.xib; sourceTree = "<group>"; };
@@ -189,6 +195,8 @@
 		04A9251F2CE47587009950D9 /* BrowsePopularTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowsePopularTableCell.xib; sourceTree = "<group>"; };
 		04A925222CE476F2009950D9 /* BrowsePopularCollCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowsePopularCollCell.swift; sourceTree = "<group>"; };
 		04A925232CE476F2009950D9 /* BrowsePopularCollCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowsePopularCollCell.xib; sourceTree = "<group>"; };
+		04ADC1C42CFC73AE00E29CE0 /* AudioObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioObserver.swift; sourceTree = "<group>"; };
+		04ADC1C62CFCB88600E29CE0 /* RadioCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioCell.swift; sourceTree = "<group>"; };
 		04E213102CE2254100EE8F9B /* BrowseShowAllVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseShowAllVC.swift; sourceTree = "<group>"; };
 		04E213132CE22BFD00EE8F9B /* BrowseShowAllTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseShowAllTableCell.swift; sourceTree = "<group>"; };
 		04E213142CE22BFD00EE8F9B /* BrowseShowAllTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseShowAllTableCell.xib; sourceTree = "<group>"; };
@@ -382,6 +390,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		044B36492CFB28A2005BF484 /* Xib */ = {
+			isa = PBXGroup;
+			children = (
+				044B364C2CFB2953005BF484 /* MiniPlayerView.xib */,
+				044B364E2CFB2968005BF484 /* MiniPlayerView.swift */,
+			);
+			path = Xib;
+			sourceTree = "<group>";
+		};
 		04A9251D2CE4754A009950D9 /* BrowsePopularCells */ = {
 			isa = PBXGroup;
 			children = (
@@ -496,6 +513,7 @@
 				3F0E15711EAE19DB0009734F /* NewsTableViewCell.swift */,
 				3F0E156A1EAE02DF0009734F /* AppleTableViewCell.swift */,
 				3F9AD5D11EAE4900009B1532 /* PodcastTableViewCell.swift */,
+				04ADC1C62CFCB88600E29CE0 /* RadioCell.swift */,
 				804A215828C36D9D000E40B7 /* RecentListCell.swift */,
 				803C90AF291F60F700BBA60D /* RecentPlayerCell.swift */,
 				B7DCEBBF2CE925F100E6A6FC /* RJTVTableViewCell.swift */,
@@ -596,6 +614,7 @@
 				3F9AD5EE1EB09BC5009B1532 /* Jukebox.swift */,
 				3F9AD5EF1EB09BC5009B1532 /* JukeboxItem.swift */,
 				3F9AB1541EAB5107000D8FE3 /* Player.swift */,
+				04ADC1C42CFC73AE00E29CE0 /* AudioObserver.swift */,
 				3F9AD5F31EB0E7AF009B1532 /* GlobalOneV2-Bridging-Header.h */,
 			);
 			name = Audio;
@@ -821,6 +840,7 @@
 				DC0B7FFC29828B1200CD7A08 /* NewReleasesCollectionCell */,
 				DC400EF62981B2BE005A5B50 /* NewReleasesCell */,
 				5605A3592C5396DC00A69234 /* NewSponserCell */,
+				044B36492CFB28A2005BF484 /* Xib */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -1091,6 +1111,7 @@
 				3F9AD5DA1EAF562A009B1532 /* play-button.png in Resources */,
 				DC0B7FF72982834A00CD7A08 /* TrackCollectionCell.xib in Resources */,
 				04A925252CE476F2009950D9 /* BrowsePopularCollCell.xib in Resources */,
+				044B364D2CFB2953005BF484 /* MiniPlayerView.xib in Resources */,
 				3F9AB1611EAB69E2000D8FE3 /* play.png in Resources */,
 				0457CC442CDDFCE000506DA7 /* BrowseTableCell.xib in Resources */,
 				5605A35D2C53BDC900A69234 /* NewFeaturedCell.xib in Resources */,
@@ -1216,6 +1237,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				044B364F2CFB2968005BF484 /* MiniPlayerView.swift in Sources */,
 				DC062BBB29924C62008245F2 /* PopularPlaylistModles.swift in Sources */,
 				3F9AD5D21EAE4900009B1532 /* PodcastTableViewCell.swift in Sources */,
 				B7ED01E72B6EC79C0007C9FE /* AdsAPIView.swift in Sources */,
@@ -1264,6 +1286,7 @@
 				B7CAAD902C51553E006CC78F /* HorizontalSliderModel.swift in Sources */,
 				3F0E15661EADEABD0009734F /* TimelineTableViewController.swift in Sources */,
 				DCF7B781298AE2D0001B006D /* MusicPageModles.swift in Sources */,
+				04ADC1C72CFCB88600E29CE0 /* RadioCell.swift in Sources */,
 				3F0E156B1EAE02DF0009734F /* AppleTableViewCell.swift in Sources */,
 				B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */,
 				DC7BF9142974303C006641B3 /* UICollectionView+Extension.swift in Sources */,
@@ -1318,6 +1341,7 @@
 				3F0E156F1EAE17900009734F /* NewsObject.swift in Sources */,
 				DCA477002ADAB76600203775 /* MyPlaylistCell.swift in Sources */,
 				18EE8D6F2A16AC0C0094CD2D /* PlayerManager.swift in Sources */,
+				04ADC1C52CFC73AE00E29CE0 /* AudioObserver.swift in Sources */,
 				4025E1A92256506E0062DE07 /* SCLAlertView.swift in Sources */,
 				DC0B7FF9298287A100CD7A08 /* CurrentRadioCell.swift in Sources */,
 				DC0B800229828BC100CD7A08 /* NewReleasesCollectionCell.swift in Sources */,

@@ -13,49 +13,37 @@ public extension NSNotification.Name {
     static let reloadRadio = NSNotification.Name(rawValue: "ReloadRadio")
 }
 
+var player: PlayObserver? {
+    get { AppPlayer.music }
+    set {
+        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.musicPlayPause = nil
+        AppPlayer.music = newValue
+    }
+}
+
 struct AppPlayer {
     static var radio = AVPlayer()
     static var radioURL = ""
-    static var music: PlayObserver? = nil
-}
-
-///Pause radio if needed, whenever play called
-class PlayObserver: AVPlayer {
-    override func play() {
-        NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
-        super.play()
-    }
     
-    override init(playerItem: AVPlayerItem?) {
-        super.init(playerItem: playerItem)
-    }
-    override init() {
-        super.init()
-    }
-}
-/*
-class PlayObsever: AVPlayer {
-//    var isRadio: Bool = false
-    override func play() {
-//        if !isRadio, AppPlayer.radio.isPlaying {
-//            AppPlayer.radio.pause()
-//        }
-//        if isRadio, player?.isPlaying ?? false {
-//            player?.pause()
-//        }
-        super.play()
+    fileprivate static var music: PlayObserver? = nil
+    
+    /// Set player(music/radio) first
+    static var miniPlayerInfo = BasicDetail() {
+        willSet { print("Old value: \(miniPlayerInfo)") }
+        didSet {
+            print("New value: \(miniPlayerInfo)")
+            (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.refreshMiniplayer()
+        }
     }
 }
-*/
 
-var player: PlayObserver? {
-    get { AppPlayer.music }
-    set { AppPlayer.music = newValue }
+
+struct BasicDetail {
+    var songImage : String = ""
+    var artistSongName : String = ""
+    var songName : String = ""
+    var songController : UIViewController?
 }
-var songImage : String = ""
-var artistSongName : String = ""
-var songName : String = ""
-var songController : UIViewController?
 
 
 extension AVPlayer {

@@ -6,29 +6,17 @@ import CoreMedia
 import StoreKit
 
 class HomeViewController: UIViewController {
-
-    @IBOutlet weak var pageView: UIPageControl!
-
-    
-    @IBOutlet weak var lblPlayerArtist: UILabel!
-    @IBOutlet weak var heightSongVIEW: NSLayoutConstraint!
-    @IBOutlet weak var viewCurrentSong: UIView!
-    @IBOutlet weak var viewSongProgress: UIProgressView!
-    @IBOutlet weak var btnPlayPause: UIButton!
-    @IBOutlet weak var lblSongName: UILabel!
-    @IBOutlet weak var imgSong: UIImageView!
     @IBOutlet private weak var radiosroodTableView: UITableView!
+    @IBOutlet weak var pageView: UIPageControl!
     
+    @IBOutlet weak var heightMiniPlayer: NSLayoutConstraint!
     @IBOutlet weak var vwAds: UIView!
-    
     @IBOutlet weak var heightOfAdsView: NSLayoutConstraint!
-    
-    
     @IBOutlet weak var imgAdClose: UIImageView!
     
     var interstitial: GADInterstitial!
     var isInterstitialPresent = false
-//    var nativeAd: [GADUnifiedNativeAd] = []
+    //    var nativeAd: [GADUnifiedNativeAd] = []
     var adLoader: GADAdLoader!
     var dataHelper: DataHelper!
     var homeMusic: HomeMusicModles?
@@ -42,20 +30,16 @@ class HomeViewController: UIViewController {
     var myPlayListindex: Int?
     var homeHeaderArray: [String] = HomeHeader.allCases.map({ $0.title })
     var bannerView: GADBannerView!
-
+    
     private var isPurchaseSuccess: Bool = false
     var bannerAdViews: [GADBannerView] = []
-
     
     var timer = Timer()
     var counter = 0
     var featuredTop: [FeaturedTop]?
-
-        
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-       
         
         prepareView()
         self.vwAds.isHidden = true
@@ -70,16 +54,14 @@ class HomeViewController: UIViewController {
 //            self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.changeImage), userInfo: nil, repeats: true)
 //        }
         self.loadFeaturedArtistData()
-
-
     }
-
-
+    
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         radiosroodTableView.reloadData()
     }
-
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -103,9 +85,9 @@ class HomeViewController: UIViewController {
         handleTableView()
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
-
+        
         let purchase = IAPHandler.shared.isGetPurchase()
-
+        
         if purchase || isPurchaseSuccess {
             self.vwAds.isHidden = true
             self.imgAdClose.isHidden = true
@@ -118,7 +100,7 @@ class HomeViewController: UIViewController {
                 self.vwAds.isHidden = true
                 self.imgAdClose.isHidden = true
                 self.heightOfAdsView.constant = 0
-    //            isPurchaseSuccess = false
+//            isPurchaseSuccess = false
             }
         })
     }
@@ -134,7 +116,7 @@ class HomeViewController: UIViewController {
             }
         }
     }
-
+    
     private func handleTableView() {
         playList = UserDefaultsManager.shared.playListsData
         fetchRecentlyPlayed()
@@ -162,9 +144,9 @@ class HomeViewController: UIViewController {
             isInterstitialPresent = false
         }
     }
-        
+    
+    
     private func prepareView() {
-
         radiosroodTableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: Common.screenSize.width, height: 0.1))
         radiosroodTableView.tableFooterView = nil
         if #available(iOS 15.0, *) {
@@ -180,7 +162,7 @@ class HomeViewController: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(vwAdsTapped))
         imgAdClose.addGestureRecognizer(tapGesture)
         imgAdClose.isUserInteractionEnabled = true
-
+        
 //        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
     }
     
@@ -192,7 +174,7 @@ class HomeViewController: UIViewController {
         navVC.modalPresentationStyle = .fullScreen
         self.present(navVC, animated: true)
     }
-
+    
     func fetchRecentlyPlayed() {
         let savedTracks = UserDefaultsManager.shared.localTracksData
         recenltPlayed = savedTracks.filter({$0.isRecentlyPlayed})
@@ -201,25 +183,25 @@ class HomeViewController: UIViewController {
     }
     
     func loadBannerAds() {
-            guard !IAPHandler.shared.isGetPurchase() else {
-                return
-            }
-
-            let adView1 = GADBannerView(adSize: kGADAdSizeBanner)
-            adView1.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
-            adView1.rootViewController = self
-            adView1.delegate = self
-            adView1.load(GADRequest())
-
-            let adView2 = GADBannerView(adSize: kGADAdSizeBanner)
-            adView2.adUnitID = GOOGLE_ADMOB_ForMiniPlayer
-            adView2.rootViewController = self
-            adView2.delegate = self
-            adView2.load(GADRequest())
-
-            bannerAdViews = [adView1, adView2]
+        guard !IAPHandler.shared.isGetPurchase() else {
+            return
         }
-
+        
+        let adView1 = GADBannerView(adSize: kGADAdSizeBanner)
+        adView1.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
+        adView1.rootViewController = self
+        adView1.delegate = self
+        adView1.load(GADRequest())
+        
+        let adView2 = GADBannerView(adSize: kGADAdSizeBanner)
+        adView2.adUnitID = GOOGLE_ADMOB_ForMiniPlayer
+        adView2.rootViewController = self
+        adView2.delegate = self
+        adView2.load(GADRequest())
+        
+        bannerAdViews = [adView1, adView2]
+    }
+    
     
     private func loadCurrentLyricData() {
         dataHelper = DataHelper()
@@ -254,49 +236,17 @@ class HomeViewController: UIViewController {
         return containerView
     }
     
-    @IBAction func actionPlayPause(_ sender: Any) {
-        if (player?.isPlaying ?? false){
-            player?.pause()
-            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-           
-        } else {
-            player?.play()
-            self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-        }
-    }
-    @IBAction func actionOpenSong(_ sender: Any) {
-        guard let vc = songController else {
-            print("songController is nil")
-            return
-        }
-
-        if presentedViewController == nil && !vc.isBeingPresented {
-            self.present(vc, animated: true, completion: nil)
-        } else {
-            print("A view controller is already being presented or songController is already presented")
-        }
-    }
-    
-    func configureCurrentPlayingSong(){
-        self.lblSongName.text = songName
-        self.lblPlayerArtist.text = artistSongName
-        if songImage != ""{
-            self.imgSong.af_setImage(withURL: URL(string: songImage)!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-        }
+    func configureCurrentPlayingSong() {
         if !(player?.isPlaying ?? false){
-            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-            self.viewCurrentSong.isHidden = true
-            self.heightSongVIEW.constant = 0
+            self.heightMiniPlayer.constant = 0
             self.heightOfAdsView.constant = 0
             self.vwAds.isHidden = true
             self.imgAdClose.isHidden = true
-           
+            
         } else {
-            self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-            self.viewCurrentSong.isHidden = false
-            self.heightSongVIEW.constant = 60
+            self.heightMiniPlayer.constant = 60
             let purchase = IAPHandler.shared.isGetPurchase()
-
+            
             if !purchase {
                 self.heightOfAdsView.constant = 40
                 self.vwAds.isHidden = false
@@ -316,24 +266,8 @@ class HomeViewController: UIViewController {
                     self.imgAdClose.isHidden = true
                 }
             })
-
-            let totalTime = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
-            NotificationCenter.default.removeObserver(self)
-            NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-            //time observer to update slider.
-            timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), // used to monitor the current play time and update slider
-                                           queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.viewSongProgress.progress = ((Float(progressTime.seconds) / totalTime) * 100.0) / 100.0
-                }
-            })
         }
-    }
-    
-    @objc func playerDidFinishPlaying(sender: Notification) {
-        viewSongProgress.progress = 0.0
-        player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+        //(self.tabBarController as? TabbarVC)?.miniPlayer.refreshMiniplayer()
     }
     
     func newFeaturedCell(with tableView: UITableView) -> UITableViewCell {
@@ -348,7 +282,7 @@ class HomeViewController: UIViewController {
         }
         return UITableViewCell()
     }
-
+    
     
     func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: NewReleasesCell.self) {
@@ -457,7 +391,7 @@ class HomeViewController: UIViewController {
             for subview in cell.vwMain.subviews {
                 subview.removeFromSuperview()
             }
-
+            
             // Configure the cell based on conditions
             if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
                 cell.vwMain.isHidden = true
@@ -483,13 +417,13 @@ class HomeViewController: UIViewController {
             
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
-
+            
             return cell
         }
         
         return UITableViewCell()
     }
-
+    
     func openRadioWithRecentViewController() {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "RadioWithRecentViewController") as! RadioWithRecentViewController
         self.navigationController?.pushViewController(vc, animated: true)
@@ -515,7 +449,7 @@ class HomeViewController: UIViewController {
         self.present(vc, animated: true)
         //navigationController?.pushViewController(vc, animated: true)
     }
-            
+    
     func openMyPlayList(index: Int) {
         let playListSongs = self.playList[index].songs.map { $0.convertToPodcastModel() }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicViewController") as! MyMusicViewController
@@ -539,7 +473,7 @@ class HomeViewController: UIViewController {
         })
         self.present(alert, animated: true)
     }
-
+    
     @objc private func handleIAPPurchase() {
         self.isPurchaseSuccess = true
         vwAds.isHidden = true
@@ -547,30 +481,30 @@ class HomeViewController: UIViewController {
         heightOfAdsView.constant = 0
         radiosroodTableView.reloadData()
         DispatchQueue.main.asyncAfter(deadline: .now() + 50, execute: {
-        self.isPurchaseSuccess = false
+            self.isPurchaseSuccess = false
         })
     }
-
+    
     // Update the loadBannerAd function to add the banner to vwAds
     func loadBannerAd() {
         guard !IAPHandler.shared.isGetPurchase() else {
             // Skip loading the ad if the purchase is made
             return
         }
-
+        
         // Create the banner view
         bannerView = GADBannerView(adSize: kGADAdSizeBanner)
         bannerView.adUnitID = GOOGLE_ADMOB_ForMiniPlayer
         bannerView.rootViewController = self
         bannerView.delegate = self
         bannerView.load(GADRequest())
-
+        
         // Set the banner view frame
         bannerView.frame =  self.vwAds.bounds        // Remove any existing subviews from vwAds
         for subview in vwAds.subviews {
             subview.removeFromSuperview()
         }
-
+        
         // Add the banner to vwAds
         vwAds.addSubview(bannerView)
         
@@ -581,13 +515,11 @@ class HomeViewController: UIViewController {
             bannerView.topAnchor.constraint(equalTo: vwAds.topAnchor),
             bannerView.bottomAnchor.constraint(equalTo: vwAds.bottomAnchor)
         ])
-
     }
-
+    
     deinit {
         print("Remove HomeViewController from memory")
     }
-    
 }
 
 extension HomeViewController : MusicPlayerViewControllerDelegate{
@@ -612,9 +544,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch homeHeaderArray[indexPath.section] {
         case "Featured":
-           return newFeaturedCell(with: tableView)
+            return newFeaturedCell(with: tableView)
         case "New Releases":
-           return newReleasesCell(with: tableView)
+            return newReleasesCell(with: tableView)
         case "Currently Playing on Radio srood":
             return currentRadioCell(with: tableView)
         case "Trending":
@@ -653,9 +585,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         switch homeHeaderArray[section] {
         case "Featured":
-           return setHeaderData(headerTitle: HomeHeader.featured.title)
+            return setHeaderData(headerTitle: HomeHeader.featured.title)
         case "New Releases":
-           return setHeaderData(headerTitle: HomeHeader.newReleases.title)
+            return setHeaderData(headerTitle: HomeHeader.newReleases.title)
         case "Currently Playing on Radio srood":
             return setHeaderData(headerTitle: HomeHeader.currentRadio.title)
         case "Trending":
@@ -680,9 +612,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         switch homeHeaderArray[section] {
         case "Featured":
-           return 27
+            return 27
         case "New Releases":
-           return 27
+            return 27
         case "Currently Playing on Radio srood":
             return 27
         case "Trending":
@@ -707,9 +639,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         return nil
     }
-
+    
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-      return CGFloat.leastNonzeroMagnitude
+        return CGFloat.leastNonzeroMagnitude
     }
     
 }
@@ -779,7 +711,7 @@ extension HomeViewController: GADInterstitialDelegate {
             // Skip loading the ad if the purchase is made
             return
         }
-
+        
         interstitial = GADInterstitial(adUnitID: GOOGLE_ADMOB_INTER)
         interstitial!.delegate = self
         interstitial!.load(GADRequest())
@@ -817,7 +749,7 @@ extension HomeViewController: GADInterstitialDelegate {
         guard !IAPHandler.shared.isGetPurchase() else {
             return
         }
-
+        
         if (interstitial!.isReady) {
             isInterstitialPresent = true
             interstitial!.present(fromRootViewController: self)
@@ -829,72 +761,71 @@ extension HomeViewController: GADInterstitialDelegate {
 }
 
 /*extension HomeViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
-    
-    func loadNativeAd() {
-        guard !IAPHandler.shared.isGetPurchase() else {
-            // Skip loading the ad if the purchase is made
-            return
-        }
-
-        self.nativeAd.removeAll()
-        let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
-        multipleAdsOptions.numberOfAds = 2
-        adLoader = GADAdLoader(adUnitID: GOOGLE_ADMOB_NATIVE,
-                               rootViewController: self,
-                               adTypes: [.unifiedNative],
-                               options: [multipleAdsOptions])
-        adLoader.delegate = self
-        adLoader.load(GADRequest())
-    }
-    
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
-        guard !IAPHandler.shared.isGetPurchase() else {
-            return
-        }
-
-        self.nativeAd.append(nativeAd)
-        handleHomeHeaderArrayValue()
-        radiosroodTableView.reloadData()
-    }
-    
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
-        print("\(adLoader) failed with error: \(error.localizedDescription)")
-    }
-    
-} */
+ 
+ func loadNativeAd() {
+ guard !IAPHandler.shared.isGetPurchase() else {
+ // Skip loading the ad if the purchase is made
+ return
+ }
+ 
+ self.nativeAd.removeAll()
+ let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+ multipleAdsOptions.numberOfAds = 2
+ adLoader = GADAdLoader(adUnitID: GOOGLE_ADMOB_NATIVE,
+ rootViewController: self,
+ adTypes: [.unifiedNative],
+ options: [multipleAdsOptions])
+ adLoader.delegate = self
+ adLoader.load(GADRequest())
+ }
+ 
+ func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+ guard !IAPHandler.shared.isGetPurchase() else {
+ return
+ }
+ 
+ self.nativeAd.append(nativeAd)
+ handleHomeHeaderArrayValue()
+ radiosroodTableView.reloadData()
+ }
+ 
+ func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+ print("\(adLoader) failed with error: \(error.localizedDescription)")
+ }
+ 
+ } */
 
 extension HomeViewController: GADBannerViewDelegate {
-
+    
     // MARK: - GADBannerViewDelegate
-
+    
     // Tells the delegate an ad request loaded an ad.
     func adViewDidReceiveAd(_ bannerView: GADBannerView) {
         print("Ad received successfully")
     }
-
+    
     // Tells the delegate an ad request failed.
     func adView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: GADRequestError) {
         print("Ad failed to load: \(error.localizedDescription)")
     }
-
+    
     // Tells the delegate that a full-screen view will be presented in response to the user clicking on an ad.
     func adViewWillPresentScreen(_ bannerView: GADBannerView) {
         print("Ad will present a full-screen view")
     }
-
+    
     // Tells the delegate that the full-screen view will be dismissed.
     func adViewWillDismissScreen(_ bannerView: GADBannerView) {
         print("Full-screen view will be dismissed")
     }
-
+    
     // Tells the delegate that the full-screen view has been dismissed.
     func adViewDidDismissScreen(_ bannerView: GADBannerView) {
         print("Full-screen view has been dismissed")
     }
-
+    
     // Tells the delegate that a user click will open another app (such as the App Store), backgrounding the current app.
     func adViewWillLeaveApplication(_ bannerView: GADBannerView) {
         print("User click will leave the application")
-        
     }
 }

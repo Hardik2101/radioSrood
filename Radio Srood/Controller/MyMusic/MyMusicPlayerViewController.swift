@@ -93,21 +93,11 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     deinit {
-        // Check if the player exists
-//        if let player = player {
-            // Remove time observer
-//            if let timeObserver = timeObserver {
-//                player.removeTimeObserver(timeObserver)
-//            }
-                if let timeObserver = self.timeObserver, let player = player {
-                    player.removeTimeObserver(timeObserver)
-                }
-
-            // Additional cleanup tasks related to AVPlayer
-            // ...
-
-            // Set player to nil to release the reference
-//            self.player = nil
+        //timeObserver = nil
+        
+        //this removeTimeObserver doing crash when same screen reappear.
+//        if let timeObserver = self.timeObserver, let player = player {
+//            player.removeTimeObserver(timeObserver)
 //        }
 
         // Additional cleanup tasks
@@ -183,14 +173,18 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             }
             self.trackTitle.text = track.trackName
             self.artistName.text = track.artistName
-            songName = track.trackName
-            artistSongName = track.artistName
-            songController = self
-            songImage = track.imageURL?.absoluteString ?? ""
             if isSetMusic {
                 isSetMusic = false
                 self.play(url: track.file, isPlay: self.isPlay)
             }
+            
+            AppPlayer.miniPlayerInfo = BasicDetail(
+                songImage: track.imageURL?.absoluteString ?? "",
+                artistSongName: track.artistName,
+                songName: track.trackName,
+                songController: self
+            )
+            //config***
         }
         if isSetupRemoteTransport {
             isSetupRemoteTransport = false
@@ -426,15 +420,6 @@ extension MyMusicPlayerViewController {
         self.isLike = false
         self.setupNowPlaying()
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-        //time observer to update slider.
-//        timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), // used to monitor the current play time and update slider
-//                                       queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
-//            guard let self = self else { return }
-//            DispatchQueue.main.async {
-//                self.playerSlider.value = Float(progressTime.seconds)
-//                self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
-//            }
-//        })
         
         timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
             guard let self = self else { return }
@@ -443,7 +428,6 @@ extension MyMusicPlayerViewController {
                 self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
             }
         })
-
     }
 
     @objc func playerDidFinishPlaying(sender: Notification) {

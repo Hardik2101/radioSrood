@@ -254,7 +254,6 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
         self.radioImage.layer.masksToBounds = true
         
         self.radioName.text = self.radioData.value(forKey: "name") as? String
-        songName = self.radioName.text ?? ""
         self.radioTitle.text = "Click To Play"
         
         self.radioUrl = self.radioData.value(forKey: "radio_url") as? String

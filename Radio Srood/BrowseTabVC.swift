@@ -79,7 +79,7 @@ class BrowseTabVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        self.configureCurrentPlayingSong()
+        self.configureCurrentPlayingSong()
         loadCurrentLyricData()
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
@@ -318,59 +318,9 @@ class BrowseTabVC: UIViewController {
 //        }
 //    }
     
-//    func configureCurrentPlayingSong(){
-//        self.lblSongName.text = songName
-//        self.lblPlayerArtist.text = artistSongName
-//        if songImage != ""{
-//            self.imgSong.af_setImage(withURL: URL(string: songImage)!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-//        }
-//        if !(player?.isPlaying ?? false){
-//            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-//            self.viewCurrentSong.isHidden = true
-//            self.heightSongVIEW.constant = 0
-//            self.heightOfAdsView.constant = 0
-//            self.vwAds.isHidden = true
-//            self.imgAdClose.isHidden = true
-//           
-//        } else {
-//            self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-//            self.viewCurrentSong.isHidden = false
-//            self.heightSongVIEW.constant = 60
-//            let purchase = IAPHandler.shared.isGetPurchase()
-//
-//            if !purchase {
-//                self.heightOfAdsView.constant = 40
-//                self.vwAds.isHidden = false
-//                self.imgAdClose.isHidden = false
-//            } else {
-//                if purchase || self.isPurchaseSuccess {
-//                    self.heightOfAdsView.constant = 0
-//                    self.vwAds.isHidden = true
-//                    self.imgAdClose.isHidden = true
-//                }
-//            }
-//            
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-//                if purchase || self.isPurchaseSuccess {
-//                    self.heightOfAdsView.constant = 0
-//                    self.vwAds.isHidden = true
-//                    self.imgAdClose.isHidden = true
-//                }
-//            })
-//
-//            let totalTime = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
-//            NotificationCenter.default.removeObserver(self)
-//            NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-//            ////////////////time observer to update slider.
-//            timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), //////////////// used to monitor the current play time and update slider
-//                                           queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
-//                guard let self = self else { return }
-//                DispatchQueue.main.async {
-//                    self.viewSongProgress.progress = ((Float(progressTime.seconds) / totalTime) * 100.0) / 100.0
-//                }
-//            })
-//        }
-//    }
+    func configureCurrentPlayingSong() {
+        //(self.tabBarController as? TabbarVC)?.miniPlayer.refreshMiniplayer()
+    }
     
     @objc func playerDidFinishPlaying(sender: Notification) {
 //        viewSongProgress.progress = 0.0
@@ -636,7 +586,7 @@ class BrowseTabVC: UIViewController {
 
 extension BrowseTabVC : MusicPlayerViewControllerDelegate{
     func dismissMusicPlayer() {
-//        self.configureCurrentPlayingSong()
+        self.configureCurrentPlayingSong()
         handleTableView()
         tblBrowse.reloadData()
     }

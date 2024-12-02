@@ -295,9 +295,9 @@ class IAPHandler: NSObject {
     
     // MARK: - Check purchase data or not
     func isGetPurchase() -> Bool {
-//        if debugDeveloperSkipAds {
-//            return true
-//        }
+        if debugDeveloperSkipAds {
+            return true
+        }
         
         // check monthly subscription
         if getBooleanValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.IsSubscribe.string) {
