@@ -112,7 +112,12 @@ class RadioWithRecentViewController: UIViewController, GADBannerViewDelegate {
 //    @objc func execute() {
 //        loadRecentListData()
 //    }
-
+    
+    deinit {
+        print("Remove screen")
+    }
+    
+    
     @objc func loadRadioData() {
         dataHelper = DataHelper()
         if let data = UserDefaults.standard.value(forKey: "NowPlayData") as? NSDictionary {
@@ -148,15 +153,7 @@ class RadioWithRecentViewController: UIViewController, GADBannerViewDelegate {
             self.radioTableView.reloadData()
         })
     }
-
-    deinit {
-        print("Remove screen")
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
+    
     private func setHeaderData(headerTitle: String) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 30))
         let lblTitle = UILabel(frame: CGRect(x: 15, y: 5, width: screenSize.width - 30, height: 20))
@@ -287,7 +284,7 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                         let value1 = playRadioData.value(forKey: "radio_url") as? String
                         let value2 = playRadioData.value(forKey: "tv_stream") as? String
                         cell.radioUrl = value1 ?? value2 ?? ""
-                        if !AppPlayer.radio.isPlaying {
+                        if !radio.isPlaying {
                             cell.makeScreen()
                         }
                     }
@@ -550,7 +547,7 @@ extension RadioWithRecentViewController: GADInterstitialDelegate {
         }
 
         if (interstitial!.isReady) {
-            wasPlayingBeforeAds = AppPlayer.radio.isPlaying
+            wasPlayingBeforeAds = radio.isPlaying
             stopPlayerDelegate?.stopPlayerInDidDisappear()
             interstitial!.present(fromRootViewController: self)
         } else {

@@ -9,23 +9,39 @@
 import AVKit
 
 public extension NSNotification.Name {
+    //MARK: For Do Changes
+    static let pauseMusic = NSNotification.Name(rawValue: "PauseMusic")
     static let pauseRadio = NSNotification.Name(rawValue: "PauseRadio")
     static let reloadRadio = NSNotification.Name(rawValue: "ReloadRadio")
+    
+    
+    //MARK: For Update UI
+    static let musicDidPause = NSNotification.Name(rawValue: "MusicDidPause")
+    static let musicDidPlay = NSNotification.Name(rawValue: "MusicDidPlay")
+    
+    static let radioDidPause = NSNotification.Name(rawValue: "RadioDidPause")
+    static let radioDidPlay = NSNotification.Name(rawValue: "RadioDidPlay")
 }
 
 var player: PlayObserver? {
-    get { AppPlayer.music }
+    get { AppPlayer.musicData }
     set {
-        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.musicPlayPause = nil
-        AppPlayer.music = newValue
+        AppPlayer.musicData = newValue
+    }
+}
+var radio: RadioObserver {
+    get { AppPlayer.radioData }
+    set {
+        AppPlayer.radioData = newValue
     }
 }
 
 struct AppPlayer {
-    static var radio = AVPlayer()
     static var radioURL = ""
+    fileprivate static var radioData = RadioObserver()
     
-    fileprivate static var music: PlayObserver? = nil
+    fileprivate static var musicData: PlayObserver? = nil
+    
     
     /// Set player(music/radio) first
     static var miniPlayerInfo = BasicDetail() {
@@ -39,10 +55,11 @@ struct AppPlayer {
 
 
 struct BasicDetail {
-    var songImage : String = ""
-    var artistSongName : String = ""
-    var songName : String = ""
-    var songController : UIViewController?
+    var songImage: String = ""
+    var songNameTitle: String = ""
+    var artistSubtitle: String = ""
+    
+    var musicVC: UIViewController?
 }
 
 

@@ -21,11 +21,11 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
     @IBOutlet weak var appleBtn:      UIButton!
     
     
-    var radioPlayer: AVPlayer {
-        get { AppPlayer.radio }
+    var radioPlayer: RadioObserver {
+        get { radio }
         set {
             AppPlayer.radioURL = radioUrl
-            AppPlayer.radio = newValue
+            radio = newValue
         }
     }
     var asset : AVAsset? = nil
@@ -194,7 +194,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
                         self.playerItem = AVPlayerItem(url:playURL!)
                         self.playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
                         self.playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
-                        self.radioPlayer = AVPlayer(playerItem: self.playerItem)
+                        self.radioPlayer = RadioObserver(playerItem: self.playerItem)
                         self.radioPlayer.play()
                         self.setupNowPlaying()
                         self.updateNowPlaying(isPause: true)
@@ -314,7 +314,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
         playerItem = AVPlayerItem(url:playURL!)
         playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
         playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
-        radioPlayer = AVPlayer(playerItem: playerItem)
+        radioPlayer = RadioObserver(playerItem: playerItem)
         self.playPauseBtn.setImage(UIImage(named: "play.png"), for:.normal)
         radioPlayer.pause()
         isPlaying = false
@@ -328,7 +328,6 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
             radioPlayer.play()
             isPlaying = true
         }
-        
     }
     
     @IBAction func pausePressed() {

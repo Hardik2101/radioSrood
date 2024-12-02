@@ -295,29 +295,6 @@ class BrowseTabVC: UIViewController {
         return containerView
     }
     
-//    @IBAction func actionPlayPause(_ sender: Any) {
-//        if (player?.isPlaying ?? false){
-//            player?.pause()
-//            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-//           
-//        } else {
-//            player?.play()
-//            self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-//        }
-//    }
-//    @IBAction func actionOpenSong(_ sender: Any) {
-//        guard let vc = songController else {
-//            print("songController is nil")
-//            return
-//        }
-//
-//        if presentedViewController == nil && !vc.isBeingPresented {
-//            self.present(vc, animated: true, completion: nil)
-//        } else {
-//            print("A view controller is already being presented or songController is already presented")
-//        }
-//    }
-    
     func configureCurrentPlayingSong() {
         //(self.tabBarController as? TabbarVC)?.miniPlayer.refreshMiniplayer()
     }

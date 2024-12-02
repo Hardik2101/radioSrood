@@ -54,7 +54,6 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     var isLike = false
     var isRepeat = false
     var timeObserver: Any?
-    var musicPlayPause: PlayPauseSender?
     private var lastIndex: Int? = nil
     private var parser: LyricsParser? = nil
     private var isPurchaseSuccess: Bool = false
@@ -88,14 +87,23 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         isSetupRemoteTransport = true
         vwDownloadProgress.isHidden = true
         vwDownloadProgress.setProgress(0.0, animated: false)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(RadioViewController.didBecomeActiveNotificationReceived),
-                                               name:NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
-                                               object: nil)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(RadioViewController.playerInterruption(notification:)),
-                                               name:NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
-                                               object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(RadioViewController.didBecomeActiveNotificationReceived),
+            name:NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
+            object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(RadioViewController.playerInterruption(notification:)),
+            name:NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
+            object: nil)
+        
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .musicDidPlay, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .musicDidPause, object: nil
+        )
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
         
@@ -105,17 +113,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
 //        adsView?.delegate = self
     }
     
-  
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         radioTableView.reloadData()
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         DispatchQueue.main.async {
             self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
             self.navigationController?.navigationBar.shadowImage = UIImage()
@@ -128,6 +132,25 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         super.viewDidDisappear(animated)
         self.dismiss(animated: true)
         delegate?.dismissMusicPlayer()
+    }
+    
+    deinit {
+        UIApplication.shared.endReceivingRemoteControlEvents()
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = [:]
+        NotificationCenter.default.removeObserver(
+            self, name:NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
+            object: nil)
+        NotificationCenter.default.removeObserver(
+            self, name:NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
+            object: nil)
+        NotificationCenter.default.removeObserver(
+            self, name: .musicDidPlay, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .musicDidPause, object: nil
+        )
+        NotificationCenter.default.removeObserver(self)
+        print("Remove screen")
     }
     
     
@@ -326,23 +349,6 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         }
     }
     
-   
-    deinit {
-        UIApplication.shared.endReceivingRemoteControlEvents()
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = [:]
-        NotificationCenter.default.removeObserver(self,
-                                                  name:NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
-                                                  object: nil)
-        NotificationCenter.default.removeObserver(self,
-                                                  name:NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
-                                                  object: nil)
-        NotificationCenter.default.removeObserver(self)
-        print("Remove screen")
-    }
-    
-    //
-    
-
     
     func handleRecentInView(index: Int) {
         self.artCoverImage.layer.cornerRadius = 3
@@ -396,9 +402,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             
             AppPlayer.miniPlayerInfo = BasicDetail(
                 songImage: item.artcover,
-                artistSongName: item.artist,
-                songName: item.track,
-                songController: self
+                songNameTitle: item.track, 
+                artistSubtitle: item.artist,
+                musicVC: self
             )
             //config***
         }
@@ -978,7 +984,6 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
 }
 
 extension MusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
-    
     func loadNativeAd() {
         guard !IAPHandler.shared.isGetPurchase() else {
             return
@@ -1013,10 +1018,6 @@ extension MusicPlayerViewController {
         let playerItem = AVPlayerItem(url: url)
         player = PlayObserver(playerItem: playerItem)
         
-        musicPlayPause = PlayPauseSender(player: { player })
-        musicPlayPause?.onPlaybackStateChange = { nowPlay in
-            self.playPauseBtn.setImage(UIImage(named: nowPlay ? "ic_pause" : "ic_play"), for: .normal)
-        }
         self.playerSlider.minimumValue = 0.0
         self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
@@ -1120,6 +1121,14 @@ extension MusicPlayerViewController {
         label.text = String(format: "%02d", minutes) + ":" + String(format: "%02d", seconds)
     }
 
+    @objc func audioChanged() {
+        if player?.isPlaying ?? false {
+            self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+        } else {
+            self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+        }
+    }
+    
     @IBAction func pausePressed() {
         if (player?.isPlaying ?? true) {
             DispatchQueue.main.async {

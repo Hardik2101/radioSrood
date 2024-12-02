@@ -180,9 +180,9 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             
             AppPlayer.miniPlayerInfo = BasicDetail(
                 songImage: track.imageURL?.absoluteString ?? "",
-                artistSongName: track.artistName,
-                songName: track.trackName,
-                songController: self
+                songNameTitle: track.trackName,
+                artistSubtitle: track.artistName,
+                musicVC: self
             )
             //config***
         }

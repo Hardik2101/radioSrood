@@ -16,16 +16,13 @@ class MiniPlayerView: UIView {
     @IBOutlet weak var lblPlayerArtist: UILabel!
     @IBOutlet weak var btnPlayPause: UIButton!
     @IBOutlet weak var viewSongProgress: UIProgressView!
-
-    @IBOutlet weak var heightSongVIEW: NSLayoutConstraint!
+    
     @IBOutlet weak var viewCurrentSong: UIView!
     
     // Our custom view from the XIB file
     var view: UIView!
     
     var timeObserver: Any?
-    var musicPlayPause: PlayPauseSender?
-    var radioPlayPause: PlayPauseSender?
     
     override init(frame: CGRect) {
         super.init(frame: UIScreen.main.bounds)
@@ -39,7 +36,42 @@ class MiniPlayerView: UIView {
     
     private func commonInit() {
         xibSetup()
+        
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .radioDidPause, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .musicDidPlay, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioChanged),
+            name: .musicDidPause, object: nil
+        )
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPause, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .musicDidPlay, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .musicDidPause, object: nil
+        )
+    }
+    
+    
+    
     func xibSetup() {
         view = loadViewFromNib()
         view.frame = bounds
@@ -54,13 +86,26 @@ class MiniPlayerView: UIView {
         return view
     }
     
-    @IBAction func actionPlayPause(_ sender: Any) {
-        if (player?.isPlaying ?? false){
-            player?.pause()
-            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-            
+    
+    @objc func audioChanged() {
+        let isRadioPlaying = AppPlayer.miniPlayerInfo.musicVC == nil
+        let audio = isRadioPlaying ? radio : player
+        if audio?.isPlaying ?? false {
+            self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
         } else {
-            player?.play()
+            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
+        }
+    }
+    
+    @IBAction func actionPlayPause(_ sender: Any) {
+        let isRadioPlaying = AppPlayer.miniPlayerInfo.musicVC == nil
+        let audio = isRadioPlaying ? radio : player
+        
+        if audio?.isPlaying ?? false {
+            audio?.pause()
+            self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
+        } else {
+            audio?.play()
             self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
         }
     }
@@ -68,11 +113,11 @@ class MiniPlayerView: UIView {
     @IBAction func actionOpenSong(_ sender: Any) {
         //UIApplication.shared.keyWindow?.rootViewController ??
         guard let root = (CustomAlertController().topMostController() as? TabbarVC)?.selectedViewController else {
-            print("songController is nil")
+            print("Root is nil")
             return
         }
-        guard let vc = AppPlayer.miniPlayerInfo.songController else {
-            print("songController is nil")
+        guard let vc = AppPlayer.miniPlayerInfo.musicVC else {
+            print("miniPlayerInfo.musicVC is nil")
             return
         }
         
@@ -80,7 +125,7 @@ class MiniPlayerView: UIView {
         if root.presentedViewController == nil {
             root.present(vc, animated: true)
         } else {
-            print("A view controller is already being presented or songController is already presented")
+            print("A view controller is already being presented or musicVC is already presented")
         }
     }
 }
@@ -89,30 +134,27 @@ class MiniPlayerView: UIView {
 extension MiniPlayerView {
     func refreshMiniplayer() {
         self.viewSongProgress.progress = 0.0
-        self.lblSongName.text = AppPlayer.miniPlayerInfo.songName
-        self.lblPlayerArtist.text = AppPlayer.miniPlayerInfo.artistSongName
+        self.lblSongName.text = AppPlayer.miniPlayerInfo.songNameTitle
+        self.lblPlayerArtist.text = AppPlayer.miniPlayerInfo.artistSubtitle
         if AppPlayer.miniPlayerInfo.songImage != "" {
             self.imgSong.af_setImage(withURL: URL(string: AppPlayer.miniPlayerInfo.songImage)!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
+        
         let musicPlay = player?.isPlaying ?? false
-        let radioPlay = AppPlayer.radio.isPlaying
+        let radioPlay = radio.isPlaying
         if !musicPlay, !radioPlay {
             self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
             self.viewCurrentSong.isHidden = true
-            self.heightSongVIEW.constant = 0
             return
         }
         
         self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
         self.viewCurrentSong.isHidden = false
-        self.heightSongVIEW.constant = 60
         
         //NotificationCenter.default.removeObserver(self)
         //NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         
         timeObserver = nil
-        musicPlayPause = nil
-        radioPlayPause = nil
         if let player, musicPlay {
             let totalTime = Float(player.currentItem?.asset.duration.seconds ?? 0.0)
             timeObserver = player.addPeriodicTimeObserver(
@@ -126,20 +168,13 @@ extension MiniPlayerView {
                 }
             )
             
-            musicPlayPause = PlayPauseSender(player: {player})
-            musicPlayPause?.onPlaybackStateChange = { nowPlay in
-                self.btnPlayPause.setImage(UIImage(named: nowPlay ? "ic_pause" : "ic_play"), for: .normal)
-            }
+            
         } else if radioPlay {
-            radioPlayPause = PlayPauseSender(player: {AppPlayer.radio})
-            radioPlayPause?.onPlaybackStateChange = { nowPlay in
-                self.btnPlayPause.setImage(UIImage(named: nowPlay ? "ic_pause" : "ic_play"), for: .normal)
-            }
+            
         } else {
             
         }
     }
-    
     
 //    @objc func playerDidFinishPlaying(sender: Notification) {
 //        viewSongProgress.progress = 0.0

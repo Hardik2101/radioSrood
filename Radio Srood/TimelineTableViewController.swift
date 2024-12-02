@@ -19,11 +19,11 @@ class TimelineTableViewController: UITableViewController {
     var bannerView: GADBannerView!
     let avPlayerViewController = AVPlayerViewController()
     var avPlayer: AVPlayer?
-    var player: AVPlayer {
-        get { AppPlayer.radio }
+    var player: RadioObserver {
+        get { radio }
         set {
             //AppPlayer.radioURL = radioUrl
-            AppPlayer.radio = newValue
+            radio = newValue
         }
     }
     

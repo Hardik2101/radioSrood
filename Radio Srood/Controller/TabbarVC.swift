@@ -88,6 +88,6 @@ class TabbarVC: UITabBarController {
         
         // Add the custom view to the UITabBarController's view
         view.addSubview(miniPlayer)
-        miniPlayer.refreshMiniplayer()
+        //miniPlayer.refreshMiniplayer()
     }
 }

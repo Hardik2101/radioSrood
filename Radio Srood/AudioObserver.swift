@@ -19,49 +19,17 @@ class PlayObserver: AVPlayer {
     
     override init(playerItem: AVPlayerItem?) {
         super.init(playerItem: playerItem)
+        addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
     }
     override init() {
         super.init()
-    }
-}
-
-/*
- class PlayObsever: AVPlayer {
- //    var isRadio: Bool = false
- override func play() {
- //        if !isRadio, AppPlayer.radio.isPlaying {
- //            AppPlayer.radio.pause()
- //        }
- //        if isRadio, player?.isPlaying ?? false {
- //            player?.pause()
- //        }
- super.play()
- }
- }
- */
-
-
-class PlayPauseSender: NSObject {
-    var audioGet: (()->(AVPlayer?))!
-    private(set) var isPlaying: Bool = false
-    private(set) var isBuffering: Bool = false
-    
-    var onPlaybackStateChange: ((Bool) -> Void)?
-    var onBufferingStateChange: ((Bool) -> Void)?
-    
-    init?(player: @escaping ()->(AVPlayer?)) {
-        guard let x = player() else {
-            return nil
-        }
-        super.init()
-        audioGet = player
-        x.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new, .initial], context: nil)
+        addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
     }
     
     deinit {
         // Remove observer
         //audioGet()?.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new, .initial], context: nil)
-        audioGet()?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
+        removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
     }
     
     // KVO Observation
@@ -72,6 +40,8 @@ class PlayPauseSender: NSObject {
     }
     
     private func updatePlaybackState(_ player: AVPlayer) {
+        var isPlaying = false
+        var isBuffering = false
         switch player.timeControlStatus {
         case .paused:
             isPlaying = false
@@ -85,9 +55,55 @@ class PlayPauseSender: NSObject {
         @unknown default:
             break
         }
-        
-        // Notify UI using callbacks
-        onPlaybackStateChange?(isPlaying)
-        onBufferingStateChange?(isBuffering)
+        print("Music isPlaying: \(isPlaying), isBuffering: \(isBuffering)")
+        NotificationCenter.default.post(name: isPlaying ? .musicDidPlay : .musicDidPause, object: nil, userInfo: nil)
+    }
+}
+
+
+class RadioObserver: AVPlayer {
+    override func play() {
+        NotificationCenter.default.post(name: .pauseMusic, object: nil, userInfo: nil)
+        super.play()
+    }
+    
+    override init(playerItem: AVPlayerItem?) {
+        super.init(playerItem: playerItem)
+        addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
+    }
+    override init() {
+        super.init()
+        addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
+    }
+    
+    deinit {
+        removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
+    }
+    
+    // KVO Observation
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        guard keyPath == #keyPath(AVPlayer.timeControlStatus),
+              let player = object as? AVPlayer else { return }
+        updatePlaybackState(player)
+    }
+    
+    private func updatePlaybackState(_ player: AVPlayer) {
+        var isPlaying = false
+        var isBuffering = false
+        switch player.timeControlStatus {
+        case .paused:
+            isPlaying = false
+            isBuffering = false
+        case .waitingToPlayAtSpecifiedRate:
+            isPlaying = false
+            isBuffering = true
+        case .playing:
+            isPlaying = true
+            isBuffering = false
+        @unknown default:
+            break
+        }
+        print("Radio isPlaying: \(isPlaying), isBuffering: \(isBuffering)")
+        NotificationCenter.default.post(name: isPlaying ? .radioDidPlay : .radioDidPause, object: nil, userInfo: nil)
     }
 }

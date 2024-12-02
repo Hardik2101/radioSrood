@@ -75,7 +75,7 @@ class PlayerViewController: UIViewController, JukeboxDelegate {
         }
         
         jukebox = Jukebox(delegate: self, items:jukeboxItems)!
-        AppPlayer.radio.pause()
+        radio.pause()
         
         jukebox.play(atIndex: indexPlayerz)
         updateArtistLabel()

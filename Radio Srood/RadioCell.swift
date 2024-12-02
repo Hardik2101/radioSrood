@@ -20,11 +20,11 @@ class RadioCell: UITableViewCell {
     @IBOutlet weak var shareBtn: UIButton!
     @IBOutlet weak var btnLike: UIButton!
     
-    var radioPlayer: AVPlayer {
-        get { AppPlayer.radio }
+    var radioPlayer: RadioObserver {
+        get { radio }
         set {
             AppPlayer.radioURL = radioUrl
-            AppPlayer.radio = newValue
+            radio = newValue
         }
     }
     var asset: AVAsset? = nil
@@ -53,32 +53,62 @@ class RadioCell: UITableViewCell {
         if !isPlaying {
             do {
                 try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
-                
-                do {
-                    try AVAudioSession.sharedInstance().setActive(true)
-                    
-                } catch let error as NSError {
-                    print(error.localizedDescription)
-                }
+                try AVAudioSession.sharedInstance().setActive(true)
             } catch let error as NSError {
                 print(error.localizedDescription)
             }
             self.becomeFirstResponder()
         }
         NotificationCenter.default.addObserver(
+            self, selector: #selector(changeRadioState),
+            name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(changeRadioState),
+            name: .radioDidPause, object: nil
+        )
+        NotificationCenter.default.addObserver(
             self, selector: #selector(RadioCell.stopPlayer),
             name: .pauseRadio, object: nil
         )
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(
+            self, name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"), object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPause, object: nil
+        )
+//        NotificationCenter.default.removeObserver(
+//            self, name: .pauseRadio, object: nil
+//        )
+    }
+    
+    @objc func changeRadioState() {
+        let current = radio.isPlaying
+        
+        isPlaying = current
+        DispatchQueue.main.async {
+            self.playPauseBtn.setImage(UIImage(named: current ? "pause.png" : "play.png"), for:.normal)
+        }
+        updateNowPlaying(isPause: !current)
+    }
+    
     @objc func stopPlayer() {
         if isPlaying {
+            isPlaying = false
+            radioPlayer.pause()
             DispatchQueue.main.async {
                 self.playPauseBtn.setImage(UIImage(named: "play.png"), for:.normal)
             }
-            radioPlayer.pause()
             updateNowPlaying(isPause: true)
-            isPlaying = false
         }
     }
     
@@ -121,7 +151,7 @@ class RadioCell: UITableViewCell {
             self.playerItem = AVPlayerItem(url:playURL!)
             self.playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
             self.playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
-            self.radioPlayer = AVPlayer(playerItem: self.playerItem)
+            self.radioPlayer = RadioObserver(playerItem: self.playerItem)
             self.radioPlayer.play()
             self.setupNowPlaying()
             self.updateNowPlaying(isPause: true)
@@ -167,14 +197,14 @@ class RadioCell: UITableViewCell {
         playerItem = AVPlayerItem(url: playURL!)
         playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
         playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
-        radioPlayer = AVPlayer(playerItem: playerItem)
+        radioPlayer = RadioObserver(playerItem: playerItem)
         if !isPlay {
             playPauseBtn.setImage(UIImage(named: "play.png"), for:.normal)
             radioPlayer.pause()
         } else {
             playPauseBtn.setImage(UIImage(named: "pause.png"), for:.normal)
             radioPlayer.play()
-            //       setupNowPlaying()
+            //setupNowPlaying()
             configureCurrentPlayingSong()
         }
         isPlaying = isPlay
@@ -258,11 +288,11 @@ class RadioCell: UITableViewCell {
                 var miniplayerInfo = BasicDetail()
                 if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
                     self.trackTitle.text = currentTrack
-                    miniplayerInfo.songName = currentTrack
+                    miniplayerInfo.songNameTitle = currentTrack
                 }
                 if let currentArtist = currentSong.value(forKey: "currentArtist") as? String {
                     self.artistName.text = currentArtist
-                    miniplayerInfo.artistSongName = currentArtist
+                    miniplayerInfo.artistSubtitle = currentArtist
                 }
                 if let currentPlayCounts = currentSong.value(forKey: "currentPlayCounts") as? Int {
                     self.currentPlayCounts.text = "Plays: \(currentPlayCounts)"
@@ -293,11 +323,11 @@ class RadioCell: UITableViewCell {
         var miniplayerInfo = BasicDetail()
         if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
             trackTitle.text = currentTrack
-            miniplayerInfo.songName = currentTrack
+            miniplayerInfo.songNameTitle = currentTrack
         }
         if let currentArtist = currentSong.value(forKey: "currentArtist") as? String {
             artistName.text = currentArtist
-            miniplayerInfo.artistSongName = currentArtist
+            miniplayerInfo.artistSubtitle = currentArtist
         }
         if let currentPlayCounts = currentSong.value(forKey: "currentPlayCounts") as? Int {
             self.currentPlayCounts.text = "Plays: \(currentPlayCounts)"
@@ -410,15 +440,6 @@ class RadioCell: UITableViewCell {
             }
             return .commandFailed
         }
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(
-            self, name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"), object: nil
-        )
-        NotificationCenter.default.removeObserver(
-            self, name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil
-        )
     }
 }
 
