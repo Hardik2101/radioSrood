@@ -125,6 +125,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         }
+        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.viewCurrentSong.isHidden = true
     }
 
     
@@ -132,6 +133,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         super.viewDidDisappear(animated)
         self.dismiss(animated: true)
         delegate?.dismissMusicPlayer()
+        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.viewCurrentSong.isHidden = false
     }
     
     deinit {

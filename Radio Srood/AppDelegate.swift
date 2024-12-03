@@ -9,7 +9,7 @@ import AppTrackingTransparency
 //import AppReview//AppReview.requestIf(//https://github.com/mezhevikin/AppReview.git
 
 #if DEBUG
-let debugDeveloperSkipAds = !false
+let debugDeveloperSkipAds = false
 #else
 let debugDeveloperSkipAds = false
 #endif

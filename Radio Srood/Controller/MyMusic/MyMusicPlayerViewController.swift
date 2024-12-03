@@ -80,6 +80,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         radioTableView.reloadData()
+        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.viewCurrentSong.isHidden = true
     }
 
     override func viewWillAppear(_ animated: Bool) {

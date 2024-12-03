@@ -116,16 +116,27 @@ class MiniPlayerView: UIView {
             print("Root is nil")
             return
         }
-        guard let vc = AppPlayer.miniPlayerInfo.musicVC else {
+        if let vc = AppPlayer.miniPlayerInfo.musicVC {
+            //presentedViewController == nil &&
+            if root.presentedViewController == nil {
+                root.present(vc, animated: true)
+            } else {
+                print("A view controller is already being presented or musicVC is already presented")
+            }
+        } else {
             print("miniPlayerInfo.musicVC is nil")
-            return
         }
         
-        //presentedViewController == nil &&
-        if root.presentedViewController == nil {
-            root.present(vc, animated: true)
+        if let vc = AppPlayer.miniPlayerInfo.radioVC {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
+            if root.presentedViewController == nil {
+                root.present(radioViewController, animated: true)
+            } else {
+                print("A view controller is already being presented or musicVC is already presented")
+            }
         } else {
-            print("A view controller is already being presented or musicVC is already presented")
+            print("miniPlayerInfo.radioVC is nil")
         }
     }
 }
@@ -144,12 +155,13 @@ extension MiniPlayerView {
         let radioPlay = radio.isPlaying
         if !musicPlay, !radioPlay {
             self.btnPlayPause.setImage(UIImage(named: "ic_play"), for: .normal)
-            self.viewCurrentSong.isHidden = true
             return
         }
         
         self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-        self.viewCurrentSong.isHidden = false
+        if radioPlay {
+            self.viewCurrentSong.isHidden = false
+        }
         
         //NotificationCenter.default.removeObserver(self)
         //NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)

@@ -60,6 +60,7 @@ struct BasicDetail {
     var artistSubtitle: String = ""
     
     var musicVC: UIViewController?
+    var radioVC: UIViewController?
 }
 
 

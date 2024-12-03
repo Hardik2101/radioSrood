@@ -166,7 +166,7 @@ class RadioCell: UITableViewCell {
     
     func configureCurrentPlayingSong() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            AppPlayer.miniPlayerInfo = self.radioMiniPlayerInfo ?? BasicDetail()
+            AppPlayer.miniPlayerInfo = self.radioMiniPlayerInfo ?? BasicDetail(radioVC: self.presentView)
             //config***
         }
         
@@ -285,7 +285,7 @@ class RadioCell: UITableViewCell {
         dataHelper.getRecentListData(completion: { [weak self] resp in
             guard let self = self else { return }
             if let currentSong = resp.value(forKey: "currentTrack") as? NSDictionary {
-                var miniplayerInfo = BasicDetail()
+                var miniplayerInfo = BasicDetail(radioVC: presentView)
                 if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
                     self.trackTitle.text = currentTrack
                     miniplayerInfo.songNameTitle = currentTrack
@@ -320,7 +320,7 @@ class RadioCell: UITableViewCell {
     }
     
     func setUI(currentSong: NSDictionary) -> URL? {
-        var miniplayerInfo = BasicDetail()
+        var miniplayerInfo = BasicDetail(radioVC: presentView)
         if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
             trackTitle.text = currentTrack
             miniplayerInfo.songNameTitle = currentTrack
