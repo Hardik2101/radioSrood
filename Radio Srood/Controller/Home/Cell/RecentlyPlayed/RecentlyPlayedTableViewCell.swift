@@ -19,6 +19,7 @@ class RecentlyPlayedTableViewCell: UITableViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         imgPlayedSong.layer.cornerRadius = 3
     }
 

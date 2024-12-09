@@ -44,7 +44,7 @@ class PlayerViewController: UIViewController, JukeboxDelegate {
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        
+        super.viewWillDisappear(animated)
         if (self.isMovingFromParent){
             
             jukebox.stop()
@@ -56,7 +56,7 @@ class PlayerViewController: UIViewController, JukeboxDelegate {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        
+        super.viewWillAppear(animated)
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.isTranslucent = true

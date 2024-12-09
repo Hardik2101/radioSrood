@@ -34,6 +34,7 @@ class PlayObserver: AVPlayer {
     
     // KVO Observation
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        //super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         guard keyPath == #keyPath(AVPlayer.timeControlStatus),
               let player = object as? AVPlayer else { return }
         updatePlaybackState(player)
@@ -82,6 +83,7 @@ class RadioObserver: AVPlayer {
     
     // KVO Observation
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        //super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         guard keyPath == #keyPath(AVPlayer.timeControlStatus),
               let player = object as? AVPlayer else { return }
         updatePlaybackState(player)

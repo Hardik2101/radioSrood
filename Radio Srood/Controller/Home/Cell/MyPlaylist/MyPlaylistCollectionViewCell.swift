@@ -13,6 +13,7 @@ class MyPlaylistCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var lblSongName: UILabel!
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         imgSong.layer.cornerRadius = 3
     }
     
@@ -42,6 +43,7 @@ class MyAllPlaylistCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var lblSongName: UILabel!
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         imgSong.layer.cornerRadius = 3
     }
     

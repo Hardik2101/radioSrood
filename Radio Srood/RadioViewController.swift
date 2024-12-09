@@ -10,7 +10,7 @@ import GoogleMobileAds
 import StoreKit
 
 
-class RadioViewController: UIViewController, GADInterstitialDelegate {
+class RadioViewController: UI_VC, GADInterstitialDelegate {
     
     @IBOutlet weak var menuBtn :      UIBarButtonItem!
     @IBOutlet weak var radioImage:    UIImageView!
@@ -43,6 +43,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
     var interstitial: GADInterstitial!
     var countTime = 0
     var mediaImage: UIImage!
+    var radioMiniPlayerInfo: BasicDetail?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,16 +59,16 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
             // Handle the case where SKStoreReviewController is not available
             // or other fallback behavior.
         }
-       
+        
         self.artImage = UIImage(named:"Lav_Radio_Logo.png")
         self.trackName = ""
         
-//        menuBtn.target = self.revealViewController()
-//        menuBtn.action = #selector(SWRevealViewController.revealToggle(_:))
-//        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+        //        menuBtn.target = self.revealViewController()
+        //        menuBtn.action = #selector(SWRevealViewController.revealToggle(_:))
+        //        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         
-//        menuBtn.action = #selector(menuButtonClicked(_:))
-
+        //        menuBtn.action = #selector(menuButtonClicked(_:))
+        
         
         NotificationCenter.default.addObserver(
             self, selector: #selector(RadioViewController.didBecomeActiveNotificationReceived),
@@ -107,9 +108,9 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
         loadRadioData()
     }
     
-//    @objc func menuButtonClicked(_ sender: UIBarButtonItem) {
-//        self.navigationController?.popViewController(animated: true)
-//    }
+    //    @objc func menuButtonClicked(_ sender: UIBarButtonItem) {
+    //        self.navigationController?.popViewController(animated: true)
+    //    }
     
     deinit {
         NotificationCenter.default.removeObserver(
@@ -132,6 +133,8 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.isTranslucent = true
@@ -174,36 +177,48 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
         if type == .began {
             radioPlayer.pause()
             updateNowPlaying(isPause: false)
+            return
+        } else if type != .ended {
+            return
         }
-        else if type == .ended {
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+        guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+            return
+        }
+        let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+        if !options.contains(.shouldResume) { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
+            if UIApplication.shared.applicationState != .background {
+                self.radioPlayer.play()
+                configureCurrentPlayingSong()
                 return
             }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
-                    if UIApplication.shared.applicationState == .background {
-                        print("App in Background")
-                        /*Radio Already play by other screen */
-                        if AppPlayer.radioURL != radioUrl {
-                            NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
-                        }
-                        
-                        let playURL = URL(string: self.radioUrl)
-                        self.asset = AVAsset(url: playURL!)
-                        self.playerItem = AVPlayerItem(url:playURL!)
-                        self.playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
-                        self.playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
-                        self.radioPlayer = RadioObserver(playerItem: self.playerItem)
-                        self.radioPlayer.play()
-                        self.setupNowPlaying()
-                        self.updateNowPlaying(isPause: true)
-                    } else {
-                        self.radioPlayer.play()
-                    }
-                }
+            print("App in Background")
+            /*Radio Already play by other screen */
+            if AppPlayer.radioURL != radioUrl {
+                NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
             }
+            
+            let playURL = URL(string: self.radioUrl)
+            self.asset = AVAsset(url: playURL!)
+            self.playerItem = AVPlayerItem(url:playURL!)
+            self.playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
+            self.playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
+            self.radioPlayer = RadioObserver(playerItem: self.playerItem)
+            self.radioPlayer.play()
+            self.setupNowPlaying()
+            self.updateNowPlaying(isPause: true)
+            
+            self.configureCurrentPlayingSong()
         }
+    }
+    
+    func configureCurrentPlayingSong() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            AppPlayer.miniPlayerInfo = self.radioMiniPlayerInfo ?? BasicDetail(radioVC: self)
+            //config***
+        }
+        
+        //(self.tabBarController as? TabbarVC)?.miniPlayer.refreshMiniplayer()
     }
     
     private func loadInterstitial() {
@@ -242,6 +257,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
     }
     
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: "notify"), object: nil)
     }
     
@@ -282,7 +298,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
         self.appleBtn.isHidden = true
         
         if let image_name = self.radioData.value(forKey: "image") as? String {
-            let img = BASE_BACKEND_URL + UPLOAD_IMAGE + image_name
+            let img = image_name.hasPrefix("http") ? image_name : BASE_BACKEND_URL + UPLOAD_IMAGE + image_name
             if let urla = URL(string:img) {
                 self.radioImage.af_setImage(withURL: urla, placeholderImage: nil, filter: nil, imageTransition: .crossDissolve(0.5), completion: { response in
                     if response.value != nil {
@@ -359,7 +375,7 @@ class RadioViewController: UIViewController, GADInterstitialDelegate {
     
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        
+        //super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         if keyPath != "timedMetadata" { return }
         if let data: AVPlayerItem = object as? AVPlayerItem
         {

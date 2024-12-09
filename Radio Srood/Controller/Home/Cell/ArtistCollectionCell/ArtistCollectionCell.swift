@@ -23,6 +23,7 @@ class ArtistCollectionCell: UICollectionViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         artistBgImage.layer.cornerRadius = 90/2
         transparentView.layer.cornerRadius = 90/2
     }

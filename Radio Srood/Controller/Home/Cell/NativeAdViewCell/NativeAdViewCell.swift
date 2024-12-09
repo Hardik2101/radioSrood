@@ -13,6 +13,7 @@ class NativeAdViewCell: UITableViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         bgView.layer.cornerRadius = 5
         lblAd.layer.cornerRadius = 3
     }

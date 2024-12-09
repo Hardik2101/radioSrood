@@ -26,6 +26,7 @@ class MusicCell: UICollectionViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         mainView.layer.cornerRadius = 5
         artworkImage.layer.cornerRadius = 3
     }

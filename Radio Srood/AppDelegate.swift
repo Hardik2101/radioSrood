@@ -139,6 +139,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     override func remoteControlReceived(with event: UIEvent?) {
+        super.remoteControlReceived(with: event)
         // Handle remote control events
     }
     

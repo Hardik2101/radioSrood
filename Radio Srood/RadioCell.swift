@@ -92,7 +92,7 @@ class RadioCell: UITableViewCell {
     }
     
     @objc func changeRadioState() {
-        let current = radio.isPlaying
+        let current = radio.isPlaying &&  AppPlayer.radioURL == radioUrl
         
         isPlaying = current
         DispatchQueue.main.async {
@@ -261,6 +261,7 @@ class RadioCell: UITableViewCell {
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        //super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         if keyPath != "timedMetadata" { return }
         if let data: AVPlayerItem = object as? AVPlayerItem {
             if let dataItem = data.timedMetadata {

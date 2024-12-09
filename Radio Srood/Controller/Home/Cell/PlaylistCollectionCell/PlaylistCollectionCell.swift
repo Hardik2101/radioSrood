@@ -22,6 +22,7 @@ class PlaylistCollectionCell: UICollectionViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         playlsitImage.layer.cornerRadius = 5
     }
     

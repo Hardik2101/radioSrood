@@ -25,6 +25,7 @@ class NewReleasesCollectionCell: UICollectionViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         artworkImage.layer.cornerRadius = 5
     }
     

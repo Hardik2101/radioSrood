@@ -35,6 +35,7 @@ class MenuTableViewController: UITableViewController , SWRevealViewControllerDel
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         self.menuAnimation()
         self.radioLabel.text = NSLocalizedString("radio_menu_label", comment: "")
         self.tvLabel.text = NSLocalizedString("tv_menu_label", comment: "")

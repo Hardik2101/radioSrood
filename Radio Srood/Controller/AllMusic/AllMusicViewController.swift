@@ -47,6 +47,7 @@ class AllMusicViewController: UI_VC {
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         setUpUI()
     }
         

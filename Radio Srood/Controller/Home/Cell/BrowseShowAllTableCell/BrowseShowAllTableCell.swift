@@ -80,6 +80,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         itemImage.layer.cornerRadius = 5
     }
 }

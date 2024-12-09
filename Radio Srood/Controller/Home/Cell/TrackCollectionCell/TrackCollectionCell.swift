@@ -43,6 +43,7 @@ class TrackCollectionCell: UICollectionViewCell {
     }
     
     override func draw(_ rect: CGRect) {
+        super.draw(rect)
         mainView.layer.cornerRadius = 5
         bgImage.layer.cornerRadius = 5
         trackImage.layer.cornerRadius = 5
