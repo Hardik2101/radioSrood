@@ -1,7 +1,14 @@
 import UIKit
 
 class TabbarVC: UITabBarController {
-
+    static var available: TabbarVC? {
+        CustomAlertController().topMostController() as? TabbarVC
+    }
+    
+    static var isMiniPlayerVisible: Bool {
+        !(available?.miniPlayer.viewCurrentSong.isHidden ?? true)
+    }
+    
     var miniPlayer: MiniPlayerView!
     
     override func viewDidLoad() {

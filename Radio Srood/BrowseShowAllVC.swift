@@ -8,7 +8,7 @@
 
 import UIKit
 
-class BrowseShowAllVC: UIViewController {
+class BrowseShowAllVC: UI_VC {
     @IBOutlet weak var tblShowAll: UITableView! {
         didSet {
             self.tblShowAll.delegate = self

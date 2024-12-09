@@ -21,6 +21,9 @@ public extension NSNotification.Name {
     
     static let radioDidPause = NSNotification.Name(rawValue: "RadioDidPause")
     static let radioDidPlay = NSNotification.Name(rawValue: "RadioDidPlay")
+    
+    
+    static let MiniPlayerVisibilityChanged = Notification.Name("MiniPlayerVisibilityChanged")
 }
 
 var player: PlayObserver? {
@@ -48,7 +51,7 @@ struct AppPlayer {
         willSet { print("Old value: \(miniPlayerInfo)") }
         didSet {
             print("New value: \(miniPlayerInfo)")
-            (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.refreshMiniplayer()
+            TabbarVC.available?.miniPlayer.refreshMiniplayer()
         }
     }
 }

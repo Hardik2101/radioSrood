@@ -37,8 +37,6 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     
     @IBOutlet weak var vwDownloadProgress: UIProgressView!
     
-    weak var delegate : MusicPlayerViewControllerDelegate?
-    
     var dataHelper: DataHelper!
     var nativeAd: GADUnifiedNativeAd?
     var adLoader: GADAdLoader!
@@ -125,15 +123,17 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         }
-        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.viewCurrentSong.isHidden = true
+        TabbarVC.available?.miniPlayer.miniplayer(hide: true)
     }
 
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        TabbarVC.available?.miniPlayer.miniplayer(hide: false)
         self.dismiss(animated: true)
-        delegate?.dismissMusicPlayer()
-        (CustomAlertController().topMostController() as? TabbarVC)?.miniPlayer.viewCurrentSong.isHidden = false
+        if let vc = TabbarVC.available?.selectedViewController as? MusicPlayerViewControllerDelegate {
+            vc.dismissMusicPlayer()
+        }
     }
     
     deinit {
@@ -156,7 +156,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     }
     
     
-    private func prepareView() {
+    func prepareView() {
         switch homeHeader {
         case .featured:       loadFeaturedDataItems()
         case .newReleases:    loadNewReleaseData()

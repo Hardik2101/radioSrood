@@ -14,7 +14,7 @@ protocol StopPlayerDelegate: AnyObject {
     func stopPlayerInDidDisappear()
 }
 
-class RadioWithRecentViewController: UIViewController, GADBannerViewDelegate {
+class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 
     @IBOutlet weak var radioTableView: UITableView!
     @IBOutlet weak var bgImageView: UIImageView!

@@ -5,11 +5,10 @@ import GoogleMobileAds
 import CoreMedia
 import StoreKit
 
-class HomeViewController: UIViewController {
+class HomeViewController: UI_VC {
     @IBOutlet private weak var radiosroodTableView: UITableView!
     @IBOutlet weak var pageView: UIPageControl!
     
-    @IBOutlet weak var heightMiniPlayer: NSLayoutConstraint!
     @IBOutlet weak var vwAds: UIView!
     @IBOutlet weak var heightOfAdsView: NSLayoutConstraint!
     @IBOutlet weak var imgAdClose: UIImageView!
@@ -238,13 +237,13 @@ class HomeViewController: UIViewController {
     
     func configureCurrentPlayingSong() {
         if !(player?.isPlaying ?? false){
-            self.heightMiniPlayer.constant = 0
+            //self.heightMiniPlayer.constant = 0
             self.heightOfAdsView.constant = 0
             self.vwAds.isHidden = true
             self.imgAdClose.isHidden = true
             
         } else {
-            self.heightMiniPlayer.constant = 60
+            //self.heightMiniPlayer.constant = 60
             let purchase = IAPHandler.shared.isGetPurchase()
             
             if !purchase {
@@ -434,10 +433,14 @@ class HomeViewController: UIViewController {
         print("*-*-*-* \(groupID ?? -1) \(homeHeader) \(#function)")
         vc.groupID = groupID
         groupID = nil
-        vc.delegate = self
         vc.homeHeader = homeHeader
         vc.modalPresentationStyle = .overCurrentContext
+        
         self.present(vc, animated: true)//navigationController?.pushViewController(vc, animated: true)
+//        AppPlayer.miniPlayerInfo = BasicDetail(
+//            musicVC: vc
+//        )
+//        vc.prepareView()
     }
     
     func openMyMusicPlayerViewController(index: Int) {
@@ -527,6 +530,7 @@ extension HomeViewController : MusicPlayerViewControllerDelegate{
         self.configureCurrentPlayingSong()
         handleTableView()
         radiosroodTableView.reloadData()
+        fixMiniplayerSpace()
     }
 }
 

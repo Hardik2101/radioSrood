@@ -34,6 +34,11 @@ class MiniPlayerView: UIView {
         commonInit()
     }
     
+    func miniplayer(hide: Bool) {
+        TabbarVC.available?.miniPlayer.viewCurrentSong.isHidden = hide
+        NotificationCenter.default.post(name: .MiniPlayerVisibilityChanged, object: nil)
+    }
+    
     private func commonInit() {
         xibSetup()
         
@@ -112,7 +117,7 @@ class MiniPlayerView: UIView {
     
     @IBAction func actionOpenSong(_ sender: Any) {
         //UIApplication.shared.keyWindow?.rootViewController ??
-        guard let root = (CustomAlertController().topMostController() as? TabbarVC)?.selectedViewController else {
+        guard let root = TabbarVC.available?.selectedViewController else {
             print("Root is nil")
             return
         }
@@ -127,7 +132,7 @@ class MiniPlayerView: UIView {
             print("miniPlayerInfo.musicVC is nil")
         }
         
-        if let vc = AppPlayer.miniPlayerInfo.radioVC {
+        if AppPlayer.miniPlayerInfo.radioVC != nil {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
             if root.presentedViewController == nil {
@@ -163,6 +168,8 @@ extension MiniPlayerView {
             self.viewCurrentSong.isHidden = false
         }
         
+        NotificationCenter.default.post(name: .MiniPlayerVisibilityChanged, object: nil)
+
         //NotificationCenter.default.removeObserver(self)
         //NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         
@@ -180,7 +187,6 @@ extension MiniPlayerView {
                 }
             )
             
-            
         } else if radioPlay {
             
         } else {
@@ -196,4 +202,35 @@ extension MiniPlayerView {
 //        let current = musicPlay ? player : AppPlayer.radio
 //        current?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
 //    }
+}
+
+
+import UIKit
+
+class UI_VC: UIViewController {
+    // Constraint to adjust, link it from storyboard in inherited view controllers
+    @IBOutlet weak var bottomConstraint: NSLayoutConstraint?
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        fixMiniplayerSpace()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(miniPlayerVisibilityChanged(_:)),
+            name: .MiniPlayerVisibilityChanged,
+            object: nil
+        )
+    }
+    
+    func fixMiniplayerSpace() {
+        let isVisible = TabbarVC.isMiniPlayerVisible
+        let new = isVisible ? 60.0 : 0
+        bottomConstraint?.constant = new
+        self.view.layoutIfNeeded()
+    }
+    
+    /// Called when the MiniPlayer visibility changes
+    @objc private func miniPlayerVisibilityChanged(_ notification: Notification) {
+        fixMiniplayerSpace()
+    }
 }

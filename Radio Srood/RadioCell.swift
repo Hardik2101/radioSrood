@@ -309,6 +309,12 @@ class RadioCell: UITableViewCell {
                     })
                 }
                 self.radioMiniPlayerInfo = miniplayerInfo
+                
+                if AppPlayer.miniPlayerInfo.radioVC != nil {
+                    configureCurrentPlayingSong()
+                } else {
+                    print("song changed but radio stoped.")
+                }
             }
             self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
             self.isLike = false
@@ -359,25 +365,25 @@ class RadioCell: UITableViewCell {
             nowPlayingInfo[MPMediaItemPropertyTitle] = self.trackTitle.text
             nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
             
-            if let image = self.artCoverImage.image {
-                if #available(iOS 10.0, *) {
-                    // Asynchronous loading of image
-                    DispatchQueue.global(qos: .background).async {
-                        let mediaArtwork = MPMediaItemArtwork(boundsSize: image.size) { (size: CGSize) -> UIImage in
-                            return image
-                        }
-                        nowPlayingInfo[MPMediaItemPropertyArtwork] = mediaArtwork
-                        
-                        DispatchQueue.main.async {
-                            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-                        }
-                    }
-                } else {
-                    // Fallback on earlier versions
-                }
-            } else {
+            guard let image = self.artCoverImage.image else {
                 // Handle case where image is nil
                 print("Error: artCoverImage.image is nil")
+                return
+            }
+            if #available(iOS 10.0, *) {
+                // Asynchronous loading of image
+                DispatchQueue.global(qos: .background).async {
+                    let mediaArtwork = MPMediaItemArtwork(boundsSize: image.size) { (size: CGSize) -> UIImage in
+                        return image
+                    }
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = mediaArtwork
+                    
+                    DispatchQueue.main.async {
+                        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                    }
+                }
+            } else {
+                // Fallback on earlier versions
             }
         }
     }

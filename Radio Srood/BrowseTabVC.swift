@@ -13,7 +13,7 @@ import StoreKit
 import AVKit
 
 
-class BrowseTabVC: UIViewController {
+class BrowseTabVC: UI_VC {
     
     @IBOutlet weak var tblBrowse: UITableView! {
         didSet {
@@ -442,7 +442,6 @@ class BrowseTabVC: UIViewController {
         print("*-* \(groupID ?? -1) \(browseheader) \(#function)")
         vc.groupID = groupID
         groupID = nil
-        vc.delegate = self
         vc.homeHeader = browseheader.toHomeHeader!
         vc.modalPresentationStyle = .overCurrentContext
         self.present(vc, animated: true)
@@ -561,11 +560,12 @@ class BrowseTabVC: UIViewController {
     
 }
 
-extension BrowseTabVC : MusicPlayerViewControllerDelegate{
+extension BrowseTabVC : MusicPlayerViewControllerDelegate {
     func dismissMusicPlayer() {
         self.configureCurrentPlayingSong()
         handleTableView()
         tblBrowse.reloadData()
+        fixMiniplayerSpace()
     }
 }
 

@@ -14,16 +14,16 @@
                 <outlet property="imgSong" destination="Xsl-gU-BI7" id="uVw-wH-BNb"/>
                 <outlet property="lblPlayerArtist" destination="YjO-gR-QGN" id="Jm6-Wc-e4c"/>
                 <outlet property="lblSongName" destination="dO9-ZG-YWs" id="8dH-6o-pob"/>
-                <outlet property="viewCurrentSong" destination="V3Q-VY-IKa" id="rqq-9x-tTY"/>
+                <outlet property="viewCurrentSong" destination="iN0-l3-epB" id="qgz-OH-8lm"/>
                 <outlet property="viewSongProgress" destination="Ct5-Pb-59s" id="om3-Te-JWu"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <view contentMode="scaleToFill" id="iN0-l3-epB">
+        <view hidden="YES" contentMode="scaleToFill" id="iN0-l3-epB">
             <rect key="frame" x="0.0" y="0.0" width="500" height="153"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="V3Q-VY-IKa">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="V3Q-VY-IKa">
                     <rect key="frame" x="0.0" y="59" width="500" height="60"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Song:" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dO9-ZG-YWs" userLabel="Headline View">

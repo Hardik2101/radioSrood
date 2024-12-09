@@ -10,8 +10,7 @@
 import UIKit
 import StoreKit
 
-class IAPVC: UIViewController {
-    
+class IAPVC: UI_VC {
     @IBOutlet weak var btnBack: UIButton!
     
     @IBOutlet weak var vwYearly: UIView!
@@ -23,7 +22,6 @@ class IAPVC: UIViewController {
     @IBOutlet weak var lblMonthly: UILabel!
     @IBOutlet weak var lblMonthlyPrice: UILabel!
 
-    
     @IBOutlet weak var lblSrood: UILabel!
     @IBOutlet weak var lblPlus: UILabel!
     @IBOutlet weak var vwFeatures: UIView!
@@ -31,27 +29,23 @@ class IAPVC: UIViewController {
     @IBOutlet weak var lblFeature1: UILabel!
     @IBOutlet weak var lblFeature2: UILabel!
     @IBOutlet weak var lblFeature3: UILabel!
-    
     @IBOutlet weak var imsSelectedMonthly: UIImageView!
-    
     @IBOutlet weak var imgSelectedYearly: UIImageView!
-    
     @IBOutlet weak var lblSubscriptionAndPrivacyPolicy: UILabel!
-
     @IBOutlet weak var btnRestore: UIButton!
-    
     @IBOutlet weak var btnUpgradePremium: UIButton!
-
     @IBOutlet weak var txtView: UITextView!
+    
     private var isYearly: Bool = false
-     var isshowbackButton: Bool = false
+    var isshowbackButton: Bool = false
 
 //    private var selectedProduct = enumSelectedProduct.oneYearProd
 
     private let subScriptionAgreementRange = ("\(NSLocalizedString("Terms Of Use", comment: ""))    \(NSLocalizedString("Privacy Policy", comment: ""))" as NSString).range(of: NSLocalizedString("Terms Of Use", comment: ""))
     
     private let privacyPolicyRange = ("\(NSLocalizedString("Terms Of Use", comment: ""))    \(NSLocalizedString("Privacy Policy", comment: ""))" as NSString).range(of: NSLocalizedString("Privacy Policy", comment: ""))
-
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setUpUI()

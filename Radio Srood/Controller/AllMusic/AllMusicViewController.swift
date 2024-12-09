@@ -11,7 +11,7 @@
 
 import UIKit
 
-class AllMusicViewController: UIViewController {
+class AllMusicViewController: UI_VC {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var collectionView: UICollectionView!
     
