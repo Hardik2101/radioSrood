@@ -247,7 +247,7 @@ class RadioCell: UITableViewCell {
         setupNowPlaying()
         updateNowPlaying(isPause: false)
         presentView?.update()
-        configureCurrentPlayingSong()//thisOnly happen
+        configureCurrentPlayingSong()
     }
     
     @IBAction func likeBtnPressed(_ sender: Any) {

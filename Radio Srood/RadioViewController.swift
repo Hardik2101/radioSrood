@@ -38,6 +38,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
     var isPlaying = false
     var timerListen: Timer!
     var trackName: String!
+    var imgStr = ""
     var artImage: UIImage!
     var appleMusicUrl = ""
     var interstitial: GADInterstitial!
@@ -104,6 +105,15 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
             self, selector: #selector(stopPlayer),
             name: .pauseRadio, object: nil
         )
+        
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(changeRadioState),
+            name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(changeRadioState),
+            name: .radioDidPause, object: nil
+        )
         loadInterstitial()
         loadRadioData()
     }
@@ -130,6 +140,13 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         NotificationCenter.default.removeObserver(
             self, name: .pauseRadio, object: nil
         )
+        
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPlay, object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self, name: .radioDidPause, object: nil
+        )
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -138,6 +155,22 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.isTranslucent = true
+        TabbarVC.available?.miniPlayer.miniplayer(hide: true)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        TabbarVC.available?.miniPlayer.miniplayer(hide: false)
+    }
+    
+    @objc func changeRadioState() {
+        let current = radio.isPlaying && AppPlayer.radioURL == radioUrl
+        
+        isPlaying = current
+        DispatchQueue.main.async {
+            self.playPauseBtn.setImage(UIImage(named: current ? "pause.png" : "play.png"), for:.normal)
+        }
+        updateNowPlaying(isPause: !current)
     }
     
     @objc func stopPlayer() {
@@ -226,7 +259,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
             // Skip loading the ad if the purchase is made
             return
         }
-
+        
         interstitial = GADInterstitial(adUnitID: GOOGLE_ADMOB_INTER)
         interstitial!.delegate = self
         interstitial!.load(GADRequest())
@@ -235,8 +268,8 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
     func interstitialDidFailToReceiveAdWithError (
         interstitial: GADInterstitial,
         error: GADRequestError) {
-        print("interstitialDidFailToReceiveAdWithError: %@" + error.localizedDescription)
-    }
+            print("interstitialDidFailToReceiveAdWithError: %@" + error.localizedDescription)
+        }
     
     func interstitialDidDismissScreen (_ interstitial: GADInterstitial) {
         print("interstitialDidDismissScreen")
@@ -247,7 +280,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         guard !IAPHandler.shared.isGetPurchase() else {
             return
         }
-
+        
         if (interstitial!.isReady) {
             interstitial!.present(fromRootViewController: self)
         } else {
@@ -265,7 +298,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         updateNowPlaying(isPause: true)
     }
     
-    func makeScreen()  {
+    func makeScreen() {
         self.radioImage.layer.cornerRadius = 5
         self.radioImage.layer.masksToBounds = true
         
@@ -300,6 +333,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         if let image_name = self.radioData.value(forKey: "image") as? String {
             let img = image_name.hasPrefix("http") ? image_name : BASE_BACKEND_URL + UPLOAD_IMAGE + image_name
             if let urla = URL(string:img) {
+                imgStr = img
                 self.radioImage.af_setImage(withURL: urla, placeholderImage: nil, filter: nil, imageTransition: .crossDissolve(0.5), completion: { response in
                     if response.value != nil {
                         self.artImage = response.value
@@ -343,6 +377,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         }else{
             radioPlayer.play()
             isPlaying = true
+            configureCurrentPlayingSong()
         }
     }
     
@@ -354,48 +389,46 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
             radioPlayer.pause()
             updateNowPlaying(isPause: true)
             isPlaying = false
-        } else {
-            /*Radio Already play by other screen */
-            if AppPlayer.radioURL != radioUrl {
-                //.pauseRadio is in stationDidChange
-                stationDidChange()
-            }
-            
-            DispatchQueue.main.async {
-                self.playPauseBtn.setImage(UIImage(named: "pause.png"), for: .normal)
-            }
-            player?.pause()
-            radioPlayer.play()
-            isPlaying = true
-            setupNowPlaying()
-            updateNowPlaying(isPause: false)
-            update()
+            return
         }
+        
+        /*Radio Already play by other screen */
+        if AppPlayer.radioURL != radioUrl {
+            //.pauseRadio is in stationDidChange
+            stationDidChange()
+        }
+        
+        DispatchQueue.main.async {
+            self.playPauseBtn.setImage(UIImage(named: "pause.png"), for: .normal)
+        }
+        player?.pause()
+        radioPlayer.play()
+        isPlaying = true
+        setupNowPlaying()
+        updateNowPlaying(isPause: false)
+        update()
+        configureCurrentPlayingSong()
     }
     
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         //super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         if keyPath != "timedMetadata" { return }
-        if let data: AVPlayerItem = object as? AVPlayerItem
-        {
-            if let dataItem = data.timedMetadata
-            {
-                for item in dataItem
-                {
-                    let metaArray: Array<Any> = [playerItem?.timedMetadata as Any]
-                    print("Total objects in array \(metaArray[0])")
-                    let data = item.stringValue
-                    if(data == nil){
-                        radioTitle.text = "metadata not load"
-                        self.trackName = "metadata not load"
-                        self.findAppleMusic(name: "metadata not load")
-                    } else {
-                        radioTitle.text = data! as String
-                        self.trackName = data! as String
-                        self.findAppleMusic(name: data! as String)
-                        self.setupNowPlaying()
-                    }
+        if let data: AVPlayerItem = object as? AVPlayerItem,
+           let dataItem = data.timedMetadata {
+            for item in dataItem {
+                let metaArray: Array<Any> = [playerItem?.timedMetadata as Any]
+                print("Total objects in array \(metaArray[0])")
+                let data = item.stringValue
+                if (data == nil) {
+                    radioTitle.text = "metadata not load"
+                    self.trackName = "metadata not load"
+                    self.findAppleMusic(name: "metadata not load")
+                } else {
+                    radioTitle.text = data! as String
+                    self.trackName = data! as String
+                    self.findAppleMusic(name: data! as String)
+                    self.setupNowPlaying()
                 }
             }
         }
@@ -406,38 +439,46 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         let queryURL = String(format: "http://radiosrood.com/api/currentsongappv1.json", name)
         let escapedURL = queryURL.addingPercentEncoding( withAllowedCharacters: .urlQueryAllowed)!
         
-        Alamofire.request( escapedURL, method: .get, parameters: ["X-API-KEY":API_KEY])
-            .responseJSON { [weak self] response in
-                guard let self = self else { return }
-                switch response.result {
-                case .success( _):
-                    let data = response.result.value as! NSDictionary
-                    let countFind = data.value(forKey: "currentData") as! Int
-                    if (countFind > 0) {
-                        let resultArray = data.value(forKey: "currentTrack") as! NSArray
-                        let result = resultArray[0] as! NSDictionary
-                        let artwork = result.value(forKey: "artCover") as! String
-                        let bigArtwork = artwork.replacingOccurrences(of: "100", with: "800")
-                        let musicUrl  = result.value(forKey: "trackUrl")
-                        self.appleMusicUrl = musicUrl as? String ?? ""
-                        let url = URL(string:bigArtwork)
-                        self.radioImage.af_setImage(withURL: url!)
-                        self.appleBtn.isHidden = false
-                        self.getDataFromUrl(url: url!, completion: { [self] (datax, responce, error) in
-                            self.artImage = UIImage(data:datax!)
-                            self.updateNowPlaying(isPause: true)
-                            self.recordTimeline(tracksName: name, nameStationLine: (self.radioData.value(forKey: "name") as? String) ?? "", urlStationLine: (self.radioData.value(forKey: "radio_url") as? String ?? ""), imageTrackLine: musicUrl as? String ?? "", urlTrackInAppleMusic: musicUrl as? String ?? "", coverUrl: bigArtwork)
-                        })
-                    } else {
-                        self.radioImage.image = UIImage(named: "Lav_Radio_Logo.png")
-                        self.artImage = UIImage(named: "Lav_Radio_Logo.png")
-                        self.appleBtn.isHidden = true
-                        self.updateNowPlaying(isPause: true)
-                    }
-                case .failure(let error):
-                    print("Request failed with error: \(error)")
+        Alamofire.request( escapedURL, method: .get, parameters: ["X-API-KEY":API_KEY]).responseJSON { [weak self] response in
+            guard let self = self else { return }
+            switch response.result {
+            case .success( _):
+                let data = response.result.value as! NSDictionary
+                let countFind = data.value(forKey: "currentData") as! Int
+                if !(countFind > 0) {
+                    self.radioImage.image = UIImage(named: "Lav_Radio_Logo.png")
+                    self.artImage = UIImage(named: "Lav_Radio_Logo.png")
+                    self.appleBtn.isHidden = true
+                    self.updateNowPlaying(isPause: true)
+                    return
                 }
+                
+                let resultArray = data.value(forKey: "currentTrack") as! NSArray
+                let result = resultArray[0] as! NSDictionary
+                let artwork = result.value(forKey: "artCover") as! String
+                let bigArtwork = artwork.replacingOccurrences(of: "100", with: "800")
+                let musicUrl  = result.value(forKey: "trackUrl")
+                self.appleMusicUrl = musicUrl as? String ?? ""
+                imgStr = bigArtwork
+                let url = URL(string: bigArtwork)
+                self.radioImage.af_setImage(withURL: url!)
+                self.appleBtn.isHidden = false
+                self.getDataFromUrl(url: url!, completion: { [self] (datax, responce, error) in
+                    self.artImage = UIImage(data:datax!)
+                    self.updateNowPlaying(isPause: true)
+                    self.recordTimeline(
+                        tracksName: name,
+                        nameStationLine: (self.radioData.value(forKey: "name") as? String) ?? "",
+                        urlStationLine: (self.radioData.value(forKey: "radio_url") as? String ?? ""),
+                        imageTrackLine: musicUrl as? String ?? "",
+                        urlTrackInAppleMusic: musicUrl as? String ?? "",
+                        coverUrl: bigArtwork
+                    )
+                })
+            case .failure(let error):
+                print("Request failed with error: \(error)")
             }
+        }
     }
     
     func recordTimeline(tracksName:String, nameStationLine:String, urlStationLine:String, imageTrackLine:String, urlTrackInAppleMusic: String, coverUrl: String){
@@ -498,7 +539,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
 
-        if LOCAL_NOTIFICATION{
+        if LOCAL_NOTIFICATION {
             let localNotification = UILocalNotification()
             localNotification.fireDate = NSDate(timeIntervalSinceNow: 5) as Date
             localNotification.alertBody = radioName.text!
@@ -506,6 +547,13 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
             localNotification.applicationIconBadgeNumber = UIApplication.shared.applicationIconBadgeNumber + 1
             UIApplication.shared.scheduleLocalNotification(localNotification)
         }
+        
+        var miniplayerInfo = BasicDetail(radioVC: self)
+        miniplayerInfo.songNameTitle = self.trackName
+        miniplayerInfo.artistSubtitle = radioName.text ?? ""
+        miniplayerInfo.songImage = imgStr
+        self.radioMiniPlayerInfo = miniplayerInfo
+        configureCurrentPlayingSong()
     }
     
     func getDataFromUrl(url: URL, completion: @escaping (_ data: Data?, _  response: URLResponse?, _ error: Error?) -> Void) {

@@ -80,7 +80,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         radioTableView.reloadData()
-        TabbarVC.available?.miniPlayer.viewCurrentSong.isHidden = true
+        TabbarVC.available?.miniPlayer.isHidden = true
         NotificationCenter.default.post(name: .MiniPlayerVisibilityChanged, object: nil)
     }
 

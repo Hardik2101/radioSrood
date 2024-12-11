@@ -17,8 +17,6 @@ class MiniPlayerView: UIView {
     @IBOutlet weak var btnPlayPause: UIButton!
     @IBOutlet weak var viewSongProgress: UIProgressView!
     
-    @IBOutlet weak var viewCurrentSong: UIView!
-    
     // Our custom view from the XIB file
     var view: UIView!
     
@@ -35,7 +33,7 @@ class MiniPlayerView: UIView {
     }
     
     func miniplayer(hide: Bool) {
-        TabbarVC.available?.miniPlayer.viewCurrentSong.isHidden = hide
+        TabbarVC.available?.miniPlayer.isHidden = hide
         NotificationCenter.default.post(name: .MiniPlayerVisibilityChanged, object: nil)
     }
     
@@ -132,7 +130,15 @@ class MiniPlayerView: UIView {
             print("miniPlayerInfo.musicVC is nil")
         }
         
-        if AppPlayer.miniPlayerInfo.radioVC != nil {
+        if let vc = AppPlayer.miniPlayerInfo.radioVC as? RadioViewController {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let radioVC = vc//storyboard.vc(RadioViewController.self)
+            if root.presentedViewController == nil {
+                root.present(radioVC, animated: true)
+            } else {
+                print("A view controller is already being presented or musicVC is already presented")
+            }
+        } else if let vc = AppPlayer.miniPlayerInfo.radioVC {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
             if root.presentedViewController == nil {
@@ -164,8 +170,8 @@ extension MiniPlayerView {
         }
         
         self.btnPlayPause.setImage(UIImage(named: "ic_pause"), for: .normal)
-        if radioPlay {
-            self.viewCurrentSong.isHidden = false
+        if radioPlay, (AppPlayer.miniPlayerInfo.radioVC as? RadioViewController) == nil  {
+            self.isHidden = false
         }
         
         NotificationCenter.default.post(name: .MiniPlayerVisibilityChanged, object: nil)

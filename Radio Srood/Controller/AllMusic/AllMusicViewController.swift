@@ -24,31 +24,25 @@ class AllMusicViewController: UI_VC {
     
     var recenltPlayed = [SongModel]()
     var playList = [PlayListModel]()
-    var playListsongsList = [SongModel]()
+   // var playListsongsList = [SongModel]()
     
     private var isPurchaseSuccess: Bool = false
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.playList = UserDefaultsManager.shared.playListsData
-//        for each in self.playList{
-//            for eachtrack in each.songs{
-//                playListsongsList.append(eachtrack)
-//            }
-//        }
-        self.collectionView.reloadData()
         self.fetchRecentlyPlayed()
         
         vwAds.isHidden = true
         heightOfAdsView.constant = 0
         navigationController?.setNavigationBarHidden(true, animated: false)
-
+        updateTableHeaderHeight()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setUpUI()
+        updateMyPlaylist()
     }
         
     private func setUpUI() {
@@ -71,8 +65,24 @@ class AllMusicViewController: UI_VC {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(vwAdsTapped))
         vwAds.addGestureRecognizer(tapGesture)
         vwAds.isUserInteractionEnabled = true
+        updateTableHeaderHeight()
     }
     
+    func updateTableHeaderHeight() {
+        guard let headerView = tableView.tableHeaderView else { return }
+        
+        // Adjust the header's height based on its content
+        headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+        
+        // Re-assign the header view to force the table view to refresh
+        tableView.tableHeaderView = headerView
+        
+        // Optionally: Animate layout changes
+        UIView.animate(withDuration: 0.3) {
+            self.tableView.layoutIfNeeded()
+        }
+    }
+
     @objc private func handleIAPPurchase() {
         
         isPurchaseSuccess = true
@@ -82,6 +92,7 @@ class AllMusicViewController: UI_VC {
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
             self.isPurchaseSuccess = false
         })
+        updateTableHeaderHeight()
     }
 
     @objc private func vwAdsTapped() {
@@ -97,6 +108,15 @@ class AllMusicViewController: UI_VC {
 
     }
 
+    func updateMyPlaylist() {
+        self.playList = UserDefaultsManager.shared.playListsData
+        //        for each in self.playList{
+        //            for eachtrack in each.songs{
+        //                playListsongsList.append(eachtrack)
+        //            }
+        //        }
+        self.collectionView.reloadData()
+    }
     
     func fetchRecentlyPlayed(){
         let savedTracks = UserDefaultsManager.shared.localTracksData

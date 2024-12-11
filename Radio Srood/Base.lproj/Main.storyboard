@@ -323,13 +323,13 @@
                                 </constraints>
                             </imageView>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="RADIO SROOD" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="M7S-b4-Zyc">
-                                <rect key="frame" x="0.0" y="677" width="414" height="39"/>
+                                <rect key="frame" x="0.0" y="676.5" width="414" height="39"/>
                                 <fontDescription key="fontDescription" name="SourceSansPro-Light" family="Source Sans Pro" pointSize="31"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Touch To Play" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="ZbG-uc-elI">
-                                <rect key="frame" x="0.0" y="726" width="414" height="26"/>
+                                <rect key="frame" x="0.0" y="725.5" width="414" height="26.5"/>
                                 <fontDescription key="fontDescription" name="SourceSansPro-Light" family="Source Sans Pro" pointSize="21"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
@@ -3778,13 +3778,13 @@
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qdp-WT-DgQ">
                                                                     <rect key="frame" x="80" y="12.5" width="299" height="39.5"/>
                                                                     <subviews>
-                                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="RADIO SROOD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GgR-93-cRE">
+                                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="RADIO SROOD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GgR-93-cRE">
                                                                             <rect key="frame" x="0.0" y="0.0" width="299" height="20"/>
                                                                             <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="14"/>
                                                                             <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
-                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Touch To Play" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="T1a-zr-CQd">
+                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Touch To Play" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="T1a-zr-CQd">
                                                                             <rect key="frame" x="0.0" y="21" width="299" height="18.5"/>
                                                                             <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="13"/>
                                                                             <color key="textColor" white="1" alpha="0.80032628900000002" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -4864,13 +4864,13 @@
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2PH-kx-deA">
                                                                     <rect key="frame" x="80" y="10.5" width="299" height="39.5"/>
                                                                     <subviews>
-                                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="RADIO SROOD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SHb-TE-iCc">
+                                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="RADIO SROOD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SHb-TE-iCc">
                                                                             <rect key="frame" x="0.0" y="0.0" width="299" height="20"/>
                                                                             <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="14"/>
                                                                             <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
-                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Touch To Play" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="VKa-Cm-SZg">
+                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Touch To Play" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" translatesAutoresizingMaskIntoConstraints="NO" id="VKa-Cm-SZg">
                                                                             <rect key="frame" x="0.0" y="21" width="299" height="18.5"/>
                                                                             <fontDescription key="fontDescription" name="KohinoorTelugu-Regular" family="Kohinoor Telugu" pointSize="13"/>
                                                                             <color key="textColor" white="1" alpha="0.80032628900000002" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -5447,8 +5447,8 @@
                                 <rect key="frame" x="0.0" y="92" width="414" height="721"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="uio-5n-GHr">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="500"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="567"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nT4-42-GIE">
                                             <rect key="frame" x="10" y="15" width="35" height="35"/>
@@ -5667,33 +5667,33 @@
                                             </constraints>
                                         </view>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="CoV-hE-joQ">
-                                            <rect key="frame" x="10" y="337" width="394" height="113"/>
+                                            <rect key="frame" x="10" y="337" width="394" height="180"/>
                                             <subviews>
                                                 <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="Pka-7p-zrs">
-                                                    <rect key="frame" x="0.0" y="10" width="394" height="93"/>
+                                                    <rect key="frame" x="0.0" y="10" width="394" height="160"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="F7W-hA-Fok">
-                                                        <size key="itemSize" width="128" height="162"/>
+                                                        <size key="itemSize" width="128" height="160"/>
                                                         <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                                         <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                                         <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                                     </collectionViewFlowLayout>
                                                     <cells>
                                                         <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="MyAllPlaylistCollectionViewCell" id="Obc-fH-84p" customClass="MyAllPlaylistCollectionViewCell" customModule="Radio_Srood" customModuleProvider="target">
-                                                            <rect key="frame" x="0.0" y="-34.5" width="128" height="162"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="128" height="160"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="a5A-im-Srh">
-                                                                <rect key="frame" x="0.0" y="0.0" width="128" height="162"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="128" height="160"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gFS-nm-9kV">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="128" height="162"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="128" height="160"/>
                                                                         <subviews>
                                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7ib-Tt-Dgh">
-                                                                                <rect key="frame" x="3" y="0.0" width="122" height="120"/>
+                                                                                <rect key="frame" x="3" y="3" width="122" height="120"/>
                                                                                 <subviews>
                                                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ilL-U9-xFl">
-                                                                                        <rect key="frame" x="0.0" y="5" width="122" height="115"/>
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="122" height="120"/>
                                                                                         <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                                     </imageView>
                                                                                 </subviews>
@@ -5702,7 +5702,7 @@
                                                                                     <constraint firstAttribute="trailing" secondItem="ilL-U9-xFl" secondAttribute="trailing" id="273-1L-9JQ"/>
                                                                                     <constraint firstAttribute="bottom" secondItem="ilL-U9-xFl" secondAttribute="bottom" id="LRS-kk-UT5"/>
                                                                                     <constraint firstAttribute="height" constant="120" id="TcR-rT-jcP"/>
-                                                                                    <constraint firstItem="ilL-U9-xFl" firstAttribute="top" secondItem="7ib-Tt-Dgh" secondAttribute="top" constant="5" id="vUt-80-8H7"/>
+                                                                                    <constraint firstItem="ilL-U9-xFl" firstAttribute="top" secondItem="7ib-Tt-Dgh" secondAttribute="top" id="vUt-80-8H7"/>
                                                                                     <constraint firstItem="ilL-U9-xFl" firstAttribute="leading" secondItem="7ib-Tt-Dgh" secondAttribute="leading" id="wK1-OK-kfF"/>
                                                                                 </constraints>
                                                                                 <userDefinedRuntimeAttributes>
@@ -5715,7 +5715,7 @@
                                                                                 </userDefinedRuntimeAttributes>
                                                                             </view>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Dance" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="U7q-gy-IRb">
-                                                                                <rect key="frame" x="5" y="127" width="113" height="24"/>
+                                                                                <rect key="frame" x="5" y="130" width="113" height="23"/>
                                                                                 <fontDescription key="fontDescription" name="KohinoorBangla-Semibold" family="Kohinoor Bangla" pointSize="17"/>
                                                                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                                 <nil key="highlightedColor"/>
@@ -5723,9 +5723,10 @@
                                                                         </subviews>
                                                                         <color key="backgroundColor" red="0.15686270590000001" green="0.15686270590000001" blue="0.15686270590000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                                         <constraints>
+                                                                            <constraint firstAttribute="bottom" secondItem="U7q-gy-IRb" secondAttribute="bottom" constant="7" id="4kb-XW-6Cf"/>
                                                                             <constraint firstItem="U7q-gy-IRb" firstAttribute="leading" secondItem="gFS-nm-9kV" secondAttribute="leading" constant="5" id="8BV-Fn-093"/>
                                                                             <constraint firstItem="U7q-gy-IRb" firstAttribute="top" secondItem="7ib-Tt-Dgh" secondAttribute="bottom" constant="7" id="EnI-Qm-xd6"/>
-                                                                            <constraint firstItem="7ib-Tt-Dgh" firstAttribute="top" secondItem="gFS-nm-9kV" secondAttribute="top" id="UOe-JQ-you"/>
+                                                                            <constraint firstItem="7ib-Tt-Dgh" firstAttribute="top" secondItem="gFS-nm-9kV" secondAttribute="top" constant="3" id="UOe-JQ-you"/>
                                                                             <constraint firstItem="7ib-Tt-Dgh" firstAttribute="leading" secondItem="gFS-nm-9kV" secondAttribute="leading" constant="3" id="Wi2-0V-9Cp"/>
                                                                             <constraint firstAttribute="trailing" secondItem="7ib-Tt-Dgh" secondAttribute="trailing" constant="3" id="Z91-B6-XVU"/>
                                                                             <constraint firstAttribute="trailing" secondItem="U7q-gy-IRb" secondAttribute="trailing" constant="10" id="rFE-cn-mKz"/>
@@ -5740,7 +5741,7 @@
                                                                 </constraints>
                                                             </collectionViewCellContentView>
                                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                            <size key="customSize" width="128" height="162"/>
+                                                            <size key="customSize" width="128" height="160"/>
                                                             <connections>
                                                                 <outlet property="imgSong" destination="ilL-U9-xFl" id="mH4-2B-T3W"/>
                                                                 <outlet property="lblSongName" destination="U7q-gy-IRb" id="oNZ-NA-Evs"/>
@@ -5755,15 +5756,15 @@
                                             </subviews>
                                             <color key="backgroundColor" red="0.18823531269999999" green="0.18823531269999999" blue="0.18823531269999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="180" id="D8Q-1k-SgI"/>
                                                 <constraint firstAttribute="bottom" secondItem="Pka-7p-zrs" secondAttribute="bottom" constant="10" id="FqF-Lk-0wn"/>
                                                 <constraint firstAttribute="trailing" secondItem="Pka-7p-zrs" secondAttribute="trailing" id="Ft0-Jw-KSp"/>
                                                 <constraint firstItem="Pka-7p-zrs" firstAttribute="leading" secondItem="CoV-hE-joQ" secondAttribute="leading" id="Uzm-xd-GGN"/>
+                                                <constraint firstAttribute="height" constant="180" id="tSp-q9-VKt"/>
                                                 <constraint firstItem="Pka-7p-zrs" firstAttribute="top" secondItem="CoV-hE-joQ" secondAttribute="top" constant="10" id="uOe-4p-s03"/>
                                             </constraints>
                                         </view>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RQo-XT-b1x">
-                                            <rect key="frame" x="0.0" y="450" width="414" height="50"/>
+                                            <rect key="frame" x="0.0" y="517" width="414" height="50"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Recently Played" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="trZ-eO-cTO">
                                                     <rect key="frame" x="10" y="12.5" width="131.5" height="25.5"/>
@@ -5802,14 +5803,14 @@
                                         <constraint firstAttribute="trailing" secondItem="KZW-ll-fLG" secondAttribute="trailing" constant="10" id="nu2-pg-oxS"/>
                                         <constraint firstItem="nT4-42-GIE" firstAttribute="top" secondItem="uio-5n-GHr" secondAttribute="top" constant="15" id="tKY-KZ-qwX"/>
                                         <constraint firstAttribute="trailing" secondItem="ETM-XT-mzj" secondAttribute="trailing" constant="12" id="waZ-9o-RWT"/>
-                                        <constraint firstAttribute="bottom" secondItem="RQo-XT-b1x" secondAttribute="bottom" id="x4R-fQ-Mik"/>
+                                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="RQo-XT-b1x" secondAttribute="bottom" id="x4R-fQ-Mik"/>
                                         <constraint firstItem="VGy-IK-JRu" firstAttribute="leading" secondItem="uio-5n-GHr" secondAttribute="leading" id="xc9-YF-EaT"/>
                                         <constraint firstItem="CoV-hE-joQ" firstAttribute="top" secondItem="VGy-IK-JRu" secondAttribute="bottom" id="xqI-yz-0kX"/>
                                     </constraints>
                                 </view>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="RecentlyPlayedTableViewCell" rowHeight="85" id="tFw-Jl-qTt" customClass="RecentlyPlayedTableViewCell" customModule="Radio_Srood" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="550" width="414" height="85"/>
+                                        <rect key="frame" x="0.0" y="617" width="414" height="85"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="tFw-Jl-qTt" id="p33-yD-YqB">
                                             <rect key="frame" x="0.0" y="0.0" width="414" height="85"/>
@@ -5892,7 +5893,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4MT-2N-BKF" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1487" y="881"/>
+            <point key="canvasLocation" x="1486.9565217391305" y="880.58035714285711"/>
         </scene>
         <!--IAPVC-->
         <scene sceneID="GHK-en-SeR">

@@ -7,7 +7,7 @@ class TabbarVC: UITabBarController {
     }
     
     static var isMiniPlayerVisible: Bool {
-        !(available?.miniPlayer.viewCurrentSong.isHidden ?? true)
+        !(available?.miniPlayer.isHidden ?? true)
     }
     
     var miniPlayer: MiniPlayerView!
@@ -76,7 +76,7 @@ class TabbarVC: UITabBarController {
     
     func addMiniPlayer() {
         miniPlayer = MiniPlayerView()
-        
+        miniPlayer.isHidden = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let strongSelf = self else {
                 return
