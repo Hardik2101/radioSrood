@@ -3,6 +3,7 @@ import UIKit
 
 enum HomeHeader: Int, CaseIterable {
     case featured
+    case todayTopPic
     case newReleases
     case currentRadio
     case trending
@@ -16,6 +17,8 @@ enum HomeHeader: Int, CaseIterable {
         switch self {
         case .featured:
             return "Featured"
+        case .todayTopPic:
+            return "Today Top Picks"
         case .newReleases:
             return "New Releases"
         case .currentRadio:
@@ -41,6 +44,7 @@ enum Browseheader: Int, CaseIterable {
     case playlist
     case newMusic
     case popularMusic
+    case currentRadio
     case rjtv
     case radio
     case recentlyPlay
@@ -53,6 +57,8 @@ enum Browseheader: Int, CaseIterable {
             return "New Music"
         case .popularMusic:
             return "Popular Music"
+        case .currentRadio:
+            return "Currently Playing on Radio srood"
         case .rjtv:
             return "SROOD TV"
         case .radio:
@@ -70,6 +76,8 @@ enum Browseheader: Int, CaseIterable {
             return .newReleases
         case .popularMusic:
             return .popularTracks
+        case .currentRadio:
+            return .currentRadio
         case .rjtv:
             return nil
         case .radio:

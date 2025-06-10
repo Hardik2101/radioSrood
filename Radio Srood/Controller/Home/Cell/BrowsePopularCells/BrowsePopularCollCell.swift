@@ -44,6 +44,20 @@ class BrowsePopularCollCell: UICollectionViewCell {
         }
     }
     
+    var todayToppic: RadioSuroodTodayPickItem? {
+        didSet {
+            if let todatToppic = todayToppic {
+                if let url = URL(string: todatToppic.TTPCover) {
+                    trackImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                }
+                lblCount.text = "\(todatToppic.Shomara)"
+                lblSongName.text = todatToppic.TTPTrack
+                lblArtistName.text = todatToppic.TTPArtist
+            }
+        }
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
     }

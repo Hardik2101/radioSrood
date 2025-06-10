@@ -43,6 +43,7 @@ class BrowseCollectionCell: UICollectionViewCell {
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        itemImage.layer.cornerRadius = 5
+        itemImage.layer.cornerRadius = 16
+        itemImage.clipsToBounds = true
     }
 }

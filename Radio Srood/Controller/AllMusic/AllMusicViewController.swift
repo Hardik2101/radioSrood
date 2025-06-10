@@ -31,12 +31,17 @@ class AllMusicViewController: UI_VC {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.fetchRecentlyPlayed()
         
         vwAds.isHidden = true
         heightOfAdsView.constant = 0
         navigationController?.setNavigationBarHidden(true, animated: false)
         updateTableHeaderHeight()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        self.fetchRecentlyPlayed()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -100,7 +105,7 @@ class AllMusicViewController: UI_VC {
         vc.isshowbackButton = true
         let navVC = UINavigationController(rootViewController: vc)
         navVC.navigationBar.isHidden = true
-        navVC.modalPresentationStyle = .popover
+        navVC.modalPresentationStyle = .fullScreen
         
         self.present(navVC, animated: true)
         self.revealViewController()?.revealToggle(self)

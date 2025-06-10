@@ -7,13 +7,25 @@ class NewReleasesCell: UITableViewCell {
     
     var newReleases: [NewRelease] = []
     var presentView: HomeViewController?
-    var presentViewBrowse: BrowseTabVC?
-
+    // Removed presentViewBrowse since you only want HomeViewController case
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         newReleasesCollectionView.delegate = self
         newReleasesCollectionView.dataSource = self
+        
+        if let layout = newReleasesCollectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.scrollDirection = .horizontal
+            layout.minimumLineSpacing = 10
+            layout.sectionInset = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
+        }
+        
+        newReleasesCollectionView.isPagingEnabled = false
+        newReleasesCollectionView.showsHorizontalScrollIndicator = true
+        
+        setCellHeight()
     }
+
     
     func reloadCollectionView() {
         setCellHeight()
@@ -24,27 +36,36 @@ class NewReleasesCell: UITableViewCell {
         let topInset: CGFloat = 10
         let bottomInset: CGFloat = 10
         let lineSpace: CGFloat = 10
-        let columnCount = ceil(CGFloat(newReleases.count/3))
-        newReleasesHeightConstraint.constant = (getCellSize() * columnCount) + (lineSpace * (columnCount-1)) + topInset + bottomInset
+        let rowCount: CGFloat = 3 // 3 rows fixed
+        
+        let cellHeight = getCellHeight()
+        newReleasesHeightConstraint.constant = (cellHeight * rowCount) + (lineSpace * (rowCount - 1)) + topInset + bottomInset
     }
-    
-    private func getCellSize() -> CGFloat {
-        let cellSpace: CGFloat = 10
+    private func getCellHeight() -> CGFloat {
+        let width = getCellWidth()
+        return width + 50
+    }
+
+    private func getCellWidth() -> CGFloat {
         let leftInset: CGFloat = 8
         let rightInset: CGFloat = 8
-        let space = cellSpace * 2
-        let totalInset: CGFloat = leftInset + rightInset + space
-        let width = (Common.screenSize.width  - totalInset) / 3
-        let height = width + 50
-        return height
+        let spacing: CGFloat = 10
+
+        // visible width for 2.5 cells (2 full + 1 half)
+        let totalSpacing = leftInset + rightInset + spacing * 1.5  // spacing between cells count is 1.5 for 2.5 cells
+        let availableWidth = Common.screenSize.width - totalSpacing
+
+        let cellWidth = availableWidth / 2.5
+        return cellWidth
     }
-    
+
+
 }
 
-//MARK: - UICollectionView Delegate and DataSource
 extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        // Show all items, scrolling horizontally to see more if needed
         return newReleases.count
     }
     
@@ -60,7 +81,6 @@ extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource,
         let selectedNewRelease = newReleases[indexPath.row]
         
         if let presentView = presentView {
-            // Handle selection for HomeViewController
             presentView.groupID = selectedNewRelease.newReleasesTrackID
             presentView.homeHeader = .newReleases
             
@@ -69,27 +89,12 @@ extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource,
             } else {
                 presentView.openMusicPlayerViewController()
             }
-        } else if let presentViewBrowse = presentViewBrowse {
-            // Handle selection for BrowseTabVC
-            presentViewBrowse.groupID = selectedNewRelease.newReleasesTrackID
-            presentViewBrowse.browseheader = .newMusic
-            
-            if presentViewBrowse.interstitial != nil {
-                presentViewBrowse.interstitial.present(fromRootViewController: presentViewBrowse)
-            } else {
-                presentViewBrowse.openMusicPlayerViewController()
-            }
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let cellSpace = (collectionViewLayout as? UICollectionViewFlowLayout)?.minimumInteritemSpacing ?? 0
-        let leftInset = (collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.left ?? 0
-        let rightInset = (collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.right ?? 0
-        let space = cellSpace * 2
-        let totalInset = leftInset + rightInset + space
-        let width = (Common.screenSize.width  - totalInset) / 3
-        let height = width + 50
+        let width = getCellWidth()
+        let height = getCellHeight()
         return CGSize(width: width, height: height)
     }
 }

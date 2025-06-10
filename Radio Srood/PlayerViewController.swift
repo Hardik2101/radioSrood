@@ -238,36 +238,33 @@ class PlayerViewController: UIViewController, JukeboxDelegate {
         jukebox.stop()
     }
     
-    @IBAction func download(){
-        
-        let trackUrl = jukebox.currentItem
-        let track = trackUrl?.URL
-        let name = track?.lastPathComponent
-              
-        let destination: DownloadRequest.DownloadFileDestination = { _, _ in
+    @IBAction func download() {
+        guard let track = jukebox.currentItem?.URL else { return }
+        let name = track.lastPathComponent
+
+        let destination: DownloadRequest.Destination = { _, _ in
             var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            
-            // the name of the file here I kept is yourFileName with appended extension
-            documentsURL.appendPathComponent(name!)
-            return (documentsURL, [.removePreviousFile])
+            documentsURL.appendPathComponent(name)
+            return (documentsURL, [.removePreviousFile, .createIntermediateDirectories])
         }
-        
-        Alamofire.download(track!, to: destination)
-            
+
+        AF.download(track, to: destination)
             .downloadProgress { progress in
-                
-                self.navigationController?.setProgress(Float(progress.fractionCompleted), animated: true)
+                DispatchQueue.main.async {
+                    self.navigationController?.setProgress(Float(progress.fractionCompleted), animated: true)
+                }
                 print("Download Progress: \(progress.fractionCompleted)")
-                if (progress.fractionCompleted == 1){
-                    
+                if progress.fractionCompleted == 1 {
                     self.navigationController?.finishProgress()
                 }
-                
             }
             .response { response in
-            if response.destinationURL != nil {
-                print(response.destinationURL!)
+                if let fileURL = response.fileURL {
+                    print("Downloaded to: \(fileURL)")
+                } else if let error = response.error {
+                    print("Download failed: \(error.localizedDescription)")
+                }
             }
-        }
     }
+
 }

@@ -91,7 +91,7 @@ class PlayerOptionViewController: UIViewController , PlayListViewControllerDeleg
         let artistName = currentSong.artist
 
         // Create a string with the song details you want to share
-        let shareText = "Check out this awesome song: \(songTitle) by \(artistName)"
+        let shareText = "Check out this awesome song: \(songTitle) by \(artistName) on Radio Srood"
 
         // Create an array of items to share
         var items: [Any] = [shareText]

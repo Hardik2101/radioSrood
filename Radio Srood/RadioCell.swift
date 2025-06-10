@@ -286,7 +286,7 @@ class RadioCell: UITableViewCell {
         dataHelper.getRecentListData(completion: { [weak self] resp in
             guard let self = self else { return }
             if let currentSong = resp.value(forKey: "currentTrack") as? NSDictionary {
-                var miniplayerInfo = BasicDetail(radioVC: presentView)
+                var miniplayerInfo = BasicDetail(radioVC: self.presentView)
                 if let currentTrack = currentSong.value(forKey: "currentTrack") as? String {
                     self.trackTitle.text = currentTrack
                     miniplayerInfo.songNameTitle = currentTrack
@@ -312,7 +312,7 @@ class RadioCell: UITableViewCell {
                 self.radioMiniPlayerInfo = miniplayerInfo
                 
                 if AppPlayer.miniPlayerInfo.radioVC != nil {
-                    configureCurrentPlayingSong()
+                    self.configureCurrentPlayingSong()
                 } else {
                     print("song changed but radio stoped.")
                 }

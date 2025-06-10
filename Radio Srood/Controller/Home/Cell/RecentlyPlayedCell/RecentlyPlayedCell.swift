@@ -17,7 +17,7 @@ class RecentlyPlayedCell: UITableViewCell {
     }
     
     func reloadCollectionView() {
-        rcentlyPlayedHeightConstraint.constant = presentViewBrowse == nil ? 168 : 220
+        rcentlyPlayedHeightConstraint.constant = 230
         recentlyPlayedCollectionView.reloadData()
     }
 }
@@ -59,9 +59,9 @@ extension RecentlyPlayedCell: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if presentViewBrowse != nil {
-            return CGSize(width: 150, height: 200)
-        }
-        return CGSize(width: 112, height: 148)
+//        if presentViewBrowse != nil {
+            return CGSize(width: 160, height: 220)
+//        }
+//        return CGSize(width: 150, height: 148)
     }
 }

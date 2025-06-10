@@ -1,7 +1,8 @@
 
 import UIKit
 
-let BASE_BACKEND_URL =  "http://pamirtech.com/backend/srood/" // your  backend
+//let BASE_BACKEND_URL =  "http://pamirtech.com/backend/srood/" // your  backend
+let BASE_BACKEND_URL =  "https://api.radiosrood.com/static/app/api/rSroodMainRadioData.json" // your  backend
 let baseURL = "https://radiosrood.com/api/"
 let recentListURL = baseURL + "currentsongappv2.json"
 let currentLyricURL = baseURL + "currentlyric.json"
@@ -16,6 +17,10 @@ let featuredArtistURL = musicBaseUrl + "rSroodFeaturedArtistData.json"
 let lyricsURL = "https://api.srood.stream/static/app/lyrics/"
 let homeSponserURL = "https://api.srood.stream/static/app/api/rSroodMusicPageData.json"
 let homeSponserURL1 = "https://api.srood.stream/static/app/api/FeaturedData.json"
+
+let todayPickURLDetailed = "https://api.app.srood.stream/jostojo?v=today_top_pick&api_key=3bXcLWToFQkTDBqyknaediavkmTwW"
+let todayPickURL = "https://radiosrood.com/api/TodayTopPicksData.json"
+
 
 let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 

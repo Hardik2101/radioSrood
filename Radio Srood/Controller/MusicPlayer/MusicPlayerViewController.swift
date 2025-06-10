@@ -167,6 +167,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         case .featuredArtist: loadFeaturedArtistData()
         case .myPlaylist:     break
         case .recentlyPlayed: break
+        case .todayTopPic:
+            loadTodayTopPicData()
         }
     }
     
@@ -226,6 +228,41 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             guard let self = self else { return }
             if let resp = resp {
                 self.track = resp.newRelease.first(where: { $0.id == self.groupID})?.tracks
+                print("tracks======1", self.track)
+                print("tracks======2", self.groupID)
+                print("tracks======3", resp.newRelease.first(where: { $0.id == self.groupID}))
+                print("Available playlistIDs from API:")
+                for playlist in resp.newRelease {
+                    print("playlistID:", playlist.id)
+                }
+
+                self.tempTrack = self.track
+                self.isSetMusic = true
+                self.isPlay = true
+                self.handleRecentInView(index: self.selectedIndex)
+                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
+                self.radioTableView.reloadData()
+            }
+        }
+    }
+    
+    private func loadTodayTopPicData() {
+        
+        dataHelper = DataHelper()
+        
+        dataHelper.getTodayTopPicDetailed { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID})?.tracks
+                print("tracks======1", self.track)
+                print("tracks======2", self.groupID)
+                print("tracks======3", resp.todayTopPick.first(where: { $0.playlistID == self.groupID}))
+                print("Current groupID:", self.groupID)
+                print("Available playlistIDs from API:")
+                for playlist in resp.todayTopPick {
+                    print("playlistID:", playlist.playlistID)
+                }
+
                 self.tempTrack = self.track
                 self.isSetMusic = true
                 self.isPlay = true
@@ -356,7 +393,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         self.artCoverImage.layer.cornerRadius = 3
         self.artCoverImage.layer.masksToBounds = true
         if let item = track?[index] {
-            if let url = URL(string: item.artcover) {
+            if let url = URL(string: item.artcover ?? "" ?? "") {
                 self.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 self.bgImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "b1.png"))
                 imageURl = url
@@ -380,18 +417,27 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 lyricURL = lyricsUrl
                 if lyricsUrl.isEmpty {
                     print("there is no more!!!!")
-                } else {
-                    let data = (try? Data(contentsOf: URL(string: lyricURL)!))!
-                    let lyrics = String(data: data, encoding: .utf8)
-                    guard let lyricss = lyrics?.emptyToNil() else {
+                    return
+                }
+
+                guard let url = URL(string: lyricsUrl) else {
+                    print("Invalid URL string: \(lyricsUrl)")
+                    return
+                }
+
+                do {
+                    let data = try Data(contentsOf: url)
+                    guard let lyrics = String(data: data, encoding: .utf8)?.emptyToNil() else {
+                        print("Lyrics are empty or nil")
                         return
                     }
-                    parser = LyricsParser(lyrics: lyricss)
-
+                    parser = LyricsParser(lyrics: lyrics)
+                } catch {
+                    print("Failed to load lyrics data: \(error.localizedDescription)")
                 }
             }
             
-            if let urlString = item.mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
+            if let urlString = item.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
                 if isSetMusic {
                     isSetMusic = false
                     self.play(url: url, isPlay: self.isPlay)
@@ -403,9 +449,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             }
             
             AppPlayer.miniPlayerInfo = BasicDetail(
-                songImage: item.artcover,
-                songNameTitle: item.track, 
-                artistSubtitle: item.artist,
+                songImage: item.artcover ?? "",
+                songNameTitle: item.track ?? "",
+                artistSubtitle: item.artist ?? "",
                 musicVC: self
             )
             //config***
@@ -687,45 +733,41 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         
         if purchase || self.isPurchaseSuccess {
             if let currentTrack = track?[selectedIndex] {
-                let urlString = currentTrack.mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+                let urlString = currentTrack.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
                 guard let mediaPathInfo = urlString, let url = URL(string: songPath + mediaPathInfo) else {
                     return
                 }
 
-                var name = "\(url.lastPathComponent)"
-                let destination: DownloadRequest.DownloadFileDestination = { _, _ in
-                    var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    documentsURL.appendPathComponent(name)
-                    return (documentsURL, [.removePreviousFile])
+                let name = url.lastPathComponent
+                let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let destinationURL = documentsURL.appendingPathComponent(name)
+
+                // Alamofire 5 way of downloading
+                AF.download(url, to: { _, _ in
+                    return (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
+                })
+                .downloadProgress { progress in
+                    self.vwDownloadProgress.isHidden = false
+                    DispatchQueue.main.async {
+                        self.vwDownloadProgress.setProgress(Float(progress.fractionCompleted), animated: true)
+                    }
+                    print("Download Progress: \(progress.fractionCompleted)")
+                    if progress.fractionCompleted == 1 {
+                        self.navigationController?.finishProgress()
+                        self.vwDownloadProgress.isHidden = true
+                        self.vwDownloadProgress.setProgress(0.0, animated: false)
+                    }
+                }
+                .response { response in
+                    if let destinationURL = response.fileURL {
+                        print("File downloaded to: \(destinationURL)")
+                        // You can add any post-download logic here
+                    }
                 }
 
-                Alamofire.download(url, to: destination)
-                    .downloadProgress { progress in
-                        self.vwDownloadProgress.isHidden = false
-                        DispatchQueue.main.async {
-                            self.vwDownloadProgress.setProgress(Float(progress.fractionCompleted), animated: true)
-                        }
-                        print("Download Progress: \(progress.fractionCompleted)")
-                        if (progress.fractionCompleted == 1) {
-                            self.navigationController?.finishProgress()
-                            self.vwDownloadProgress.isHidden = true
-                            self.vwDownloadProgress.setProgress(0.0, animated: false)
-
-                        }
-                    }
-                    .response { response in
-                        if let destinationURL = response.destinationURL {
-                            print(destinationURL)
-                        }
-                    }
-
-                // Update UserDefaults with artcover for the current track
+                // Save artcover in UserDefaults
                 UserDefaults.standard.set(currentTrack.artcover, forKey: "\(url.deletingPathExtension().lastPathComponent)")
-
-                if let url = URL(string: currentTrack.artcover) {
-                }
             }
-
         } else {
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
             vc.isshowbackButton = true
@@ -734,8 +776,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             navVC.modalPresentationStyle = .fullScreen
             self.present(navVC, animated: true)
         }
-
     }
+
     
     private func setHeaderData(headerTitle: String) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 30))
@@ -757,6 +799,8 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let mainCount = 2
+        print("dadsda", tempTrack?.count ?? 0)
+        
         switch homeHeader {
         case .featured:       return mainCount + ((tempTrack?.count ?? 0)-1)
         case .newReleases:    return mainCount + ((tempTrack?.count ?? 0)-1)
@@ -767,7 +811,11 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         case .recentlyPlayed: return mainCount + ((tempTrack?.count ?? 0)-1)
         case .playlists:      return mainCount + ((tempTrack?.count ?? 0)-1)
         case .featuredArtist: return mainCount + ((tempTrack?.count ?? 0)-1)
+        case .todayTopPic:
+            return mainCount + ((tempTrack?.count ?? 0)-1)
         }
+        
+
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -847,7 +895,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = URL(string: item.artcover) {
+                if let url = URL(string: item.artcover ?? "") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 cell.trackTitle.text = item.track
@@ -861,7 +909,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = URL(string: item.artcover) {
+                if let url = URL(string: item.artcover ?? "") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 cell.trackTitle.text = item.track
@@ -1364,3 +1412,4 @@ extension MusicPlayerViewController{
     }
 
 }
+

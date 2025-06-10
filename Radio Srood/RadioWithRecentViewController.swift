@@ -338,10 +338,25 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
         case 3:
             let cell = tableView.dequeueReusableCell(withIdentifier: "UpNextCell", for: indexPath) as! UpNextCell
             cell.selectionStyle = .none
+            cell.artCoverImage.layer.cornerRadius = 3
+            cell.artCoverImage.layer.masksToBounds = true
+
             if let currentLyricData = self.currentLyricData {
                 if let currentTrackInfo = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
-                    if let comingNextInfo = currentTrackInfo.value(forKey: "comingNextInfo") as? String {
-                        cell.title.text = comingNextInfo
+                    if let radioData = radioData {
+                        if let currentSong = radioData.value(forKey: "currentTrack") as? NSDictionary {
+                            if let currentArtist = currentSong.value(forKey: "comingNextArtCover") as? String {
+                                cell.artCoverImage.af_setImage(withURL: URL(string: currentArtist) ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                            }
+                            
+                            if let comingNextArtist = currentSong.value(forKey: "comingNextTrack") as? String {
+                                cell.title.text = comingNextArtist
+                            }
+
+                            if let comingNextTrack = currentSong.value(forKey: "comingNextArtist") as? String {
+                                cell.subTitle.text = comingNextTrack
+                            }
+                        }
                     }
                 }
             }

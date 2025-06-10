@@ -237,55 +237,61 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
 
 
     @objc func downloadBtnPressed() {
-        
         if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
-//            isPurchaseSuccess = false
-            
             var track: URL?
             var name: String?
+
             if let recentItem = recentListData {
-                if let mediaPathInfo = recentItem.value(forKey: "mediaPathInfo") as? String, let urlString = mediaPathInfo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
+                if let mediaPathInfo = recentItem.value(forKey: "mediaPathInfo") as? String,
+                   let urlString = mediaPathInfo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                   let url = URL(string: songPath + urlString) {
+
                     track = url
                     name = "\(url.lastPathComponent)"
-                    UserDefaults.standard.set(recentItem.value(forKey: "recentArtCover") as? String ?? "", forKey: "\(url.deletingPathExtension().lastPathComponent)")
+                    UserDefaults.standard.set(
+                        recentItem.value(forKey: "recentArtCover") as? String ?? "",
+                        forKey: "\(url.deletingPathExtension().lastPathComponent)"
+                    )
                 }
             }
-            let destination: DownloadRequest.DownloadFileDestination = { _, _ in
+
+            guard let downloadURL = track, let fileName = name else { return }
+
+            let destination: DownloadRequest.Destination = { _, _ in
                 var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                // the name of the file here I kept is yourFileName with appended extension
-                documentsURL.appendPathComponent(name!)
-                return (documentsURL, [.removePreviousFile])
+                documentsURL.appendPathComponent(fileName)
+                return (documentsURL, [.removePreviousFile, .createIntermediateDirectories])
             }
-            Alamofire.download(track!, to: destination)
+
+            AF.download(downloadURL, to: destination)
                 .downloadProgress { progress in
                     DispatchQueue.main.async {
                         self.navigationController?.setProgress(Float(progress.fractionCompleted), animated: true)
                     }
                     print("Download Progress: \(progress.fractionCompleted)")
-                    if (progress.fractionCompleted == 1){
+                    if progress.fractionCompleted == 1 {
                         self.navigationController?.finishProgress()
                     }
                 }
                 .response { response in
-                    if let destinationURL = response.destinationURL {
-                        print(destinationURL)
-                        //                    self?.shareBtnClicked(url: destinationURL)
+                    if let destinationURL = response.fileURL {
+                        print("Downloaded to: \(destinationURL)")
+                        // self.shareBtnClicked(url: destinationURL)
+                    } else if let error = response.error {
+                        print("Download failed: \(error.localizedDescription)")
                     }
                 }
+
         } else {
-            
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
             vc.isshowbackButton = true
             let navVC = UINavigationController(rootViewController: vc)
             navVC.navigationBar.isHidden = true
             navVC.modalPresentationStyle = .fullScreen
             self.present(navVC, animated: true)
-
         }
-        
-        
-        
     }
+
 
     func shareBtnClicked(url: URL) {
         let vc = UIActivityViewController(activityItems: [url], applicationActivities: [])

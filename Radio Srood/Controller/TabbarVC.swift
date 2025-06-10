@@ -2,8 +2,9 @@ import UIKit
 
 
 class TabbarVC: UITabBarController {
+    static var cacheVC: TabbarVC?
     static var available: TabbarVC? {
-        CustomAlertController().topMostController() as? TabbarVC
+        CustomAlertController().topMostController() as? TabbarVC ?? cacheVC
     }
     
     static var isMiniPlayerVisible: Bool {
@@ -14,6 +15,7 @@ class TabbarVC: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        TabbarVC.cacheVC = self
 
         setVCs()
         setupTabbar()
@@ -76,7 +78,7 @@ class TabbarVC: UITabBarController {
     
     func addMiniPlayer() {
         miniPlayer = MiniPlayerView()
-        miniPlayer.isHidden = true
+        miniPlayer.miniplayer(hide: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let strongSelf = self else {
                 return

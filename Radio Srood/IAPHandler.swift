@@ -88,15 +88,14 @@ class IAPHandler: NSObject {
     
     // MARK: - find products
     func findPaymentIndex(productIdentifier: String) -> Int? {
-        if self.productArray == nil {
-            return nil
-        }
-        for payment in self.productArray where payment.productIdentifier == productIdentifier {
-            return self.productArray.firstIndex(of: payment)
+        for (index, product) in productArray.enumerated() {
+            if product.productIdentifier == productIdentifier {
+                return index
+            }
         }
         return nil
     }
-    
+
     // MARK: - MAKE PURCHASE OF A PRODUCT
     func canMakePurchases() -> Bool {  return SKPaymentQueue.canMakePayments()  }
     
@@ -295,9 +294,9 @@ class IAPHandler: NSObject {
     
     // MARK: - Check purchase data or not
     func isGetPurchase() -> Bool {
-        if debugDeveloperSkipAds {
-            return true
-        }
+//        if debugDeveloperSkipAds {
+//            return true
+//        }
         
         // check monthly subscription
         if getBooleanValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.IsSubscribe.string) {

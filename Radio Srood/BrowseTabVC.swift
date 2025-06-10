@@ -124,12 +124,13 @@ class BrowseTabVC: UI_VC {
         playList = UserDefaultsManager.shared.playListsData
         fetchRecentlyPlayed()
         handleBrowseheaderArrayValue()
+    
     }
     
     private func handleBrowseheaderArrayValue() {
         BrowseheaderArray = Browseheader.allCases.map({ $0.title })
         if recenltPlayed.count <= 0 {
-            BrowseheaderArray.remove(at: 4)
+            BrowseheaderArray.removeAll(where: { $0 == Browseheader.recentlyPlay.title })
         }
 //        if playList.count <= 0 {
 //            BrowseheaderArray.remove(at: 0)
@@ -212,8 +213,10 @@ class BrowseTabVC: UI_VC {
         dataHelper.getCurrentLyricDataInModle { [weak self] resp in
             guard let self = self else { return }
             if let resp = resp {
-                self.currentLyricData = resp
-                self.tblBrowse.reloadData()
+                DispatchQueue.main.async {
+                    self.currentLyricData = resp
+                    self.tblBrowse.reloadData()
+                }
             }
         }
     }
@@ -277,15 +280,17 @@ class BrowseTabVC: UI_VC {
         }
     }
     
+    
+
     private func setHeaderData(headerTitle: String, isShowShowAll: Bool = true) -> UIView {
-        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 35))
-        let lblTitle = UILabel(frame: CGRect(x: 15, y: 0, width: screenSize.width - 100, height: 35))
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 20))
+        let lblTitle = UILabel(frame: CGRect(x: 15, y: 3, width: screenSize.width - 30, height: 20))
         lblTitle.text = headerTitle
         lblTitle.textColor = .white.withAlphaComponent(0.8)
-        lblTitle.font = UIFont(name: "Kohinoor Telugu Light", size: 23)
+        lblTitle.font = UIFont(name: "Kohinoor Telugu Light", size: 17)
         containerView.addSubview(lblTitle)
         
-        let showAllBtn = CustomButton(frame: CGRect(x: screenSize.width - 100, y: 0, width: 100, height: 35))
+        let showAllBtn = CustomButton(frame: CGRect(x: screenSize.width - 100, y: -4, width: 100, height: 35))
         showAllBtn.setTitle(isShowShowAll ? "Show All" : "", for: .normal)
         showAllBtn.setTitleColor(.white, for: .normal)
         showAllBtn.titleLabel?.font = UIFont(name: "Kohinoor Telugu Medium", size: 17)
@@ -559,6 +564,20 @@ class BrowseTabVC: UI_VC {
         print("Remove BrowseTabVC from memory")
     }
     
+    func currentRadioCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: CurrentRadioCell.self) {
+            cell.selectionStyle = .none
+            if let currentLyricData = self.currentLyricData {
+                cell.currentTrackInfo = currentLyricData.currentTrackInfo
+//                tblBrowse.reloadData()
+            }
+            return cell
+        }
+        return UITableViewCell()
+    }
+    
+    
+    
 }
 
 extension BrowseTabVC : MusicPlayerViewControllerDelegate {
@@ -586,6 +605,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.playlist.title:     return playlistsCell(with: tableView)
         case Browseheader.newMusic.title:     return newReleasesCell(with: tableView)
         case Browseheader.popularMusic.title: return popularTracksCell(with: tableView)
+        case Browseheader.currentRadio.title: return currentRadioCell(with: tableView)
         case Browseheader.rjtv.title:         return rjTvCell(with: tableView)
         case Browseheader.radio.title:        return browseRadioCell(with: tableView) // need Radio api call
         case Browseheader.recentlyPlay.title: return recentlyPlayedCell(with: tableView)
@@ -620,6 +640,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.playlist.title:     return setHeaderData(headerTitle: Browseheader.playlist.title)
         case Browseheader.newMusic.title:     return setHeaderData(headerTitle: Browseheader.newMusic.title)
         case Browseheader.popularMusic.title: return setHeaderData(headerTitle: Browseheader.popularMusic.title)
+        case Browseheader.currentRadio.title: return setHeaderData(headerTitle: Browseheader.currentRadio.title, isShowShowAll: false)
         case Browseheader.rjtv.title:         return setHeaderData(headerTitle: Browseheader.rjtv.title, isShowShowAll: false)
         case Browseheader.radio.title:        return setHeaderData(headerTitle: Browseheader.radio.title)
         case Browseheader.recentlyPlay.title: return setHeaderData(headerTitle: Browseheader.recentlyPlay.title)
@@ -629,18 +650,23 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         switch BrowseheaderArray[section] {
-        case Browseheader.playlist.title:       return 35
-        case Browseheader.newMusic.title:       return 35
-        case Browseheader.popularMusic.title:   return 35
-        case Browseheader.rjtv.title:           return 35
-        case Browseheader.radio.title:          return 35
-        case Browseheader.recentlyPlay.title:   return 35
+        case Browseheader.playlist.title:       return 27
+        case Browseheader.newMusic.title:       return 27
+        case Browseheader.popularMusic.title:   return 27
+        case Browseheader.currentRadio.title:   return 27
+        case Browseheader.rjtv.title:           return 27
+        case Browseheader.radio.title:          return 27
+        case Browseheader.recentlyPlay.title:   return 27
         default:                                return 0
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row == 0 { //indexPath.section == 3
+        print("Selected section: \(indexPath.section), row: \(indexPath.row)")
+        
+        if indexPath.section == 3 { //indexPath.section == 3
+            openRadioWithRecentViewController()
+        } else if indexPath.section == 4 {
             guard let url = URL(string: "https://live.pamirtv.com/stream/ptv.m3u8") else { return }
             NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
             player = PlayObserver() //killing player before stream
@@ -651,6 +677,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
             self.present(self.avPlayerViewController, animated: true) { [weak self] in
                 self?.avPlayerViewController.player?.play()
             }
+
         }
     }
     
@@ -758,6 +785,8 @@ extension BrowseTabVC: GADInterstitialDelegate {
         case .rjtv:
             openRadioWithRecentViewController()
 
+        case .currentRadio:
+            openRadioWithRecentViewController()
         }
     }
     

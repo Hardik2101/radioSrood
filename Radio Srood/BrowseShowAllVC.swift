@@ -17,6 +17,7 @@ class BrowseShowAllVC: UI_VC {
     }
     
     var parentVC: BrowseTabVC!
+    var parentVC1: HomeViewController?
     
     var playlist: [Playlist] = []
     var newReleases: [NewRelease] = []

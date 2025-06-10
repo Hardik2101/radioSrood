@@ -31,7 +31,7 @@ class TrackCell: UITableViewCell {
     }
     
     private func getCellSize() -> CGFloat {
-        let height: CGFloat = 50
+        let height: CGFloat = 60
         return height
     }
     
@@ -81,7 +81,7 @@ extension TrackCell: UICollectionViewDelegate, UICollectionViewDataSource, UICol
         let totalInset = leftInset + rightInset + space
         let width = (Common.screenSize.width  - totalInset) / 2
         let height: CGFloat = 50
-        return CGSize(width: width, height: height)
+        return CGSize(width: width, height: getCellSize())
     }
 }
 

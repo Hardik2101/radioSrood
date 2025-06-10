@@ -107,7 +107,7 @@ class MoreInfoViewController: UIViewController {
             ytHeightConstraint.constant = 0
         }
         if let track = track {
-            if let url = URL(string: track.artcover) {
+            if let url = URL(string: track.artcover ?? "") {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
             lblSongTitle.text = track.track

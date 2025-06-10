@@ -434,18 +434,30 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
         }
     }
 
-    func findAppleMusic(name: String){
+    func findAppleMusic(name: String) {
+        let queryURL = "https://radiosrood.com/api/otherradio.json"
+        guard let escapedName = name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: queryURL) else {
+            print("Invalid URL or name encoding")
+            return
+        }
         
-        let queryURL = String(format: "http://radiosrood.com/api/currentsongappv1.json", name)
-        let escapedURL = queryURL.addingPercentEncoding( withAllowedCharacters: .urlQueryAllowed)!
+        let headers: HTTPHeaders = [
+            "X-API-KEY": API_KEY
+        ]
         
-        Alamofire.request( escapedURL, method: .get, parameters: ["X-API-KEY":API_KEY]).responseJSON { [weak self] response in
+        AF.request(url, method: .get, headers: headers).responseJSON { [weak self] response in
             guard let self = self else { return }
+            
             switch response.result {
-            case .success( _):
-                let data = response.result.value as! NSDictionary
-                let countFind = data.value(forKey: "currentData") as! Int
-                if !(countFind > 0) {
+            case .success(let value):
+                guard let data = value as? [String: Any],
+                      let countFind = data["currentData"] as? Int else {
+                    print("Malformed data or missing keys")
+                    return
+                }
+                
+                if countFind <= 0 {
                     self.radioImage.image = UIImage(named: "Lav_Radio_Logo.png")
                     self.artImage = UIImage(named: "Lav_Radio_Logo.png")
                     self.appleBtn.isHidden = true
@@ -453,41 +465,82 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
                     return
                 }
                 
-                let resultArray = data.value(forKey: "currentTrack") as! NSArray
-                let result = resultArray[0] as! NSDictionary
-                let artwork = result.value(forKey: "artCover") as! String
-                let bigArtwork = artwork.replacingOccurrences(of: "100", with: "800")
-                let musicUrl  = result.value(forKey: "trackUrl")
-                self.appleMusicUrl = musicUrl as? String ?? ""
-                imgStr = bigArtwork
-                let url = URL(string: bigArtwork)
-                self.radioImage.af_setImage(withURL: url!)
-                self.appleBtn.isHidden = false
-                self.getDataFromUrl(url: url!, completion: { [self] (datax, responce, error) in
-                    self.artImage = UIImage(data:datax!)
-                    self.updateNowPlaying(isPause: true)
-                    self.recordTimeline(
-                        tracksName: name,
-                        nameStationLine: (self.radioData.value(forKey: "name") as? String) ?? "",
-                        urlStationLine: (self.radioData.value(forKey: "radio_url") as? String ?? ""),
-                        imageTrackLine: musicUrl as? String ?? "",
-                        urlTrackInAppleMusic: musicUrl as? String ?? "",
-                        coverUrl: bigArtwork
-                    )
-                })
+                if let resultArray = data["currentTrack"] as? [[String: Any]],
+                   let firstResult = resultArray.first,
+                   let artwork = firstResult["artCover"] as? String,
+                   let musicUrl = firstResult["trackUrl"] as? String {
+                    
+                    let bigArtwork = artwork.replacingOccurrences(of: "100", with: "800")
+                    self.appleMusicUrl = musicUrl
+                    self.imgStr = bigArtwork
+                    
+                    if let artworkURL = URL(string: bigArtwork) {
+                        self.radioImage.af.setImage(withURL: artworkURL)
+                        self.appleBtn.isHidden = false
+                        
+                        self.getDataFromUrl(url: artworkURL) { data, response, error in
+                            guard let data = data else { return }
+                            self.artImage = UIImage(data: data)
+                            self.updateNowPlaying(isPause: true)
+                            
+                            self.recordTimeline(
+                                tracksName: name,
+                                nameStationLine: (self.radioData.value(forKey: "name") as? String) ?? "",
+                                urlStationLine: (self.radioData.value(forKey: "radio_url") as? String) ?? "",
+                                imageTrackLine: musicUrl,
+                                urlTrackInAppleMusic: musicUrl,
+                                coverUrl: bigArtwork
+                            )
+                        }
+                    }
+                }
+                
             case .failure(let error):
                 print("Request failed with error: \(error)")
             }
         }
     }
+
     
-    func recordTimeline(tracksName:String, nameStationLine:String, urlStationLine:String, imageTrackLine:String, urlTrackInAppleMusic: String, coverUrl: String){
-        let urlRequest = String(format: "%@%@",BASE_BACKEND_URL,ENDPOINT_APPLE_MUSIC_SEND)
-        Alamofire.request( urlRequest,method: .post, parameters: ["X-API-KEY": API_KEY,"name_track":tracksName,"name_radio":nameStationLine, "track_url":urlTrackInAppleMusic, "cover_url":coverUrl, "is_found": "1" ])
-            .responseJSON { response in
-                
-            }        
+    func recordTimeline(
+        tracksName: String,
+        nameStationLine: String,
+        urlStationLine: String,
+        imageTrackLine: String,
+        urlTrackInAppleMusic: String,
+        coverUrl: String
+    ) {
+        let urlRequest = "\(BASE_BACKEND_URL)\(ENDPOINT_APPLE_MUSIC_SEND)"
+        
+        let headers: HTTPHeaders = [
+            "X-API-KEY": API_KEY
+        ]
+        
+        let parameters: [String: Any] = [
+            "name_track": tracksName,
+            "name_radio": nameStationLine,
+            "track_url": urlTrackInAppleMusic,
+            "cover_url": coverUrl,
+            "is_found": "1"
+        ]
+        
+        AF.request(
+            urlRequest,
+            method: .post,
+            parameters: parameters,
+            encoding: JSONEncoding.default,
+            headers: headers
+        )
+        .responseJSON { response in
+            switch response.result {
+            case .success(let json):
+                print("RecordTimeline success: \(json)")
+            case .failure(let error):
+                print("RecordTimeline error: \(error.localizedDescription)")
+            }
+        }
     }
+
     
     func setupRemoteTransportControls() {
         // Get the shared MPRemoteCommandCenter

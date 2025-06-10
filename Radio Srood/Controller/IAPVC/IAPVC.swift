@@ -36,6 +36,24 @@ class IAPVC: UI_VC {
     @IBOutlet weak var btnUpgradePremium: UIButton!
     @IBOutlet weak var txtView: UITextView!
     
+    @IBOutlet weak var vwSunscriptionPlan: UIView!
+    
+    @IBOutlet weak var vwThanksPurchase: UIView!
+    @IBOutlet weak var vwSubscriptionEnable: UIView!
+    
+    
+    @IBOutlet weak var lblSubscriptionPlan: UILabel!
+    
+    @IBOutlet weak var lblStatus: UILabel!
+    
+    @IBOutlet weak var lblNextPayment: UILabel!
+    
+    @IBOutlet weak var lblAmount: UILabel!
+    
+    @IBOutlet weak var lblThankyouPurchase: UILabel!
+    
+    @IBOutlet weak var btnManageSubscription: UIButton!
+    
     private var isYearly: Bool = false
     var isshowbackButton: Bool = false
 
@@ -51,9 +69,18 @@ class IAPVC: UI_VC {
         self.setUpUI()
     }
     
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         self.btnBack.isHidden = !self.isshowbackButton
+        
+        if IAPHandler.shared.isGetPurchase() {
+            vwSubscriptionEnable.isHidden = false
+        } else {
+            vwSubscriptionEnable.isHidden = true
+        }
+        
+        self.subscriptionEnabled()
     }
     
     private func setUpUI() {
@@ -86,6 +113,16 @@ class IAPVC: UI_VC {
         imsSelectedMonthly.image = UIImage(named: "ic_selected")
         imgSelectedYearly.image = UIImage(named: "")
         
+        btnManageSubscription.backgroundColor = .white
+        btnManageSubscription.cornerRadiusV =  16
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM dd, yyyy"
+        let todayDate = Date()
+        lblNextPayment.text = dateFormatter.string(from: todayDate)
+        lblAmount.text = "$4.99 CAD"
+
+
         txtView.text = """
 * Subscriptions are auto-renewable in-app-purchases.\n\n• Payment will be charged to iTunes Account at confirmation of purchase.\n\n• Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period \n\n• Account will be charged for renewal within 24-hours prior to the end of the current period and identify the cost of the renewal \n\n• Subscriptions may be managed by the user and auto-renewal may be turned off by going to the user’s Account Settings after purchase.
 """
@@ -129,6 +166,31 @@ class IAPVC: UI_VC {
 
     }
     
+    private func subscriptionEnabled() {
+        if let subscriptionDate = getObjectValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.SubscriptionDate.string) as? Date {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMM dd, yyyy"
+            let formattedDate = dateFormatter.string(from: subscriptionDate)
+            lblNextPayment.text = formattedDate
+        }
+        
+        if let subscriptionID = getObjectValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.subscriptionID.string) as? String {
+            
+            if subscriptionID == "com.developer.radiosrood_1month" {
+                if let monthlyPrice = getObjectValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.monthlyPrice.string) as? String {
+                    self.lblSubscriptionPlan.text = "Monthly"
+                    self.lblAmount.text = monthlyPrice
+                }
+                
+            } else if subscriptionID == "com.developer.radiosrood_1year" {
+                if let yearlyPrice = getObjectValueFromUserDefaults_ForKey(UserDefaultKeys.CommanKeys.yearlyPrice.string) as? String {
+                    self.lblSubscriptionPlan.text = "Yearly"
+                    self.lblAmount.text = yearlyPrice
+                }
+            }
+        }
+
+    }
     
 //    @objc func segmentedControlChanged(_ sender: UISegmentedControl) {
 //        if sender.selectedSegmentIndex == 0 {
@@ -163,44 +225,87 @@ class IAPVC: UI_VC {
     
     private func getProductDetails(productIdn: String) {
         
+        // Check network connectivity
         if Reachability.isConnectedToNetwork() {
+            print("Network is connected")
+            
+            // If the product array is nil, fetch available products
             if IAPHandler.shared.productArray == nil {
-                IAPHandler.shared.fetchAvailableProducts { [self](products)   in
+                print("Fetching available products...")
+                
+                IAPHandler.shared.fetchAvailableProducts { [self](products) in
+                    print("Fetched products: \(products)")
                     
+                    // Check if there are products available
                     if products.count != 0 {
+                        // Find the product index by product identifier
+                        print("Looking for product: \(productIdn)")
                         guard let product = IAPHandler.shared.findPaymentIndex(productIdentifier: productIdn) else {
+                            print("Product not found")
                             return
                         }
+                        // Proceed with purchasing the product
+                        print("Purchasing product: \(IAPHandler.shared.productArray[product])")
                         self.purchaseProduct(IAPHandler.shared.productArray[product])
+                    } else {
+                        print("No products available")
                     }
                 }
             } else {
+                print("Product array is already available")
+                // If product array is already available, find the product index
+                print("Looking for product: \(productIdn)")
                 guard let product = IAPHandler.shared.findPaymentIndex(productIdentifier: productIdn) else {
+                    print("Product not found")
                     return
                 }
+                // Proceed with purchasing the product
+                print("Purchasing product: \(IAPHandler.shared.productArray[product])")
                 self.purchaseProduct(IAPHandler.shared.productArray[product])
             }
+            
         } else {
+            print("Network is not connected")
+            // If there's no network connection, hide the loader and show an alert
             CustomLoader.shared.hideLoader()
-            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity." )
+            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity.")
         }
-        
     }
+ 
     
     private func purchaseProduct(_ product: SKProduct) {
         if Reachability.isConnectedToNetwork() {
             CustomLoader.shared.showLoader(in: self.view)
             IAPHandler.shared.purchase(product: product) { [weak self](alert, product, transaction) in
                 if let tran = transaction, let prod = product {
+                    print("trasn========",tran)
+                    print("product========",prod)
                     
+                    let a = self?.lblMonthlyPrice.text
                     // use transaction details and purchased product as you want
-                    print("\(tran.description)")
-                    print("\(prod.productIdentifier)")
+                    print("tran.description\(tran.description)")
+                    print("prod.productIdentifier\(prod.productIdentifier)")
+                    setObjectValueToUserDefaults(prod.productIdentifier as AnyObject, UserDefaultKeys.CommanKeys.subscriptionID.string)
+
+                    if prod.productIdentifier == "com.developer.radiosrood_1month" {
+                        let monthlyPrice = self?.lblMonthlyPrice.text
+                        setObjectValueToUserDefaults(monthlyPrice as AnyObject, UserDefaultKeys.CommanKeys.monthlyPrice.string)
+
+                    } else if prod.productIdentifier == "com.developer.radiosrood_1year" {
+                        let yearlyPrice = self?.lblYearlyPrice.text
+                        setObjectValueToUserDefaults(yearlyPrice as AnyObject, UserDefaultKeys.CommanKeys.yearlyPrice.string)
+                    }
+                    
                     guard let sSelf = self else {return}
                     NotificationCenter.default.post(name: .PurchaseSuccess, object: nil)
                     sSelf.dismiss(animated: true, completion: {
                         CustomLoader.shared.hideLoader()
-                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
+                            self?.subscriptionEnabled()
+                        })
+                        self?.vwSubscriptionEnable.isHidden = false
+                        self?.view.setNeedsLayout()
+                        self?.view.layoutIfNeeded()
                     })
                 } else {
                     CustomLoader.shared.hideLoader()
@@ -318,13 +423,23 @@ class IAPVC: UI_VC {
     }
     
     @IBAction func clickOn_btnUpgradePremium(_ sender: Any) {
-                if isYearly {
-                    self.getProductDetails(productIdn: IAProduct.Product_identifierYearly.rawValue)
-                } else {
-                    self.getProductDetails(productIdn: IAProduct.Product_identifierOneMonth.rawValue)
-                }
+        
+        if IAPHandler.shared.isGetPurchase() {
+            print("IAP IS ALREADY MADE")
+        } else {
+            if isYearly {
+                self.getProductDetails(productIdn: IAProduct.Product_identifierYearly.rawValue)
+            } else {
+                self.getProductDetails(productIdn: IAProduct.Product_identifierOneMonth.rawValue)
+            }
+        }
     }
-
+    
+    
+    @IBAction func clickOn_btnManageSubscription(_ sender: Any) {
+        UIApplication.shared.openURL(URL(string: "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/manageSubscriptions")!)
+    }
+    
 }
 
 

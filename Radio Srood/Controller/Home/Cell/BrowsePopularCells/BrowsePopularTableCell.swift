@@ -15,7 +15,10 @@ class BrowsePopularTableCell: UITableViewCell {
     
     var trendingTracks: [TrendingTrack] = []
     var popularTracks: [PopularTrack] = []
+    var todayTopPic: [RadioSuroodTodayPickItem] = []
+
     var presentViewBrowse: BrowseTabVC?
+    var presentViewBrowse1: HomeViewController?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -31,30 +34,40 @@ class BrowsePopularTableCell: UITableViewCell {
     private func setCellHeight() {
         let topInset: CGFloat = 10
         let bottomInset: CGFloat = 10
-        let lineSpace: CGFloat = 10
-        let rowCount: CGFloat = 5.0
-        
-        let totalHeight = (getCellSize() * rowCount) + (lineSpace * (rowCount-1)) + topInset + bottomInset
+        let lineSpacing: CGFloat = 10
+        let numberOfRows: CGFloat = 5
+
+        let cellHeight = getCellSize()
+        let totalSpacing = lineSpacing * (numberOfRows - 1)
+        let totalHeight = (cellHeight * numberOfRows) + totalSpacing + topInset + bottomInset
+
         trackHeightConstraint.constant = totalHeight
     }
-    
+
     private func getCellSize() -> CGFloat {
-        let height: CGFloat = 60
-        return height
+        return 80
     }
-    
 }
 
-//MARK: - collectionview delegates methods
+// MARK: - UICollectionView Delegates & DataSource
+
 extension BrowsePopularTableCell: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return !trendingTracks.isEmpty ? trendingTracks.count : popularTracks.count
+        if !todayTopPic.isEmpty {
+            return todayTopPic.count
+        } else if !trendingTracks.isEmpty {
+            return trendingTracks.count
+        } else {
+            return popularTracks.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let cell = collectionView.registerAndGet(BrowsePopularCollCell.self, indexPath: indexPath) {
-            if !trendingTracks.isEmpty {
+            if !todayTopPic.isEmpty {
+                cell.todayToppic = todayTopPic[indexPath.row]
+            } else if !trendingTracks.isEmpty {
                 cell.trendingTrack = trendingTracks[indexPath.row]
             } else {
                 cell.popularTrack = popularTracks[indexPath.row]
@@ -73,11 +86,20 @@ extension BrowsePopularTableCell: UICollectionViewDelegate, UICollectionViewData
             } else {
                 presentView.openMusicPlayerViewController()
             }
+        } else if let presentView1 = presentViewBrowse1 {
+            presentView1.groupID = todayTopPic[indexPath.row].TTPID
+            presentView1.homeHeader = .todayTopPic
+            if presentView1.interstitial != nil {
+                presentView1.interstitial.present(fromRootViewController: presentView1)
+            } else {
+                presentView1.openMusicPlayerViewController()
+            }
         }
+            
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: UIScreen.main.bounds.width - 20, height: 60)
+        CGSize(width: UIScreen.main.bounds.width - 20, height: getCellSize())
     }
 }
 

@@ -59,6 +59,6 @@ extension BrowseRadioTableCell: UICollectionViewDelegate, UICollectionViewDataSo
 //        let height = width + 30
 //        return CGSize(width: width, height: height)
         
-        return CGSize(width: 150, height: 175)
+        return CGSize(width: 150, height: 195)
     }
 }

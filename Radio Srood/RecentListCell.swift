@@ -37,8 +37,9 @@ class RecentListCell: UITableViewCell {
 }
 
 class UpNextCell: UITableViewCell {
-
+    @IBOutlet weak var artCoverImage: UIImageView!
     @IBOutlet weak var title: UILabel!
+    @IBOutlet weak var subTitle: UILabel!
 
     override func awakeFromNib() {
         super.awakeFromNib()

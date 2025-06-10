@@ -36,7 +36,10 @@ class HomeViewController: UI_VC {
     var timer = Timer()
     var counter = 0
     var featuredTop: [FeaturedTop]?
-    
+    var todayTopPic: [RadioSuroodTodayPickItem]? = nil
+    var isTodayTopPicLoaded = false
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -102,6 +105,8 @@ class HomeViewController: UI_VC {
 //            isPurchaseSuccess = false
             }
         })
+        getTodayTopPicData()
+        
     }
     private func loadFeaturedArtistData() {
         dataHelper.getFeaturedArtistSponserdData { [weak self] resp in
@@ -125,13 +130,13 @@ class HomeViewController: UI_VC {
     private func handleHomeHeaderArrayValue() {
         homeHeaderArray = HomeHeader.allCases.map({ $0.title })
         if recenltPlayed.count <= 0 {
-            homeHeaderArray.remove(at: 7)
+            homeHeaderArray.remove(at: 8)
         }
         if playList.count <= 0 {
-            homeHeaderArray.remove(at: 6)
+            homeHeaderArray.remove(at: 7)
         }
 //        if nativeAd.count > 0 {
-            homeHeaderArray.insert("Native Ad First", at: 4)
+            homeHeaderArray.insert("Native Ad First", at: 5)
 //            if nativeAd.count >= 2 {
                 homeHeaderArray.insert("Native Ad Second", at: homeHeaderArray.count-1)
 //            }
@@ -225,15 +230,63 @@ class HomeViewController: UI_VC {
         }
     }
     
-    private func setHeaderData(headerTitle: String) -> UIView {
+    private func getTodayTopPicData() {
+        dataHelper = DataHelper()
+        dataHelper.getTodayTopPicData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.todayTopPic = resp.items
+                self.isTodayTopPicLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
+
+    
+
+    
+    private func setHeaderData(headerTitle: String, isShowShowAll: Bool = false) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 20))
         let lblTitle = UILabel(frame: CGRect(x: 15, y: 3, width: screenSize.width - 30, height: 20))
         lblTitle.text = headerTitle
         lblTitle.textColor = .white.withAlphaComponent(0.8)
         lblTitle.font = UIFont(name: "Kohinoor Telugu Light", size: 17)
         containerView.addSubview(lblTitle)
-        containerView.backgroundColor = UIColor(red: 17/255, green: 17/255, blue: 17/255, alpha: 1)
+        
+        let showAllBtn = CustomButton(frame: CGRect(x: screenSize.width - 100, y: -4, width: 100, height: 35))
+        showAllBtn.setTitle(isShowShowAll ? "Show All" : "", for: .normal)
+        showAllBtn.setTitleColor(.white, for: .normal)
+        showAllBtn.titleLabel?.font = UIFont(name: "Kohinoor Telugu Medium", size: 17)
+        showAllBtn.setFuncFor(event: .touchUpInside) { btn in self.onClickShowAll(type: headerTitle) }
+        containerView.addSubview(showAllBtn)
+        
+        containerView.backgroundColor = .primaryDark
         return containerView
+    }
+    
+    func onClickShowAll(type: String) {
+        switch type {
+            
+        case HomeHeader.playlists.title: popularTracksShowAll()
+//        case Browseheader.playlist.title:       playlistsShowAll()
+//        case Browseheader.newMusic.title:       newReleasesShowAll()
+//        case Browseheader.popularMusic.title:   popularTracksShowAll()
+//        case Browseheader.radio.title:          browseRadioShowAll()
+//        case Browseheader.recentlyPlay.title:   recentlyPlayedShowAll()
+        default:
+            let vc = self.storyboard.vc(RadioWithRecentViewController.self)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    
+    func popularTracksShowAll() {
+        let showAllVC = storyboard.vc(BrowseShowAllVC.self)
+        showAllVC.parentVC1 = self
+        showAllVC.popularTracks = homeMusic?.popularTracks ?? []
+        self.navigationController?.pushViewController(showAllVC, animated: true)
     }
     
     func configureCurrentPlayingSong() {
@@ -384,6 +437,19 @@ class HomeViewController: UI_VC {
         return UITableViewCell()
     }
     
+    func todayTopPicCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: BrowsePopularTableCell.self) {
+            cell.selectionStyle = .none
+            if let todayTopPica = todayTopPic, isTodayTopPicLoaded {
+                cell.presentViewBrowse1 = self
+                cell.todayTopPic = todayTopPica
+                cell.reloadCollectionView()
+            }
+            return cell
+        }
+        return UITableViewCell()
+    }
+    
     func bannerAdCell(with tableView: UITableView, index: Int) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: IndexPath(row: 0, section: index)) as? BannerAdCell {
             
@@ -442,6 +508,9 @@ class HomeViewController: UI_VC {
 //            musicVC: vc
 //        )
 //        vc.prepareView()
+        
+        
+        
     }
     
     func openMyMusicPlayerViewController(index: Int) {
@@ -550,6 +619,8 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[indexPath.section] {
         case "Featured":
             return newFeaturedCell(with: tableView)
+        case "Today Top Picks":
+            return todayTopPicCell(with: tableView)
         case "New Releases":
             return newReleasesCell(with: tableView)
         case "Currently Playing on Radio srood":
@@ -573,28 +644,43 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         }
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.section {
-        case 2:
+    func  tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let sectionTitle = homeHeaderArray[indexPath.section]
+
+        switch sectionTitle {
+        case "Currently Playing on Radio srood":
             homeHeader = .currentRadio
             if interstitial != nil {
                 interstitial.present(fromRootViewController: self)
             } else {
                 openRadioWithRecentViewController()
             }
+
+        case "Today Top Picks":
+            homeHeader = .todayTopPic
+            if interstitial != nil {
+                interstitial.present(fromRootViewController: self)
+            } else {
+                openMusicPlayerViewController()
+            }
+
+        // You can add more cases here if needed
         default:
             break
         }
     }
+
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         switch homeHeaderArray[section] {
         case "Featured":
             return setHeaderData(headerTitle: HomeHeader.featured.title)
+            case "Today Top Picks":
+            return setHeaderData(headerTitle: HomeHeader.todayTopPic.title, isShowShowAll: true)
         case "New Releases":
             return setHeaderData(headerTitle: HomeHeader.newReleases.title)
         case "Currently Playing on Radio srood":
-            return setHeaderData(headerTitle: HomeHeader.currentRadio.title)
+            return setHeaderData(headerTitle: "")
         case "Trending":
             return setHeaderData(headerTitle: HomeHeader.trending.title)
         case "Popular Tracks":
@@ -618,10 +704,12 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[section] {
         case "Featured":
             return 27
+        case "Today Top Picks":
+            return 27
         case "New Releases":
             return 27
         case "Currently Playing on Radio srood":
-            return 27
+            return 0
         case "Trending":
             return 27
         case "Popular Tracks":
@@ -648,7 +736,17 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return CGFloat.leastNonzeroMagnitude
     }
-    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let sectionTitle = homeHeaderArray[indexPath.section]
+        
+        if sectionTitle == "Currently Playing on Radio srood" {
+            return 0 // 🔒 Hide this row completely
+        }
+
+        // Return normal heights for other sections
+        return UITableView.automaticDimension
+    }
+
 }
 
 //extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -743,6 +841,8 @@ extension HomeViewController: GADInterstitialDelegate {
             if let myPlayListindex = myPlayListindex {
                 openMyPlayList(index: myPlayListindex)
             }
+        case .todayTopPic:
+            openMusicPlayerViewController()
         }
     }
     

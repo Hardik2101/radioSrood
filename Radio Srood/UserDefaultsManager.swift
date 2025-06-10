@@ -57,6 +57,9 @@ struct UserDefaultKeys {
         case IsSubscribe = "IsSubscribe"
         case SubscriptionDate = "SubscriptionDate"
         case lastDocumentId = "lastDocumentID"
+        case subscriptionID = "subscriptionID"
+        case monthlyPrice = "monthlyPrice"
+        case yearlyPrice = "yearlyPrice"
         var string: String {
             return self.rawValue
         }

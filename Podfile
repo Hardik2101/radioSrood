@@ -1,17 +1,13 @@
-# Uncomment the next line to define a global platform for your project
-# platform :ios, '12.0'
-source 'https://github.com/CocoaPods/Specs.git'
-platform :ios, '12.0'
+platform :ios, '13.0'
+source 'https://cdn.cocoapods.org/'
 
 target 'Radio Srood' do
-  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
   use_frameworks!
 
   # Pods for Radio Srood
-  
-  pod 'Alamofire', '~> 4.7'
+  pod 'Alamofire', '~> 5.6'
+  pod 'AlamofireImage', '~> 4.1'
   pod 'SCLAlertView'
-  pod 'AlamofireImage', '~> 3.5'
   pod 'OneSignal', '>= 2.6.2', '< 4.0'
   pod 'SWRevealViewController'
   pod 'VisualEffectView'
@@ -22,14 +18,15 @@ target 'Radio Srood' do
   pod 'GoogleUserMessagingPlatform'
 end
 
-
-
 post_install do |installer|
-    installer.generated_projects.each do |project|
-          project.targets.each do |target|
-              target.build_configurations.each do |config|
-                  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-         end
+  installer.generated_projects.each do |project|
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+
+        # ✅ Architecture exclusion based on system
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
       end
-   end
+    end
+  end
 end

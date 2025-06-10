@@ -109,13 +109,13 @@
 		567AC5B82CC2A0FF0096B25F /* BrowseRadioTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */; };
 		567AC5BB2CC2A1210096B25F /* BrowseRadioCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567AC5B92CC2A1210096B25F /* BrowseRadioCollectionCell.swift */; };
 		567AC5BC2CC2A1210096B25F /* BrowseRadioCollectionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 567AC5BA2CC2A1210096B25F /* BrowseRadioCollectionCell.xib */; };
-		62A6EB9970533A5DFFD7F0FD /* Pods_Radio_Srood.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3F9C716C727FA030C5FD72C /* Pods_Radio_Srood.framework */; };
 		803C90B0291F60F700BBA60D /* RecentPlayerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803C90AF291F60F700BBA60D /* RecentPlayerCell.swift */; };
 		804A215728C35A91000E40B7 /* RadioWithRecentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804A215628C35A91000E40B7 /* RadioWithRecentViewController.swift */; };
 		804A215928C36D9D000E40B7 /* RecentListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804A215828C36D9D000E40B7 /* RecentListCell.swift */; };
 		80B72EEE2918FBA9004ACD7F /* MoreInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B72EED2918FBA9004ACD7F /* MoreInfoViewController.swift */; };
 		80B72EF02918FC03004ACD7F /* LyricsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B72EEF2918FC03004ACD7F /* LyricsViewController.swift */; };
 		80BFD93B291BFA6C003B4C58 /* RecentPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */; };
+		887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
 		B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7131DCD2B43104D00F65434 /* BannerAdCell.swift */; };
 		B7131DD02B43104D00F65434 /* BannerAdCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7131DCE2B43104D00F65434 /* BannerAdCell.xib */; };
@@ -136,6 +136,7 @@
 		B7DCEBC22CE925F100E6A6FC /* RJTVTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7DCEBC02CE925F100E6A6FC /* RJTVTableViewCell.xib */; };
 		B7ED01E72B6EC79C0007C9FE /* AdsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7ED01E62B6EC79C0007C9FE /* AdsAPIView.swift */; };
 		B7F405C42B33748700E9F4C8 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F405C32B33748700E9F4C8 /* Reachability.swift */; };
+		C51E3017989E54CE95C6A872 /* Pods_Radio_Srood.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */; };
 		DC02D41D29674B280009FF39 /* UIView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC02D41C29674B280009FF39 /* UIView+Extension.swift */; };
 		DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC062BB329924928008245F2 /* MusicPlayerViewController.swift */; };
 		DC062BB729924A6C008245F2 /* NewReleaseModles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC062BB629924A6C008245F2 /* NewReleaseModles.swift */; };
@@ -302,13 +303,16 @@
 		567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseRadioTableCell.xib; sourceTree = "<group>"; };
 		567AC5B92CC2A1210096B25F /* BrowseRadioCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseRadioCollectionCell.swift; sourceTree = "<group>"; };
 		567AC5BA2CC2A1210096B25F /* BrowseRadioCollectionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseRadioCollectionCell.xib; sourceTree = "<group>"; };
+		5C56FCFD7ED829FDD9575D78 /* Pods-Radio Srood.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.release.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.release.xcconfig"; sourceTree = "<group>"; };
 		803C90AF291F60F700BBA60D /* RecentPlayerCell.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentPlayerCell.swift; sourceTree = "<group>"; };
 		804A215628C35A91000E40B7 /* RadioWithRecentViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RadioWithRecentViewController.swift; sourceTree = "<group>"; };
 		804A215828C36D9D000E40B7 /* RecentListCell.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentListCell.swift; sourceTree = "<group>"; };
 		80B72EED2918FBA9004ACD7F /* MoreInfoViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = MoreInfoViewController.swift; sourceTree = "<group>"; };
 		80B72EEF2918FC03004ACD7F /* LyricsViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = LyricsViewController.swift; sourceTree = "<group>"; };
 		80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentPlayerViewController.swift; sourceTree = "<group>"; };
-		A0E2D79E6C6D2E590C86407B /* Pods-Radio Srood.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.release.xcconfig"; path = "Pods/Target Support Files/Pods-Radio Srood/Pods-Radio Srood.release.xcconfig"; sourceTree = "<group>"; };
+		887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTopPicModel.swift; sourceTree = "<group>"; };
+		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
 		B700ED762C750261006FF099 /* TabbarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbarVC.swift; sourceTree = "<group>"; };
 		B7131DCD2B43104D00F65434 /* BannerAdCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdCell.swift; sourceTree = "<group>"; };
 		B7131DCE2B43104D00F65434 /* BannerAdCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BannerAdCell.xib; sourceTree = "<group>"; };
@@ -329,7 +333,6 @@
 		B7DCEBC02CE925F100E6A6FC /* RJTVTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RJTVTableViewCell.xib; sourceTree = "<group>"; };
 		B7ED01E62B6EC79C0007C9FE /* AdsAPIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdsAPIView.swift; sourceTree = "<group>"; };
 		B7F405C32B33748700E9F4C8 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
-		C3F9C716C727FA030C5FD72C /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC02D41C29674B280009FF39 /* UIView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extension.swift"; sourceTree = "<group>"; };
 		DC062BB329924928008245F2 /* MusicPlayerViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = MusicPlayerViewController.swift; sourceTree = "<group>"; };
 		DC062BB629924A6C008245F2 /* NewReleaseModles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewReleaseModles.swift; sourceTree = "<group>"; };
@@ -374,7 +377,6 @@
 		DCB70389299C143900ABFB8D /* PlaylistsModles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsModles.swift; sourceTree = "<group>"; };
 		DCB7038B299C14C600ABFB8D /* FeaturedArtistModles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturedArtistModles.swift; sourceTree = "<group>"; };
 		DCF7B780298AE2D0001B006D /* MusicPageModles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPageModles.swift; sourceTree = "<group>"; };
-		E84F356CFEDBFF746DFAE17F /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -382,8 +384,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				62A6EB9970533A5DFFD7F0FD /* Pods_Radio_Srood.framework in Frameworks */,
 				B7CD49672B3348C000B07DB5 /* StoreKit.framework in Frameworks */,
+				C51E3017989E54CE95C6A872 /* Pods_Radio_Srood.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,9 +492,18 @@
 			isa = PBXGroup;
 			children = (
 				B7CD49662B3348BF00B07DB5 /* StoreKit.framework */,
-				C3F9C716C727FA030C5FD72C /* Pods_Radio_Srood.framework */,
+				9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3ECD2EBC4080706BB0A33C5B /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */,
+				5C56FCFD7ED829FDD9575D78 /* Pods-Radio Srood.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		3F0E15671EADEF970009734F /* Model */ = {
@@ -527,8 +538,8 @@
 			children = (
 				3F9AB12C1EAB3912000D8FE3 /* Radio Srood */,
 				3F9AB12B1EAB3912000D8FE3 /* Products */,
-				5EFD2E640555A48462076A6E /* Pods */,
 				1C5E51BF0C913306EA63BA7A /* Frameworks */,
+				3ECD2EBC4080706BB0A33C5B /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -734,15 +745,6 @@
 			path = BrowseRadioCell;
 			sourceTree = "<group>";
 		};
-		5EFD2E640555A48462076A6E /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				E84F356CFEDBFF746DFAE17F /* Pods-Radio Srood.debug.xcconfig */,
-				A0E2D79E6C6D2E590C86407B /* Pods-Radio Srood.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 		B742CD832B6FA1EA00F82380 /* AdsAPI */ = {
 			isa = PBXGroup;
 			children = (
@@ -916,6 +918,7 @@
 				DCF7B780298AE2D0001B006D /* MusicPageModles.swift */,
 				B7CAAD8F2C51553E006CC78F /* HorizontalSliderModel.swift */,
 				567AC5B22CC29C4E0096B25F /* RadioModel.swift */,
+				887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1018,11 +1021,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3F9AB13F1EAB3912000D8FE3 /* Build configuration list for PBXNativeTarget "Radio Srood" */;
 			buildPhases = (
-				B038870FF82A18332495D863 /* [CP] Check Pods Manifest.lock */,
+				980DB89585668EACB47D8A03 /* [CP] Check Pods Manifest.lock */,
 				3F9AB1261EAB3912000D8FE3 /* Sources */,
 				3F9AB1271EAB3912000D8FE3 /* Frameworks */,
 				3F9AB1281EAB3912000D8FE3 /* Resources */,
-				4532B2CA4161513F55DA80B4 /* [CP] Embed Pods Frameworks */,
+				E2787D6B22285659D2890AF3 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1045,6 +1048,7 @@
 				TargetAttributes = {
 					3F9AB1291EAB3912000D8FE3 = {
 						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = KFSP6V59LR;
 						LastSwiftMigration = 0830;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
@@ -1156,7 +1160,29 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4532B2CA4161513F55DA80B4 /* [CP] Embed Pods Frameworks */ = {
+		980DB89585668EACB47D8A03 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Radio Srood-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E2787D6B22285659D2890AF3 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1206,28 +1232,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Radio Srood/Pods-Radio Srood-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B038870FF82A18332495D863 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Radio Srood-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1293,6 +1297,7 @@
 				3F9AD5F81EB0EB90009B1532 /* OfflineTableViewController.swift in Sources */,
 				DC062BB929924B5E008245F2 /* TrendingPlaylistModles.swift in Sources */,
 				DC7BF919297432C7006641B3 /* CanvasApplication.swift in Sources */,
+				887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */,
 				80B72EEE2918FBA9004ACD7F /* MoreInfoViewController.swift in Sources */,
 				DC400EFC2981B3C9005A5B50 /* ArtistCell.swift in Sources */,
 				803C90B0291F60F700BBA60D /* RecentPlayerCell.swift in Sources */,
@@ -1506,7 +1511,7 @@
 		};
 		3F9AB1401EAB3912000D8FE3 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E84F356CFEDBFF746DFAE17F /* Pods-Radio Srood.debug.xcconfig */;
+			baseConfigurationReference = AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-2";
@@ -1514,18 +1519,21 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 625;
+				CURRENT_PROJECT_VERSION = 681;
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KFSP6V59LR;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 7.7.2;
-				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
+				MARKETING_VERSION = 8.4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tecocraft.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev_test_profile;
 				SWIFT_OBJC_BRIDGING_HEADER = "Radio Srood/GlobalOneV2-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
@@ -1535,7 +1543,7 @@
 		};
 		3F9AB1411EAB3912000D8FE3 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A0E2D79E6C6D2E590C86407B /* Pods-Radio Srood.release.xcconfig */;
+			baseConfigurationReference = 5C56FCFD7ED829FDD9575D78 /* Pods-Radio Srood.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-2";
@@ -1543,15 +1551,15 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 625;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 681;
+				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 7.7.2;
+				MARKETING_VERSION = 8.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
