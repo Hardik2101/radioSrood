@@ -107,6 +107,32 @@ class HomeViewController: UI_VC {
         })
         getTodayTopPicData()
         
+
+        guard let url = URL(string: "https://api.app.srood.stream/jostojo?v=today_top_pick&api_key=3bXcLWToFQkTDBqyknaediavkmTwW") else { return }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            // Try to decode the response as JSON
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    print("Response JSON: \(json)")
+                }
+            } catch {
+                print("Failed to parse JSON: \(error)")
+            }
+        }
+
+        task.resume()
+
     }
     private func loadFeaturedArtistData() {
         dataHelper.getFeaturedArtistSponserdData { [weak self] resp in

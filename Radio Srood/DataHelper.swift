@@ -16,7 +16,7 @@ class DataHelper: NSObject {
         let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_GET_RADIODETAIL)0\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        AF.request(urlString, method: .get, headers: headers).responseData { response in
+        AF.request(BASE_BACKEND_URL, method: .get, headers: headers).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? [Any],
@@ -142,6 +142,12 @@ class DataHelper: NSObject {
     }
 
     func getTodayTopPicDetailed(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
+        AF.request(todayPickURLDetailed).responseDecodable(of: TodayTopPickPlaylistModel.self) { response in
+            completion(response.value)
+        }
+    }
+
+    func getTodayTopPicDetailed1(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
         AF.request(todayPickURLDetailed).responseData { response in
             switch response.result {
             case .success(let data):
