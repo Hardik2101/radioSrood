@@ -1524,7 +1524,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 682;
+				CURRENT_PROJECT_VERSION = 684;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
@@ -1553,7 +1553,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 682;
+				CURRENT_PROJECT_VERSION = 684;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";

@@ -423,7 +423,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.isAlreadyLiked(track: item)
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
-            if item.lyric_synced == ""{
+            if item.lyric_synced == "" || item.lyric == "" || item.lyric_synced == nil || item.lyric == nil {
                 self.heightView.constant  = 0
                 self.viewLyrics.isHidden = true
                 self.parser = nil
