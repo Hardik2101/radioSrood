@@ -3,6 +3,7 @@ import UIKit
 
 enum HomeHeader: Int, CaseIterable {
     case featured
+    case recentlyAdded
     case todayTopPic
     case newReleases
     case currentRadio
@@ -17,6 +18,8 @@ enum HomeHeader: Int, CaseIterable {
         switch self {
         case .featured:
             return "Featured"
+        case .recentlyAdded:
+            return "Recently Added on Radio Srood"
         case .todayTopPic:
             return "Today Top Picks"
         case .newReleases:

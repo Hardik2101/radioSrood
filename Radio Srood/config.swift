@@ -22,6 +22,9 @@ let todayPickURLDetailed = "https://api.app.srood.stream/jostojo?v=today_top_pic
 let todayPickURL = "https://radiosrood.com/api/TodayTopPicksData.json"
 
 
+let recentlyAdded = "https://radiosrood.com/api/RecentlyAddedData.json"
+let recentlyAddedDetailed = "https://api.app.srood.stream/jostojo?v=recently_added&api_key=ArmanSyed2025"
+
 let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 
 let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"

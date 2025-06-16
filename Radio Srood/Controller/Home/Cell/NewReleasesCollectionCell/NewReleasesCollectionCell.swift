@@ -20,6 +20,18 @@ class NewReleasesCollectionCell: UICollectionViewCell {
         }
     }
     
+    var recentlyAdded: RecentlyAdded? {
+        didSet {
+            if let recentlyAdded = recentlyAdded {
+                if let url = URL(string: recentlyAdded.RACover ?? "") {
+                    artworkImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                }
+                lblSongName.text = recentlyAdded.RATrack
+                lblArtistName.text = recentlyAdded.RAArtist
+            }
+        }
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
     }

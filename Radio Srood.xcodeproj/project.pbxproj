@@ -104,6 +104,7 @@
 		5605A35C2C53BDC900A69234 /* NewFeaturedCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605A35A2C53BDC900A69234 /* NewFeaturedCell.swift */; };
 		5605A35D2C53BDC900A69234 /* NewFeaturedCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5605A35B2C53BDC900A69234 /* NewFeaturedCell.xib */; };
 		5614EF492CB00FE70047E9ED /* BrowseTabVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614EF482CB00FE60047E9ED /* BrowseTabVC.swift */; };
+		563036ED2DFB4CF30099A7BE /* RecentlyAddedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563036EC2DFB4CF30099A7BE /* RecentlyAddedModel.swift */; };
 		567AC5B32CC29C4E0096B25F /* RadioModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567AC5B22CC29C4E0096B25F /* RadioModel.swift */; };
 		567AC5B72CC2A0FF0096B25F /* BrowseRadioTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567AC5B52CC2A0FF0096B25F /* BrowseRadioTableCell.swift */; };
 		567AC5B82CC2A0FF0096B25F /* BrowseRadioTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */; };
@@ -298,6 +299,7 @@
 		5605A35A2C53BDC900A69234 /* NewFeaturedCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeaturedCell.swift; sourceTree = "<group>"; };
 		5605A35B2C53BDC900A69234 /* NewFeaturedCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NewFeaturedCell.xib; sourceTree = "<group>"; };
 		5614EF482CB00FE60047E9ED /* BrowseTabVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseTabVC.swift; sourceTree = "<group>"; };
+		563036EC2DFB4CF30099A7BE /* RecentlyAddedModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyAddedModel.swift; sourceTree = "<group>"; };
 		567AC5B22CC29C4E0096B25F /* RadioModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioModel.swift; sourceTree = "<group>"; };
 		567AC5B52CC2A0FF0096B25F /* BrowseRadioTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseRadioTableCell.swift; sourceTree = "<group>"; };
 		567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseRadioTableCell.xib; sourceTree = "<group>"; };
@@ -919,6 +921,7 @@
 				B7CAAD8F2C51553E006CC78F /* HorizontalSliderModel.swift */,
 				567AC5B22CC29C4E0096B25F /* RadioModel.swift */,
 				887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */,
+				563036EC2DFB4CF30099A7BE /* RecentlyAddedModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1327,6 +1330,7 @@
 				3F9AD5CE1EAE44AB009B1532 /* AboutViewController.swift in Sources */,
 				18C788412A1E8CB900712ECE /* MyPlaylistCollectionViewCell.swift in Sources */,
 				4025E1B02256508C0062DE07 /* UINavigationController+Progress.swift in Sources */,
+				563036ED2DFB4CF30099A7BE /* RecentlyAddedModel.swift in Sources */,
 				18C7883B2A1DD9C300712ECE /* UserDefaultsManager.swift in Sources */,
 				DC400EF42981AF8A005A5B50 /* HomeHeaderEnum.swift in Sources */,
 				3F9AB1551EAB5107000D8FE3 /* Player.swift in Sources */,

@@ -134,6 +134,18 @@ class DataHelper: NSObject {
             completion(response.value)
         }
     }
+    
+    func getRecentlyAddedData(completion: @escaping (_ resp: RecentlyAddedModel?) -> Void) {
+        AF.request(recentlyAdded).responseDecodable(of: RecentlyAddedModel.self) { response in
+            completion(response.value)
+        }
+    }
+
+    func getRecentlyAddedDataDetailed(completion: @escaping (_ resp: RecentlyAddedPlaylist?) -> Void) {
+        AF.request(recentlyAddedDetailed).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
+            completion(response.value)
+        }
+    }
 
     func getTodayTopPicData(completion: @escaping (_ resp: TodayPickModel?) -> Void) {
         AF.request(todayPickURL).responseDecodable(of: TodayPickModel.self) { response in

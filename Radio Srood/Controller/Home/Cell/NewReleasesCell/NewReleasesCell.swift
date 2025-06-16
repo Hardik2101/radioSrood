@@ -6,11 +6,17 @@ class NewReleasesCell: UITableViewCell {
     @IBOutlet private weak var newReleasesHeightConstraint: NSLayoutConstraint!
     
     var newReleases: [NewRelease] = []
+    var recentlyAdded: [RecentlyAdded] = []
     var presentView: HomeViewController?
-    // Removed presentViewBrowse since you only want HomeViewController case
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        
+        setupCollectionView()
+        setCellHeight()
+    }
+    
+    private func setupCollectionView() {
         newReleasesCollectionView.delegate = self
         newReleasesCollectionView.dataSource = self
         
@@ -23,9 +29,9 @@ class NewReleasesCell: UITableViewCell {
         newReleasesCollectionView.isPagingEnabled = false
         newReleasesCollectionView.showsHorizontalScrollIndicator = true
         
-        setCellHeight()
+        // Register cell
+        newReleasesCollectionView.register(UINib(nibName: "NewReleasesCollectionCell", bundle: nil), forCellWithReuseIdentifier: "NewReleasesCollectionCell")
     }
-
     
     func reloadCollectionView() {
         setCellHeight()
@@ -36,11 +42,12 @@ class NewReleasesCell: UITableViewCell {
         let topInset: CGFloat = 10
         let bottomInset: CGFloat = 10
         let lineSpace: CGFloat = 10
-        let rowCount: CGFloat = 3 // 3 rows fixed
+        let rowCount: CGFloat = 3
         
         let cellHeight = getCellHeight()
         newReleasesHeightConstraint.constant = (cellHeight * rowCount) + (lineSpace * (rowCount - 1)) + topInset + bottomInset
     }
+    
     private func getCellHeight() -> CGFloat {
         let width = getCellWidth()
         return width + 50
@@ -50,51 +57,62 @@ class NewReleasesCell: UITableViewCell {
         let leftInset: CGFloat = 8
         let rightInset: CGFloat = 8
         let spacing: CGFloat = 10
-
-        // visible width for 2.5 cells (2 full + 1 half)
-        let totalSpacing = leftInset + rightInset + spacing * 1.5  // spacing between cells count is 1.5 for 2.5 cells
+        
+        let totalSpacing = leftInset + rightInset + spacing * 1.5
         let availableWidth = Common.screenSize.width - totalSpacing
-
-        let cellWidth = availableWidth / 2.5
-        return cellWidth
+        
+        return availableWidth / 2.5
     }
-
-
 }
+
+// MARK: - UICollectionView Delegate & Data Source
 
 extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // Show all items, scrolling horizontally to see more if needed
-        return newReleases.count
+        if !newReleases.isEmpty {
+            return newReleases.count
+        } else if !recentlyAdded.isEmpty {
+            return recentlyAdded.count
+        }
+        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if let cell = collectionView.registerAndGet(NewReleasesCollectionCell.self, indexPath: indexPath) {
-            cell.newRelease = newReleases[indexPath.row]
-            return cell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewReleasesCollectionCell", for: indexPath) as? NewReleasesCollectionCell else {
+            return UICollectionViewCell()
         }
-        return UICollectionViewCell()
+        
+        if !newReleases.isEmpty {
+            cell.newRelease = newReleases[indexPath.row]
+        } else if !recentlyAdded.isEmpty {
+            cell.recentlyAdded = recentlyAdded[indexPath.row]
+        }
+        
+        return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedNewRelease = newReleases[indexPath.row]
+        guard let presentView = presentView else { return }
         
-        if let presentView = presentView {
-            presentView.groupID = selectedNewRelease.newReleasesTrackID
+        if !newReleases.isEmpty {
+            let selected = newReleases[indexPath.row]
+            presentView.groupID = selected.newReleasesTrackID
             presentView.homeHeader = .newReleases
-            
-            if presentView.interstitial != nil {
-                presentView.interstitial.present(fromRootViewController: presentView)
-            } else {
-                presentView.openMusicPlayerViewController()
-            }
+        } else if !recentlyAdded.isEmpty {
+            let selected = recentlyAdded[indexPath.row]
+            presentView.groupID = selected.RAID
+            presentView.homeHeader = .recentlyAdded
+        }
+        
+        if let interstitial = presentView.interstitial {
+            interstitial.present(fromRootViewController: presentView)
+        } else {
+            presentView.openMusicPlayerViewController()
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = getCellWidth()
-        let height = getCellHeight()
-        return CGSize(width: width, height: height)
+        return CGSize(width: getCellWidth(), height: getCellHeight())
     }
 }

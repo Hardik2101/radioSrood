@@ -169,6 +169,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         case .recentlyPlayed: break
         case .todayTopPic:
             loadTodayTopPicData()
+        case .recentlyAdded:
+            loadRecentlyAddedDetailedData()
         }
     }
     
@@ -260,9 +262,27 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 print("Current groupID:", self.groupID)
                 print("Available playlistIDs from API:")
                 for playlist in resp.todayTopPick {
-                    print("playlistID:", playlist.playlistID)
+                    print(" getTodayTopPicDetailed playlistID:", playlist.playlistID)
                 }
 
+                self.tempTrack = self.track
+                self.isSetMusic = true
+                self.isPlay = true
+                self.handleRecentInView(index: self.selectedIndex)
+                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
+                self.radioTableView.reloadData()
+            }
+        }
+    }
+    
+    func loadRecentlyAddedDetailedData() {
+        
+        dataHelper = DataHelper()
+        
+        dataHelper.getRecentlyAddedDataDetailed { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.track = resp.recentlyAddedPlayListDetailed.first(where: { $0.playlistID == self.groupID})?.tracks
                 self.tempTrack = self.track
                 self.isSetMusic = true
                 self.isPlay = true
@@ -812,6 +832,8 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         case .playlists:      return mainCount + ((tempTrack?.count ?? 0)-1)
         case .featuredArtist: return mainCount + ((tempTrack?.count ?? 0)-1)
         case .todayTopPic:
+            return mainCount + ((tempTrack?.count ?? 0)-1)
+        case .recentlyAdded:
             return mainCount + ((tempTrack?.count ?? 0)-1)
         }
         
