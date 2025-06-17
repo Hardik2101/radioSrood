@@ -30,7 +30,7 @@ struct RecentlyAdded: Decodable, Identifiable {
 }
 
 
-struct RecentlyAddedPlaylist : Decodable {
+struct RecentlyAddedPlaylist: Codable {
     let recentlyAddedPlayListDetailed: [RecentlyAddedPlayListDetailed]
 
     enum CodingKeys: String, CodingKey {
@@ -38,10 +38,14 @@ struct RecentlyAddedPlaylist : Decodable {
     }
 }
 
-
-struct RecentlyAddedPlayListDetailed: Decodable {
+struct RecentlyAddedPlayListDetailed: Codable {
     let playlistID: Int
     let tracks: [Track]
+
+    enum CodingKeys: String, CodingKey {
+        case playlistID = "PlaylistID"
+        case tracks
+    }
 }
 
 

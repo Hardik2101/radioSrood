@@ -110,30 +110,6 @@ class HomeViewController: UI_VC {
         getTodayTopPicData()
         getRecentlyAddedData()
 
-        guard let url = URL(string: "https://api.app.srood.stream/jostojo?v=today_top_pick&api_key=3bXcLWToFQkTDBqyknaediavkmTwW") else { return }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Error: \(error)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                return
-            }
-
-            // Try to decode the response as JSON
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print("Response JSON: \(json)")
-                }
-            } catch {
-                print("Failed to parse JSON: \(error)")
-            }
-        }
-
-        task.resume()
 
     }
     private func loadFeaturedArtistData() {
@@ -381,31 +357,26 @@ class HomeViewController: UI_VC {
     
     
     func newRecentlyAddedCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self) {
+        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self),
+           let recentlyAdded = recenltyAdded,
+           isRecentlyAddedLoaded {
             cell.selectionStyle = .none
-            if let newReleases = recenltyAdded, isRecentlyAddedLoaded {
-                cell.presentView = self
-                cell.recentlyAdded = newReleases
-                cell.reloadCollectionView()
-            }
+            cell.configureCell(withRecentlyAdded: recentlyAdded, presenter: self)
             return cell
         }
         return UITableViewCell()
     }
-    
+
     func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self) {
+        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self),
+           let newReleases = homeMusic?.newReleases {
             cell.selectionStyle = .none
-            if let newReleases = homeMusic?.newReleases {
-                cell.presentView = self
-                cell.newReleases = newReleases
-                cell.reloadCollectionView()
-            }
+            cell.configureCell(withNewReleases: newReleases, presenter: self)
             return cell
         }
         return UITableViewCell()
     }
-    
+
     func currentRadioCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: CurrentRadioCell.self) {
             cell.selectionStyle = .none
