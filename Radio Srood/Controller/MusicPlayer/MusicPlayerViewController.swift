@@ -252,42 +252,25 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         
         dataHelper = DataHelper()
         
-        // Debug log to confirm correct groupID
-        print("🚨 loadTodayTopPicData() called with groupID =", self.groupID)
-        
         dataHelper.getTodayTopPicDetailed { [weak self] resp in
             guard let self = self else { return }
-            
-            // Clear any previous data first
-            self.track = []
-            self.tempTrack = []
-            
             if let resp = resp {
-                print("📥 Received API response for TodayTopPic")
-
-                self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID })?.tracks
-                self.tempTrack = self.track
-                
-                // Debug logs
-                print("🎵 Matched Tracks:", self.track ?? [])
-                print("📀 Matching Playlist Object:", resp.todayTopPick.first(where: { $0.playlistID == self.groupID }))
-                print("🎯 Current groupID:", self.groupID)
-                print("📚 All playlistIDs from API:")
+                self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID})?.tracks
+                print("tracks======1", self.track)
+                print("tracks======2", self.groupID)
+                print("tracks======3", resp.todayTopPick.first(where: { $0.playlistID == self.groupID}))
+                print("Current groupID:", self.groupID)
+                print("Available playlistIDs from API:")
                 for playlist in resp.todayTopPick {
-                    print("🆔 \(playlist.playlistID)")
+                    print(" getTodayTopPicDetailed playlistID:", playlist.playlistID)
                 }
 
-                // Update flags
+                self.tempTrack = self.track
                 self.isSetMusic = true
                 self.isPlay = true
-                
-                // Update UI
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat(((self.tempTrack?.count ?? 0) - 1) * 60 + 165)
-
-                DispatchQueue.main.async {
-                    self.radioTableView.reloadData()
-                }
+                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
+                self.radioTableView.reloadData()
             }
         }
     }

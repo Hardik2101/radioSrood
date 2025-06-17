@@ -1,3 +1,4 @@
+
 import Foundation
 
 // MARK: - NewReleaseModles
@@ -40,42 +41,7 @@ struct Track: Codable {
         case playlistid
         case lyric_synced
     }
-
-    // ✅ Robust Decoder: handles Int or String for `trackid`
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        if let intValue = try? container.decode(Int.self, forKey: .trackid) {
-            trackid = intValue
-        } else if let stringValue = try? container.decode(String.self, forKey: .trackid),
-                  let intFromString = Int(stringValue) {
-            trackid = intFromString
-        } else {
-            trackid = nil
-        }
-
-        artist = try? container.decode(String.self, forKey: .artist)
-        track = try? container.decode(String.self, forKey: .track)
-        playcounts = try? container.decode(String.self, forKey: .playcounts)
-        likes = try? container.decode(String.self, forKey: .likes)
-        dislikes = try? container.decode(String.self, forKey: .dislikes)
-        composer = try? container.decode(String.self, forKey: .composer)
-        lyricWriter = try? container.decode(String.self, forKey: .lyricWriter)
-        music = try? container.decode(String.self, forKey: .music)
-        dateAdded = try? container.decode(String.self, forKey: .dateAdded)
-        lyric = try? container.decode(String.self, forKey: .lyric)
-        explicit = try? container.decode(Bool.self, forKey: .explicit)
-        allowDownload = try? container.decode(Bool.self, forKey: .allowDownload)
-        mediaPath = try? container.decode(String.self, forKey: .mediaPath)
-        artcover = try? container.decode(String.self, forKey: .artcover)
-        ytLink = try? container.decode(String.self, forKey: .ytLink)
-        fbLink = try? container.decode(String.self, forKey: .fbLink)
-        igLink = try? container.decode(String.self, forKey: .igLink)
-        playlistid = try? container.decode(Int.self, forKey: .playlistid)
-        lyric_synced = try? container.decode(String.self, forKey: .lyric_synced)
-    }
-
-    // Convert to internal model
+    
     func convertToSongModel() -> SongModel {
         let song = SongModel()
         song.trackid = self.trackid ?? 0
@@ -98,9 +64,11 @@ struct Track: Codable {
         song.fbLink = self.fbLink ?? ""
         song.igLink = self.igLink ?? ""
         song.playlistid = self.playlistid ?? 0
+        
         song.isFav = false
         song.isBookMarked = false
         song.isRecentlyPlayed = false
         return song
     }
 }
+
