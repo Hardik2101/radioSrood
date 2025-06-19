@@ -252,25 +252,42 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         
         dataHelper = DataHelper()
         
+        // Debug log to confirm correct groupID
+        print("🚨 loadTodayTopPicData() called with groupID =", self.groupID)
+        
         dataHelper.getTodayTopPicDetailed { [weak self] resp in
             guard let self = self else { return }
+            
+            // Clear any previous data first
+            self.track = []
+            self.tempTrack = []
+            
             if let resp = resp {
-                self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID})?.tracks
-                print("tracks======1", self.track)
-                print("tracks======2", self.groupID)
-                print("tracks======3", resp.todayTopPick.first(where: { $0.playlistID == self.groupID}))
-                print("Current groupID:", self.groupID)
-                print("Available playlistIDs from API:")
+                print("📥 Received API response for TodayTopPic")
+
+                self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID })?.tracks
+                self.tempTrack = self.track
+                
+                // Debug logs
+                print("🎵 Matched Tracks:", self.track ?? [])
+                print("📀 Matching Playlist Object:", resp.todayTopPick.first(where: { $0.playlistID == self.groupID }))
+                print("🎯 Current groupID:", self.groupID)
+                print("📚 All playlistIDs from API:")
                 for playlist in resp.todayTopPick {
-                    print(" getTodayTopPicDetailed playlistID:", playlist.playlistID)
+                    print("🆔 \(playlist.playlistID)")
                 }
 
-                self.tempTrack = self.track
+                // Update flags
                 self.isSetMusic = true
                 self.isPlay = true
+                
+                // Update UI
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
+                self.tableBgHeightConstraints.constant = CGFloat(((self.tempTrack?.count ?? 0) - 1) * 60 + 165)
+
+                DispatchQueue.main.async {
+                    self.radioTableView.reloadData()
+                }
             }
         }
     }
@@ -423,7 +440,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.isAlreadyLiked(track: item)
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
-            if item.lyric_synced == "" || item.lyric == "" || item.lyric_synced == nil || item.lyric == nil {
+            if item.lyric_synced == "" || item.lyric_synced == nil {
                 self.heightView.constant  = 0
                 self.viewLyrics.isHidden = true
                 self.parser = nil
@@ -919,6 +936,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
                 if let url = URL(string: item.artcover ?? "") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 cell.trackTitle.text = item.track
                 cell.artistName.text = item.artist
@@ -933,6 +951,8 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
                 if let url = URL(string: item.artcover ?? "") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+
                 }
                 cell.trackTitle.text = item.track
                 cell.artistName.text = item.artist
@@ -1104,7 +1124,7 @@ extension MusicPlayerViewController {
         } else {
             self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
             self.updateNowPlaying(isPause: false)
-            let subtitleURL = URL(string: "https://api.srood.stream/static/app/lyrics/lyric.lrc")//URL(fileURLWithPath: subtitleFile!)
+            let subtitleURL = URL(string: "https://lyric.srood.stream/jostojo?artist=Fardin%20Faryad&track=Aziz%20Jan&api_key=arman")//URL(fileURLWithPath: subtitleFile!)
             let parser = try? Subtitles(file: subtitleURL!, encoding: .utf8)
             player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: DispatchQueue.main, using: { [weak self] (time)  in
                   if player?.currentItem?.status == .readyToPlay {

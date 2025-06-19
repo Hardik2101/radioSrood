@@ -9,9 +9,15 @@ class NewReleasesCell: UITableViewCell {
     var recentlyAdded: [RecentlyAdded] = []
     var presentView: HomeViewController?
     
+    enum CellMode {
+        case newReleases
+        case recentlyAdded
+    }
+    
+    private var mode: CellMode = .newReleases
+
     override func awakeFromNib() {
         super.awakeFromNib()
-        
         setupCollectionView()
         setCellHeight()
     }
@@ -29,7 +35,6 @@ class NewReleasesCell: UITableViewCell {
         newReleasesCollectionView.isPagingEnabled = false
         newReleasesCollectionView.showsHorizontalScrollIndicator = true
         
-        // Register cell
         newReleasesCollectionView.register(UINib(nibName: "NewReleasesCollectionCell", bundle: nil), forCellWithReuseIdentifier: "NewReleasesCollectionCell")
     }
     
@@ -63,6 +68,24 @@ class NewReleasesCell: UITableViewCell {
         
         return availableWidth / 2.5
     }
+
+    // MARK: - Public Configuration Methods
+
+    func configureCell(withNewReleases newReleases: [NewRelease], presenter: HomeViewController) {
+        self.mode = .newReleases
+        self.newReleases = newReleases
+        self.recentlyAdded = []
+        self.presentView = presenter
+        reloadCollectionView()
+    }
+
+    func configureCell(withRecentlyAdded recentlyAdded: [RecentlyAdded], presenter: HomeViewController) {
+        self.mode = .recentlyAdded
+        self.recentlyAdded = recentlyAdded
+        self.newReleases = []
+        self.presentView = presenter
+        reloadCollectionView()
+    }
 }
 
 // MARK: - UICollectionView Delegate & Data Source
@@ -70,12 +93,12 @@ class NewReleasesCell: UITableViewCell {
 extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if !newReleases.isEmpty {
+        switch mode {
+        case .newReleases:
             return newReleases.count
-        } else if !recentlyAdded.isEmpty {
+        case .recentlyAdded:
             return recentlyAdded.count
         }
-        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -83,9 +106,10 @@ extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource,
             return UICollectionViewCell()
         }
         
-        if !newReleases.isEmpty {
+        switch mode {
+        case .newReleases:
             cell.newRelease = newReleases[indexPath.row]
-        } else if !recentlyAdded.isEmpty {
+        case .recentlyAdded:
             cell.recentlyAdded = recentlyAdded[indexPath.row]
         }
         
@@ -94,17 +118,18 @@ extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource,
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let presentView = presentView else { return }
-        
-        if !newReleases.isEmpty {
+
+        switch mode {
+        case .newReleases:
             let selected = newReleases[indexPath.row]
             presentView.groupID = selected.newReleasesTrackID
             presentView.homeHeader = .newReleases
-        } else if !recentlyAdded.isEmpty {
+        case .recentlyAdded:
             let selected = recentlyAdded[indexPath.row]
             presentView.groupID = selected.RAID
             presentView.homeHeader = .recentlyAdded
         }
-        
+
         if let interstitial = presentView.interstitial {
             interstitial.present(fromRootViewController: presentView)
         } else {

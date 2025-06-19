@@ -23,7 +23,7 @@ let todayPickURL = "https://radiosrood.com/api/TodayTopPicksData.json"
 
 
 let recentlyAdded = "https://radiosrood.com/api/RecentlyAddedData.json"
-let recentlyAddedDetailed = "https://api.app.srood.stream/jostojo?v=recently_added&api_key=ArmanSyed2025"
+let recentlyAddedDetailed = "https://api.app.srood.stream/jostojo?v=recently_added&api_key=3bXcLWToFQkTDBqyknaediavkmTwW"
 
 let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 
