@@ -347,6 +347,7 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                         if let currentSong = radioData.value(forKey: "currentTrack") as? NSDictionary {
                             if let currentArtist = currentSong.value(forKey: "comingNextArtCover") as? String {
                                 cell.artCoverImage.af_setImage(withURL: URL(string: currentArtist) ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                                cell.bgImage.af_setImage(withURL: URL(string: currentArtist) ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                             }
                             
                             if let comingNextArtist = currentSong.value(forKey: "comingNextTrack") as? String {
@@ -370,6 +371,7 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray, let recentItem = recentHistory[indexPath.row] as? NSDictionary {
                 if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover) {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 if let recentTrack = recentItem.value(forKey: "recentTrack") as? String {
                     cell.trackTitle.text = recentTrack

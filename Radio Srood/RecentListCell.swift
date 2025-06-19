@@ -19,19 +19,26 @@ class AdViewCell: UITableViewCell {
 
 class RecentListCell: UITableViewCell {
 
+    @IBOutlet weak var vwContent: UIView!
     @IBOutlet weak var artCoverImage: UIImageView!
     @IBOutlet weak var trackTitle: UILabel!
     @IBOutlet weak var artistName: UILabel!
 
+    @IBOutlet weak var imgBg: UIImageView!
     override func awakeFromNib() {
         super.awakeFromNib()
         artCoverImage.image = nil
-        // Initialization code
+        
+        if let bg = imgBg {
+            bg.layer.cornerRadius = 5
+        }
+
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
         artCoverImage.image = nil
+        
     }
 
 }
@@ -40,10 +47,14 @@ class UpNextCell: UITableViewCell {
     @IBOutlet weak var artCoverImage: UIImageView!
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var subTitle: UILabel!
+    
+    @IBOutlet weak var bgImage: UIImageView!
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        if let bg = bgImage {
+            bg.layer.cornerRadius = 5
+        }
     }
 
 }
@@ -90,9 +101,13 @@ class MusicListCell: UITableViewCell {
     @IBOutlet weak var trackTitle: UILabel!
     @IBOutlet weak var artistName: UILabel!
 
+    @IBOutlet weak var imgBg: UIImageView!
     override func awakeFromNib() {
         super.awakeFromNib()
         artCoverImage.image = nil
+        if let bg = imgBg {
+            bg.layer.cornerRadius = 5
+        }
         // Initialization code
     }
 

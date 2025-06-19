@@ -36,7 +36,7 @@ class LyricPlayViewController: UIViewController {
         if let url = URL(string: currentSong.artcover) {
             imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
-        
+        lyricsView.backgroundColor = .clear
         // Load lyrics data
         var lyrics: String? = nil
         if let lyricsUrl = URL(string: lyricsUrl) {

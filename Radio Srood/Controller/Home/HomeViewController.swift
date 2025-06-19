@@ -37,7 +37,9 @@ class HomeViewController: UI_VC {
     var counter = 0
     var featuredTop: [FeaturedTop]?
     var todayTopPic: [RadioSuroodTodayPickItem]? = nil
+    var recenltyAdded: [RecentlyAdded]? = nil
     var isTodayTopPicLoaded = false
+    var isRecentlyAddedLoaded = false
 
 
     override func viewDidLoad() {
@@ -106,32 +108,8 @@ class HomeViewController: UI_VC {
             }
         })
         getTodayTopPicData()
-        
+        getRecentlyAddedData()
 
-        guard let url = URL(string: "https://api.app.srood.stream/jostojo?v=today_top_pick&api_key=3bXcLWToFQkTDBqyknaediavkmTwW") else { return }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Error: \(error)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                return
-            }
-
-            // Try to decode the response as JSON
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print("Response JSON: \(json)")
-                }
-            } catch {
-                print("Failed to parse JSON: \(error)")
-            }
-        }
-
-        task.resume()
 
     }
     private func loadFeaturedArtistData() {
@@ -156,10 +134,10 @@ class HomeViewController: UI_VC {
     private func handleHomeHeaderArrayValue() {
         homeHeaderArray = HomeHeader.allCases.map({ $0.title })
         if recenltPlayed.count <= 0 {
-            homeHeaderArray.remove(at: 8)
+            homeHeaderArray.remove(at: 9)
         }
         if playList.count <= 0 {
-            homeHeaderArray.remove(at: 7)
+            homeHeaderArray.remove(at: 8)
         }
 //        if nativeAd.count > 0 {
             homeHeaderArray.insert("Native Ad First", at: 5)
@@ -271,6 +249,21 @@ class HomeViewController: UI_VC {
     }
 
     
+    private func getRecentlyAddedData() {
+        
+        dataHelper = DataHelper()
+        
+        dataHelper.getRecentlyAddedData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.recenltyAdded = resp.items
+                self.isRecentlyAddedLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
 
     
     private func setHeaderData(headerTitle: String, isShowShowAll: Bool = false) -> UIView {
@@ -363,19 +356,27 @@ class HomeViewController: UI_VC {
     }
     
     
-    func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self) {
+    func newRecentlyAddedCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self),
+           let recentlyAdded = recenltyAdded,
+           isRecentlyAddedLoaded {
             cell.selectionStyle = .none
-            if let newReleases = homeMusic?.newReleases {
-                cell.presentView = self
-                cell.newReleases = newReleases
-                cell.reloadCollectionView()
-            }
+            cell.configureCell(withRecentlyAdded: recentlyAdded, presenter: self)
             return cell
         }
         return UITableViewCell()
     }
-    
+
+    func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: NewReleasesCell.self),
+           let newReleases = homeMusic?.newReleases {
+            cell.selectionStyle = .none
+            cell.configureCell(withNewReleases: newReleases, presenter: self)
+            return cell
+        }
+        return UITableViewCell()
+    }
+
     func currentRadioCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: CurrentRadioCell.self) {
             cell.selectionStyle = .none
@@ -645,6 +646,8 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[indexPath.section] {
         case "Featured":
             return newFeaturedCell(with: tableView)
+        case "Recently Added on Radio Srood":
+            return newRecentlyAddedCell(with: tableView)
         case "Today Top Picks":
             return todayTopPicCell(with: tableView)
         case "New Releases":
@@ -701,8 +704,10 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[section] {
         case "Featured":
             return setHeaderData(headerTitle: HomeHeader.featured.title)
+        case "Recently Added on Radio Srood":
+            return setHeaderData(headerTitle: HomeHeader.recentlyAdded.title)
             case "Today Top Picks":
-            return setHeaderData(headerTitle: HomeHeader.todayTopPic.title, isShowShowAll: true)
+            return setHeaderData(headerTitle: HomeHeader.todayTopPic.title)
         case "New Releases":
             return setHeaderData(headerTitle: HomeHeader.newReleases.title)
         case "Currently Playing on Radio srood":
@@ -729,6 +734,8 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         switch homeHeaderArray[section] {
         case "Featured":
+            return 27
+        case "Recently Added on Radio Srood":
             return 27
         case "Today Top Picks":
             return 27
@@ -868,6 +875,8 @@ extension HomeViewController: GADInterstitialDelegate {
                 openMyPlayList(index: myPlayListindex)
             }
         case .todayTopPic:
+            openMusicPlayerViewController()
+        case .recentlyAdded:
             openMusicPlayerViewController()
         }
     }

@@ -134,6 +134,46 @@ class DataHelper: NSObject {
             completion(response.value)
         }
     }
+    
+    func getRecentlyAddedData(completion: @escaping (_ resp: RecentlyAddedModel?) -> Void) {
+        AF.request(recentlyAdded).responseDecodable(of: RecentlyAddedModel.self) { response in
+            completion(response.value)
+        }
+    }
+
+    func getRecentlyAddedDataDetailed1(completion: @escaping (_ resp: RecentlyAddedPlaylist?) -> Void) {
+        AF.request(recentlyAddedDetailed).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
+            completion(response.value)
+        }
+    }
+
+    
+    func getRecentlyAddedDataDetailed(completion: @escaping (_ resp: RecentlyAddedPlaylist?) -> Void) {
+        guard let url = URL(string: recentlyAddedDetailed) else {
+            completion(nil)
+            return
+        }
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "GET"
+        urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        urlRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        urlRequest.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(recentlyAddedDetailed).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
+            switch response.result {
+            case .success(let value):
+                print("✅ Success: \(value)")
+                completion(value)
+            case .failure(let error):
+                print("❌ Decoding failed:", error)
+                if let data = response.data, let jsonStr = String(data: data, encoding: .utf8) {
+                    print("📦 Raw JSON:\n\(jsonStr)")
+                }
+            }
+        }
+
+    }
 
     func getTodayTopPicData(completion: @escaping (_ resp: TodayPickModel?) -> Void) {
         AF.request(todayPickURL).responseDecodable(of: TodayPickModel.self) { response in
@@ -141,11 +181,36 @@ class DataHelper: NSObject {
         }
     }
 
-    func getTodayTopPicDetailed(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
+    func getTodayTopPicDetailed11(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
         AF.request(todayPickURLDetailed).responseDecodable(of: TodayTopPickPlaylistModel.self) { response in
             completion(response.value)
         }
     }
+    
+    func getTodayTopPicDetailed(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
+        // Create a URLRequest with a cache-busting policy
+        guard let url = URL(string: todayPickURLDetailed) else {
+            completion(nil)
+            return
+        }
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "GET"
+        urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        urlRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        urlRequest.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(urlRequest).responseDecodable(of: TodayTopPickPlaylistModel.self) { response in
+            switch response.result {
+            case .success(let model):
+                completion(model)
+            case .failure(let error):
+                print("❌ Error loading TodayTopPicDetailed:", error.localizedDescription)
+                completion(nil)
+            }
+        }
+    }
+
 
     func getTodayTopPicDetailed1(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
         AF.request(todayPickURLDetailed).responseData { response in
@@ -290,4 +355,4 @@ class DataHelper: NSObject {
             }
         }
     }
-}
+}//

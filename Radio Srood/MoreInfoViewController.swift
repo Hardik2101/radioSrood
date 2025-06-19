@@ -46,117 +46,167 @@ class MoreInfoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         prepareView()
+
         if let currentTrackInfo = currentLyricData?.value(forKey: "currentTrackInfo") as? NSDictionary {
-            if let currentArtCoverInfo = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String, let url = URL(string: currentArtCoverInfo) {
+            if let artCoverURLString = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String,
+               let url = URL(string: artCoverURLString) {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
-            if let currentTrackInfo = currentTrackInfo.value(forKey: "currentTrackInfo") as? String {
-                lblSongTitle.text = currentTrackInfo
+
+            if let trackTitle = currentTrackInfo.value(forKey: "currentTrackInfo") as? String {
+                lblSongTitle.text = trackTitle
             }
-            if let currentArtistInfo = currentTrackInfo.value(forKey: "currentArtistInfo") as? String {
-                lblArtist.text = "\(currentArtistInfo)"
+
+            if let artist = currentTrackInfo.value(forKey: "currentArtistInfo") as? String {
+                lblArtist.text = artist
             }
-            if let dateTrackAddedInfo = currentTrackInfo.value(forKey: "DateTrackAddedInfo") as? String, dateTrackAddedInfo != "" {
-                lblDateAdded.text = "Date Added: \(dateTrackAddedInfo)"
-            } else {
-                dateAddedView.isHidden = true
-                dateAddedHeightConstraint.constant = 0
-            }
-            if let songLastPlayedInfo = currentTrackInfo.value(forKey: "SongLastPlayedInfo") as? String, songLastPlayedInfo != "" {
-                lblLastPlayed.text = "Last Played: \(songLastPlayedInfo)"
-            } else {
-                dateLastPlayedView.isHidden = true
-                dateLastPlayedHeightConstraint.constant = 0
-            }
-            if let artistRecentPlayedInfo = currentTrackInfo.value(forKey: "currentArtistInfo") as? String, artistRecentPlayedInfo != "" {
-                lblRecentPlayed.text = "Artist: \(artistRecentPlayedInfo)"
-            } else {
-                artistResentPlayedView.isHidden = true
-                artistResentPlayedHeightConstraint.constant = 0
-            }
-            lblMusic.text = "Music: \((currentTrackInfo.value(forKey: "ArtistMusicComposerInfo") as? String) ?? "")"
-            lblLyrics.text = "Lyrics: \((currentTrackInfo.value(forKey: "ArtistLyricWriterInfo") as? String) ?? "")"
-          
-            if let socialMediaLinkInfo1 = currentTrackInfo.value(forKey: "SocialMediaLinkInfo1") as? String, socialMediaLinkInfo1 != "" {
-                lblFacebook.text = "\(socialMediaLinkInfo1)"
-            } else {
-                fbView.isHidden = true
-                fbHeightConstraint.constant = 0
-            }
-            if let socialMediaLinkInfo2 = currentTrackInfo.value(forKey: "SocialMediaLinkInfo2") as? String, socialMediaLinkInfo2 != "" {
-                lblInstagram.text = "\(socialMediaLinkInfo2)"
-            } else {
-                instagramView.isHidden = true
-                instagramHeightConstraint.constant = 0
-            }
-            if let upComingConcertInfo = currentTrackInfo.value(forKey: "UpComingConcertInfo") as? String, upComingConcertInfo != "" {
-                lblUpcomingEvents.text = "Upcoming Events: \(upComingConcertInfo)"
-            } else {
-                upcomingView.isHidden = true
-                upcomingHeightConstraint.constant = 0
-            }
-            if let currentPlayCountsInfo = currentTrackInfo.value(forKey: "currentPlayCountsInfo") as? Int {
-                lblPlaysCount.text = "Plays: \(currentPlayCountsInfo)"
+
+            updateTextAndVisibility(label: lblDateAdded,
+                                    view: dateAddedView,
+                                    constraint: dateAddedHeightConstraint,
+                                    prefix: "Date Added: ",
+                                    value: currentTrackInfo.value(forKey: "DateTrackAddedInfo") as? String)
+
+            updateTextAndVisibility(label: lblLastPlayed,
+                                    view: dateLastPlayedView,
+                                    constraint: dateLastPlayedHeightConstraint,
+                                    prefix: "Last Played: ",
+                                    value: currentTrackInfo.value(forKey: "SongLastPlayedInfo") as? String)
+
+            updateTextAndVisibility(label: lblRecentPlayed,
+                                    view: artistResentPlayedView,
+                                    constraint: artistResentPlayedHeightConstraint,
+                                    prefix: "Artist: ",
+                                    value: currentTrackInfo.value(forKey: "currentArtistInfo") as? String)
+            
+            updateTextAndVisibility(label: lblMusic,
+                                    view: musicView,
+                                    constraint: musicHeightConstraint,
+                                    prefix: "Music: ",
+                                    value: currentTrackInfo.value(forKey: "ArtistMusicComposerInfo") as? String)
+            
+            updateTextAndVisibility(label: lblLyrics,
+                                    view: lyricsView,
+                                    constraint: lyricsHeightConstraint,
+                                    prefix: "Lyrics: ",
+                                    value: currentTrackInfo.value(forKey: "ArtistLyricWriterInfo") as? String)
+
+            updateTextAndVisibility(label: lblFacebook,
+                                    view: fbView,
+                                    constraint: fbHeightConstraint,
+                                    prefix: "",
+                                    value: currentTrackInfo.value(forKey: "SocialMediaLinkInfo1") as? String)
+
+            updateTextAndVisibility(label: lblInstagram,
+                                    view: instagramView,
+                                    constraint: instagramHeightConstraint,
+                                    prefix: "",
+                                    value: currentTrackInfo.value(forKey: "SocialMediaLinkInfo2") as? String)
+
+            updateTextAndVisibility(label: lblUpcomingEvents,
+                                    view: upcomingView,
+                                    constraint: upcomingHeightConstraint,
+                                    prefix: "Upcoming Events: ",
+                                    value: currentTrackInfo.value(forKey: "UpComingConcertInfo") as? String)
+
+            if let playCount = currentTrackInfo.value(forKey: "currentPlayCountsInfo") as? Int {
+                lblPlaysCount.text = "Plays: \(playCount)"
+                playsView.isHidden = false
+                playsHeightConstraint.constant = 32
             } else {
                 playsView.isHidden = true
                 playsHeightConstraint.constant = 0
             }
-            let currentSongLikes = currentTrackInfo.value(forKey: "currentSongLikes") as? Int
-            lblLikesCount.text = "Likes: \(currentSongLikes ?? 0)"
+
+            let likes = currentTrackInfo.value(forKey: "currentSongLikes") as? Int ?? 0
+            lblLikesCount.text = "Likes: \(likes)"
+            
             ytView.isHidden = true
             ytHeightConstraint.constant = 0
         }
+
         if let track = track {
             if let url = URL(string: track.artcover ?? "") {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
+
             lblSongTitle.text = track.track
             lblArtist.text = track.artist
-            if track.dateAdded != "" {
-                lblDateAdded.text = "Date Added: \(track.dateAdded)"
-            } else {
-                dateAddedView.isHidden = true
-                dateAddedHeightConstraint.constant = 0
-            }
+
+            updateTextAndVisibility(label: lblDateAdded,
+                                    view: dateAddedView,
+                                    constraint: dateAddedHeightConstraint,
+                                    prefix: "Date Added: ",
+                                    value: track.dateAdded)
+
             dateLastPlayedView.isHidden = true
             dateLastPlayedHeightConstraint.constant = 0
+
             artistResentPlayedView.isHidden = true
             artistResentPlayedHeightConstraint.constant = 0
-            if track.music != "" {
-                lblMusic.text = "Music: \(track.music)"
-            } else {
-                musicView.isHidden = true
-                musicHeightConstraint.constant = 0
-            }
-            if track.lyricWriter != "" {
-                lblLyrics.text = "Lyrics: \(track.lyricWriter)"
-            } else {
-                lyricsView.isHidden = true
-                lyricsHeightConstraint.constant = 0
-            }
-            if let ytLink = track.ytLink {
-                lblYoutube.text = ytLink
-            } else {
-                ytView.isHidden = true
-                ytHeightConstraint.constant = 0
-            }
-            if let socialMediaLinkInfo1 = track.fbLink {
-                lblFacebook.text = socialMediaLinkInfo1
-            } else {
-                fbView.isHidden = true
-                fbHeightConstraint.constant = 0
-            }
-            if let socialMediaLinkInfo2 = track.igLink {
-                lblInstagram.text = socialMediaLinkInfo2
-            } else {
-                instagramView.isHidden = true
-                instagramHeightConstraint.constant = 0
-            }
-            lblUpcomingEvents.text = "Composer: \(track.composer)"
-            lblPlaysCount.text = "Plays: \(track.playcounts)"
-            lblLikesCount.text = "Likes: \(track.likes)"
+
+            updateTextAndVisibility(label: lblMusic,
+                                    view: musicView,
+                                    constraint: musicHeightConstraint,
+                                    prefix: "Music: ",
+                                    value: track.music)
+
+            updateTextAndVisibility(label: lblLyrics,
+                                    view: lyricsView,
+                                    constraint: lyricsHeightConstraint,
+                                    prefix: "Lyrics: ",
+                                    value: track.lyricWriter)
+
+            updateTextAndVisibility(label: lblYoutube,
+                                    view: ytView,
+                                    constraint: ytHeightConstraint,
+                                    prefix: "",
+                                    value: track.ytLink)
+
+            updateTextAndVisibility(label: lblFacebook,
+                                    view: fbView,
+                                    constraint: fbHeightConstraint,
+                                    prefix: "",
+                                    value: track.fbLink)
+
+            updateTextAndVisibility(label: lblInstagram,
+                                    view: instagramView,
+                                    constraint: instagramHeightConstraint,
+                                    prefix: "",
+                                    value: track.igLink)
+
+            updateTextAndVisibility(label: lblUpcomingEvents,
+                                    view: upcomingView,
+                                    constraint: upcomingHeightConstraint,
+                                    prefix: "Composer: ",
+                                    value: track.composer)
+
+            updateTextAndVisibility(label: lblPlaysCount,
+                                    view: playsView,
+                                    constraint: playsHeightConstraint,
+                                    prefix: "Plays: ",
+                                    value: track.playcounts)
+
+            updateTextAndVisibility(label: lblLikesCount,
+                                    view: likesView,
+                                    constraint: likesHeightConstraint,
+                                    prefix: "Likes: ",
+                                    value: track.likes)
         }
     }
+    
+    private func updateTextAndVisibility(label: UILabel, view: UIView, constraint: NSLayoutConstraint, prefix: String, value: String?) {
+        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !text.isEmpty {
+            label.text = prefix + text
+            view.isHidden = false
+            constraint.constant = 32
+        } else {
+            view.isHidden = true
+            constraint.constant = 0
+        }
+    }
+
     
     private func prepareView() {
         backView.clipsToBounds = true
