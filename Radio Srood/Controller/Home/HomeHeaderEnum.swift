@@ -5,7 +5,7 @@ enum HomeHeader: Int, CaseIterable {
     case featured
     case recentlyAdded
     case todayTopPic
-    case newReleases
+    case hotTrackes
     case currentRadio
     case trending
     case popularTracks
@@ -19,11 +19,11 @@ enum HomeHeader: Int, CaseIterable {
         case .featured:
             return "Featured"
         case .recentlyAdded:
-            return "Recently Added on Radio Srood"
+            return "Recently Added"
         case .todayTopPic:
             return "Today Top Picks"
-        case .newReleases:
-            return "New Releases"
+        case .hotTrackes:
+            return "Hot Tracks"
         case .currentRadio:
             return "Currently Playing on Radio srood"
         case .trending:
@@ -76,7 +76,7 @@ enum Browseheader: Int, CaseIterable {
         case .playlist:
             return .playlists
         case .newMusic:
-            return .newReleases
+            return .hotTrackes
         case .popularMusic:
             return .popularTracks
         case .currentRadio:

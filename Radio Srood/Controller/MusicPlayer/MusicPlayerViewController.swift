@@ -46,7 +46,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     var tempTrack: [Track]?
     var firstTrackList: [Track]?
     var selectedIndex: Int = 0
-    var homeHeader: HomeHeader = .newReleases
+    var homeHeader: HomeHeader = .hotTrackes
     var groupID: Int?
     var isSetMusic = false
     var isLike = false
@@ -107,6 +107,10 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         radioTableView.register(UINib(nibName: "HeaderCell", bundle: nil), forCellReuseIdentifier: "HeaderCell")
+        radioTableView.translatesAutoresizingMaskIntoConstraints = false
+        radioTableView.isScrollEnabled = true
+        radioTableView.rowHeight = UITableView.automaticDimension
+        radioTableView.estimatedRowHeight = 90
 
 //        adsView?.delegate = self
     }
@@ -159,7 +163,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     func prepareView() {
         switch homeHeader {
         case .featured:       loadFeaturedDataItems()
-        case .newReleases:    loadNewReleaseData()
+        case .hotTrackes:    loadNewReleaseData()
         case .currentRadio:   break
         case .trending:       loadTrendingPlaylistData()
         case .popularTracks:  loadPopularPlaylistData()
@@ -840,7 +844,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         
         switch homeHeader {
         case .featured:       return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .newReleases:    return mainCount + ((tempTrack?.count ?? 0)-1)
+        case .hotTrackes:    return mainCount + ((tempTrack?.count ?? 0)-1)
         case .currentRadio:   return 0
         case .trending:       return mainCount + ((tempTrack?.count ?? 0)-1)
         case .popularTracks:  return mainCount + ((tempTrack?.count ?? 0)-1)

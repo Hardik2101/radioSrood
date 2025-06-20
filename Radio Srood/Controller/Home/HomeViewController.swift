@@ -20,7 +20,7 @@ class HomeViewController: UI_VC {
     var dataHelper: DataHelper!
     var homeMusic: HomeMusicModles?
     var currentLyricData: CurrentLyricDataModle?
-    var homeHeader: HomeHeader = .newReleases
+    var homeHeader: HomeHeader = .hotTrackes
     var groupID: Int?
     var timeObserver: Any?
     var playList: [PlayListModel] = []
@@ -646,11 +646,11 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[indexPath.section] {
         case "Featured":
             return newFeaturedCell(with: tableView)
-        case "Recently Added on Radio Srood":
+        case "Recently Added":
             return newRecentlyAddedCell(with: tableView)
         case "Today Top Picks":
             return todayTopPicCell(with: tableView)
-        case "New Releases":
+        case "Hot Tracks":
             return newReleasesCell(with: tableView)
         case "Currently Playing on Radio srood":
             return currentRadioCell(with: tableView)
@@ -704,12 +704,12 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[section] {
         case "Featured":
             return setHeaderData(headerTitle: HomeHeader.featured.title)
-        case "Recently Added on Radio Srood":
+        case "Recently Added":
             return setHeaderData(headerTitle: HomeHeader.recentlyAdded.title)
             case "Today Top Picks":
             return setHeaderData(headerTitle: HomeHeader.todayTopPic.title)
-        case "New Releases":
-            return setHeaderData(headerTitle: HomeHeader.newReleases.title)
+        case "Hot Tracks":
+            return setHeaderData(headerTitle: HomeHeader.hotTrackes.title)
         case "Currently Playing on Radio srood":
             return setHeaderData(headerTitle: "")
         case "Trending":
@@ -735,11 +735,11 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         switch homeHeaderArray[section] {
         case "Featured":
             return 27
-        case "Recently Added on Radio Srood":
+        case "Recently Added":
             return 27
         case "Today Top Picks":
             return 27
-        case "New Releases":
+        case "Hot Tracks":
             return 27
         case "Currently Playing on Radio srood":
             return 0
@@ -862,7 +862,7 @@ extension HomeViewController: GADInterstitialDelegate {
     func interstitialDidDismissScreen (_ interstitial: GADInterstitial) {
         print("interstitialDidDismissScreen")
         switch homeHeader {
-        case .newReleases, .trending, .popularTracks, .playlists, .featuredArtist, .featured:
+        case .hotTrackes, .trending, .popularTracks, .playlists, .featuredArtist, .featured:
             openMusicPlayerViewController()
         case .currentRadio:
             openRadioWithRecentViewController()

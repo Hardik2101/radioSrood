@@ -60,7 +60,7 @@ extension BrowseTableCell: UICollectionViewDelegate, UICollectionViewDataSource 
         if let presentView = presentView {
             // Handle selection for presentView (HomeViewController)
             presentView.groupID = groupID
-            presentView.homeHeader = !playlist.isEmpty ? .playlists : .newReleases
+            presentView.homeHeader = !playlist.isEmpty ? .playlists : .hotTrackes
             
             if presentView.interstitial != nil {
                 presentView.interstitial.present(fromRootViewController: presentView)

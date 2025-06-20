@@ -123,7 +123,7 @@ extension NewReleasesCell: UICollectionViewDelegate, UICollectionViewDataSource,
         case .newReleases:
             let selected = newReleases[indexPath.row]
             presentView.groupID = selected.newReleasesTrackID
-            presentView.homeHeader = .newReleases
+            presentView.homeHeader = .hotTrackes
         case .recentlyAdded:
             let selected = recentlyAdded[indexPath.row]
             presentView.groupID = selected.RAID
