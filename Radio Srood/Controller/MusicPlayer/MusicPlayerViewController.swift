@@ -108,7 +108,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         radioTableView.register(UINib(nibName: "HeaderCell", bundle: nil), forCellReuseIdentifier: "HeaderCell")
         radioTableView.translatesAutoresizingMaskIntoConstraints = false
-        radioTableView.isScrollEnabled = true
+        radioTableView.isScrollEnabled = false
         radioTableView.rowHeight = UITableView.automaticDimension
         radioTableView.estimatedRowHeight = 90
 
@@ -159,6 +159,29 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         print("Remove screen")
     }
     
+    
+    func manageTableViewScroll() {
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.radioTableView.layoutIfNeeded()
+            
+            // Set height constraint to full table content height
+            let contentHeight = self.radioTableView.contentSize.height
+            self.tableBgHeightConstraints.constant = contentHeight
+            let mainCount = 2
+            let count =  mainCount + ((self.tempTrack?.count ?? 0) - 1)
+
+            print("TableView content height:::: \(count)")
+
+            self.tableBgHeightConstraints.constant = CGFloat(((count) * 90))
+
+            // Log the height to debug\
+            print("TableView content height: \(contentHeight)")
+        }
+    }
+
+
+
     
     func prepareView() {
         switch homeHeader {
@@ -246,9 +269,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
-            }
+                self.manageTableViewScroll()            }
         }
     }
     
@@ -287,11 +308,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 
                 // Update UI
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat(((self.tempTrack?.count ?? 0) - 1) * 60 + 165)
-
-                DispatchQueue.main.async {
-                    self.radioTableView.reloadData()
-                }
+                self.manageTableViewScroll()
             }
         }
     }
@@ -308,9 +325,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
-            }
+                self.manageTableViewScroll()            }
         }
     }
     
@@ -324,8 +339,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
+                self.manageTableViewScroll()
             }
         }
     }
@@ -375,8 +389,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60) + 165)
-                self.radioTableView.reloadData()
+                self.manageTableViewScroll()
             }
         }
     }
@@ -391,8 +404,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60) + 165)
-                self.radioTableView.reloadData()
+                self.manageTableViewScroll()
             }
         }
     }
@@ -407,8 +419,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
+                self.manageTableViewScroll()
             }
         }
     }
@@ -423,9 +434,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 self.isSetMusic = true
                 self.isPlay = true
                 self.handleRecentInView(index: self.selectedIndex)
-                self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-                self.radioTableView.reloadData()
-            }
+                self.manageTableViewScroll()            }
         }
     }
     
@@ -610,9 +619,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             isSetMusic = true
             isPlay = true
             handleRecentInView(index: selectedIndex)
-            self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-            self.radioTableView.reloadData()
-
+            self.manageTableViewScroll()
             // Scroll to the selected song to make it visible
             let indexPathToScroll = IndexPath(row: 2 + selectedIndex - (firstTrackList?.count ?? 0), section: 0)
             radioTableView.scrollToRow(at: indexPathToScroll, at: .top, animated: true)
@@ -984,14 +991,12 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
                 isSetMusic = true
                 handleRecentInView(index: selectedIndex)
                 
-                tableBgHeightConstraints.constant = CGFloat((((tempTrack?.count ?? 0)-1) * 60) + 165)
-//                // my new code
+                self.manageTableViewScroll()//                // my new code
 //                currentSelectedTrack = self.track?[self.selectedIndex]
 //                self.track?.remove(at: self.selectedIndex)
 //                self.tempTrack = self.track
 //                // end my new code
 //
-                radioTableView.reloadData()
                 playerListTapCount = playerListTapCount + 1
                 
                 if shouldPlayerListPressed() {
@@ -1099,9 +1104,7 @@ extension MusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoad
         }
 
         self.nativeAd = nativeAd
-        tableBgHeightConstraints.constant = CGFloat((((tempTrack?.count ?? 0)-1) * 60)+165)
-        radioTableView.reloadData()
-    }
+        self.manageTableViewScroll()    }
     
     func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
         print("\(adLoader) failed with error: \(error.localizedDescription)")

@@ -57,7 +57,7 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
 //        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         handleRecentInView()
         self.btnDownload.addTarget(self, action: #selector(downloadBtnPressed), for: .touchUpInside)
-        tableBgHeightConstraints.constant = 165
+        tableBgHeightConstraints.constant = 190
         loadNativeAd()
         isSetupRemoteTransport = true
         NotificationCenter.default.addObserver(self,
@@ -415,7 +415,7 @@ extension RecentPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoa
 
     func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
         self.nativeAd = nativeAd
-        self.tableBgHeightConstraints.constant = 165
+        self.tableBgHeightConstraints.constant = 190
         radioTableView.reloadData()
     }
 

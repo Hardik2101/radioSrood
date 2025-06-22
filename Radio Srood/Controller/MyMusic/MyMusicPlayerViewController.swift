@@ -62,7 +62,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             self.view!.addGestureRecognizer(reveal.panGestureRecognizer())
         }
         handleRecentInView(index: self.selectedIndex)
-        self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
+        self.manageTableViewScroll()
         loadNativeAd()
         isSetupRemoteTransport = true
         NotificationCenter.default.addObserver(
@@ -75,6 +75,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         )
         
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
+        
+        self.radioTableView.isScrollEnabled = false
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -164,7 +166,27 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         containerView.addSubview(lblTitle)
         return containerView
     }
+    
+    func manageTableViewScroll() {
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.radioTableView.layoutIfNeeded()
+            
+            // Set height constraint to full table content height
+            let contentHeight = self.radioTableView.contentSize.height
+            self.tableBgHeightConstraints.constant = contentHeight
+            let mainCount = 2
+            let count =  mainCount + ((self.tempTrack?.count ?? 0) - 1)
 
+            print("TableView content height:::: \(count)")
+
+            self.tableBgHeightConstraints.constant = CGFloat(((count) * 90))
+
+            // Log the height to debug\
+            print("TableView content height: \(contentHeight)")
+        }
+    }
+    
     func handleRecentInView(index: Int) {
         self.artCoverImage.layer.cornerRadius = 3
         self.artCoverImage.layer.masksToBounds = true
@@ -203,8 +225,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isSetMusic = true
             isPlay = true
             handleRecentInView(index: selectedIndex)
-            self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-            self.radioTableView.reloadData()
+            
+            self.manageTableViewScroll()
 
             // Check if the selected index is within the bounds of the table view
             let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
@@ -226,9 +248,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isSetMusic = true
             isPlay = true
             handleRecentInView(index: selectedIndex)
-            self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-            self.radioTableView.reloadData()
-
+            self.manageTableViewScroll()
             // Check if the selected index is within the bounds of the table view
             let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
             if indexToScroll >= 0 && indexToScroll < radioTableView.numberOfRows(inSection: 0) {
@@ -345,9 +365,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 self.isPlay = true
                 isSetMusic = true
                 handleRecentInView(index: selectedIndex)
-                tableBgHeightConstraints.constant = CGFloat((((tempTrack?.count ?? 0)-1) * 60) + 165)
-                radioTableView.reloadData()
-
+                self.manageTableViewScroll()
                 let totalRowsInSection = radioTableView.numberOfRows(inSection: 0)
 
                 if selectedTrackIndex < totalRowsInSection {
@@ -386,10 +404,10 @@ extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLo
         }
 
         self.nativeAd = nativeAd
-        self.tableBgHeightConstraints.constant = CGFloat((((self.tempTrack?.count ?? 0)-1) * 60)+165)
-        DispatchQueue.main.async {
-            self.radioTableView.reloadData()
-        }
+        self.manageTableViewScroll()
+        
+        
+
     }
 
     func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
