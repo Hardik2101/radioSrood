@@ -369,7 +369,7 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray, let recentItem = recentHistory[indexPath.row] as? NSDictionary {
-                if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover) {
+                if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover + "?s=200") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }

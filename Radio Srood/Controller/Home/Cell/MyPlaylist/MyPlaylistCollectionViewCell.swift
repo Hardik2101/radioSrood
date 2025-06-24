@@ -19,14 +19,14 @@ class MyPlaylistCollectionViewCell: UICollectionViewCell {
     
     func configureView(track : SongModel){
         lblSongName.text = track.track
-        if let url = URL(string: track.artcover) {
+        if let url = URL(string: track.artcover + "?s=200") {
             imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
     }
     
     func configureTrackView(track : PlayListModel){
         if track.songs.count > 0 {
-            if let url = URL(string: track.songs.first!.artcover) {
+            if let url = URL(string: track.songs.first!.artcover + "?s=200") {
                 imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
         }
@@ -49,14 +49,14 @@ class MyAllPlaylistCollectionViewCell: UICollectionViewCell {
     
     func configureView(track : SongModel){
         lblSongName.text = track.track
-        if let url = URL(string: track.artcover) {
+        if let url = URL(string: track.artcover + "?s=200") {
             imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
     }
     
     func configureTrackView(track : PlayListModel){
         if track.songs.count > 0 {
-            if let url = URL(string: track.songs.first!.artcover) {
+            if let url = URL(string: track.songs.first!.artcover + "?s=200") {
                 imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
         }

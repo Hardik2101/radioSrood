@@ -10,7 +10,7 @@ class ArtistCollectionCell: UICollectionViewCell {
     var featuredArtist: FeaturedArtist? {
         didSet {
             if let featuredArtist = featuredArtist {
-                if let url = URL(string: featuredArtist.featuredCover) {
+                if let url = URL(string: featuredArtist.featuredCover + "?s=200") {
                     artistBgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblType.text = featuredArtist.featuredArtist

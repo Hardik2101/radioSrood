@@ -17,7 +17,7 @@ class BrowseRadioCollectionCell: UICollectionViewCell {
     var radioData: RadioModelData? {
         didSet {
             if let newRelease = radioData {
-                if let url = URL(string: newRelease.radioImage) {
+                if let url = URL(string: newRelease.radioImage + "?s=200") {
                     imgRadio.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblRadio.text = newRelease.radioTitle

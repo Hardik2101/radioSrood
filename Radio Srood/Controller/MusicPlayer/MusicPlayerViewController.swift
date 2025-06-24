@@ -945,7 +945,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = URL(string: item.artcover ?? "") {
+                if let url = URL(string: item.artcover ?? "" + "?s=200") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -960,7 +960,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = URL(string: item.artcover ?? "") {
+                if let url = URL(string: item.artcover ?? "" + "?s=200") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
 

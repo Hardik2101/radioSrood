@@ -32,7 +32,7 @@ class RecentlyPlayedTableViewCell: UITableViewCell {
     func configureView(track : SongModel){
         lblPlayedSongtitle.text = track.artist
         lblPlayedSongName.text = track.track
-        if let url = URL(string: track.artcover) {
+        if let url = URL(string: track.artcover + "?s=200") {
             imgPlayedSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
     }

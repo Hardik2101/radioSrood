@@ -9,7 +9,7 @@ class PlaylistCollectionCell: UICollectionViewCell {
     var playlist: Playlist? {
         didSet {
             if let playlist = playlist {
-                if let url = URL(string: playlist.playlistCover) {
+                if let url = URL(string: playlist.playlistCover + "?s=200") {
                     playlsitImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblPlaylistName.text = playlist.playlistName

@@ -16,7 +16,7 @@ class BrowseCollectionCell: UICollectionViewCell {
     var playlist: Playlist? {
         didSet {
             if let playlist = playlist {
-                if let url = URL(string: playlist.playlistCover) {
+                if let url = URL(string: playlist.playlistCover + "?s=200") {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = playlist.playlistName ?? playlist.playlist
@@ -28,7 +28,7 @@ class BrowseCollectionCell: UICollectionViewCell {
     var newRelease: NewRelease? {
         didSet {
             if let newRelease = newRelease {
-                if let url = URL(string: newRelease.newReleasesCover) {
+                if let url = URL(string: newRelease.newReleasesCover + "?s=200") {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = newRelease.newReleasesTrack

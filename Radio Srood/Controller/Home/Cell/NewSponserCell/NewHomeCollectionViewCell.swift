@@ -20,7 +20,7 @@ class NewHomeCollectionViewCell: UICollectionViewCell {
     var featuredTop: FeaturedTop? {
         didSet {
             if let featuredTopSong = featuredTop {
-                if let url = URL(string: featuredTopSong.featuredImage ?? "") {
+                if let url = URL(string: featuredTopSong.featuredImage + "?s=200") {
                     imgView.af_setImage(withURL: url, placeholderImage: UIImage(named: "RS_Logo_BLS_640x300.png"))
                 }
                 lblSongName.text = featuredTopSong.featuredTitle

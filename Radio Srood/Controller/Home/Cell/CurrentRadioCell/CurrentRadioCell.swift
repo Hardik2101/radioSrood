@@ -10,7 +10,7 @@ class CurrentRadioCell: UITableViewCell {
     var currentTrackInfo: CurrentTrackInfo? {
         didSet {
             if let currentTrackInfo = currentTrackInfo {
-                if let url = URL(string: currentTrackInfo.currentArtCoverInfo) {
+                if let url = URL(string: currentTrackInfo.currentArtCoverInfo + "?s=200") {
                     artworkImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblSongName.text = currentTrackInfo.currentTrackInfo

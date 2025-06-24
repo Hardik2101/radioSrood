@@ -49,7 +49,7 @@ class MoreInfoViewController: UIViewController {
 
         if let currentTrackInfo = currentLyricData?.value(forKey: "currentTrackInfo") as? NSDictionary {
             if let artCoverURLString = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String,
-               let url = URL(string: artCoverURLString) {
+               let url = URL(string: artCoverURLString + "?s=200") {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
 

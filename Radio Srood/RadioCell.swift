@@ -339,7 +339,7 @@ class RadioCell: UITableViewCell {
         if let currentPlayCounts = currentSong.value(forKey: "currentPlayCounts") as? Int {
             self.currentPlayCounts.text = "Plays: \(currentPlayCounts)"
         }
-        if let currentArtCover = currentSong.value(forKey: "currentArtCover") as? String, let url = URL(string: currentArtCover) {
+        if let currentArtCover = currentSong.value(forKey: "currentArtCover") as? String, let url = URL(string: currentArtCover + "?s=200") {
             artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             miniplayerInfo.songImage = currentArtCover
             self.radioMiniPlayerInfo = miniplayerInfo

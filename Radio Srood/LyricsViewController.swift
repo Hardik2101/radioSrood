@@ -16,7 +16,7 @@ class LyricsViewController: UIViewController {
         super.viewDidLoad()
         if let currentLyricData = currentLyricData {
             if let currentTrackInfo = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
-                if let currentArtCoverInfo = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String, let url = URL(string: currentArtCoverInfo) {
+                if let currentArtCoverInfo = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String, let url = URL(string: currentArtCoverInfo + "?s=200") {
                     artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 if let currentTrackInfo = currentTrackInfo.value(forKey: "currentTrackInfo") as? String {
@@ -32,7 +32,7 @@ class LyricsViewController: UIViewController {
             }
         }
         if let recentLyricData = recentLyricData {
-            if let currentArtCoverInfo = recentLyricData.value(forKey: "recentArtCover") as? String, let url = URL(string: currentArtCoverInfo) {
+            if let currentArtCoverInfo = recentLyricData.value(forKey: "recentArtCover") as? String, let url = URL(string: currentArtCoverInfo + "?s=200") {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
             if let currentTrackInfo = recentLyricData.value(forKey: "recentTrack") as? String {
@@ -47,7 +47,7 @@ class LyricsViewController: UIViewController {
             }
         }
         if let track = track {
-            if let url = URL(string: track.artcover ?? "") {
+            if let url = URL(string: track.artcover ?? "" + "?s=200")   {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
             lblSongTitle.text = track.track
