@@ -25,6 +25,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet weak var lblEndTime: UILabel!
     @IBOutlet weak var playerSlider: UISlider!
     @IBOutlet weak var btnLike: UIButton!
+    
+    @IBOutlet var vwProgress: UIView!
+
 
     var recentListData: NSDictionary?
     var recentListArray: NSArray?
@@ -43,6 +46,7 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isRepeat = false
     var timeObserver: Any?
     private var isPurchaseSuccess: Bool = false
+    var circularProgressView: CircularProgressView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,6 +75,8 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
 
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
+        
+        setupCircularProgressView()
 
     }
 
@@ -107,6 +113,12 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
         navigationController?.navigationBar.isTranslucent = true
     }
     
+    private func setupCircularProgressView() {
+        circularProgressView = CircularProgressView(frame: vwProgress.bounds)
+        circularProgressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        circularProgressView.isHidden = true
+        vwProgress.addSubview(circularProgressView)
+    }
     @objc func didBecomeActiveNotificationReceived() {
         updateNowPlaying(isPause: true)
     }
@@ -262,16 +274,32 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                 documentsURL.appendPathComponent(fileName)
                 return (documentsURL, [.removePreviousFile, .createIntermediateDirectories])
             }
+            
+            
+            btnDownload.isHidden = true
+            vwProgress.isHidden = false
+            circularProgressView.setProgress(0)
+            circularProgressView.isHidden = false
+
 
             AF.download(downloadURL, to: destination)
                 .downloadProgress { progress in
                     DispatchQueue.main.async {
-                        self.navigationController?.setProgress(Float(progress.fractionCompleted), animated: true)
+                        self.circularProgressView.setProgress(Float(CGFloat(Float(progress.fractionCompleted))))
                     }
-                    print("Download Progress: \(progress.fractionCompleted)")
-                    if progress.fractionCompleted == 1 {
-                        self.navigationController?.finishProgress()
+
+                    if progress.fractionCompleted == 1.0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            self.circularProgressView.setProgress(1.0)
+                            self.circularProgressView.lineWidth = 2  // 👈 Make border thicker on success
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                self.vwProgress.isHidden = true
+                                self.btnDownload.isHidden = false
+                                self.circularProgressView.resetProgress()
+                            }
+                        }
                     }
+
                 }
                 .response { response in
                     if let destinationURL = response.fileURL {
@@ -281,6 +309,7 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                         print("Download failed: \(error.localizedDescription)")
                     }
                 }
+            
 
         } else {
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC

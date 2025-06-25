@@ -36,7 +36,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     @IBOutlet weak var btnLike: UIButton!
     
     @IBOutlet weak var vwDownloadProgress: UIProgressView!
-    
+    var circularProgressView: CircularProgressView!
+
+    @IBOutlet var vwProgress: UIView!
     var dataHelper: DataHelper!
     var nativeAd: GADUnifiedNativeAd?
     var adLoader: GADAdLoader!
@@ -111,6 +113,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         radioTableView.isScrollEnabled = false
         radioTableView.rowHeight = UITableView.automaticDimension
         radioTableView.estimatedRowHeight = 90
+        setupCircularProgressView()
 
 //        adsView?.delegate = self
     }
@@ -158,7 +161,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         NotificationCenter.default.removeObserver(self)
         print("Remove screen")
     }
-    
+    private func setupCircularProgressView() {
+        circularProgressView = CircularProgressView(frame: vwProgress.bounds)
+        circularProgressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        circularProgressView.isHidden = true
+        vwProgress.addSubview(circularProgressView)
+    }
+
     
     func manageTableViewScroll() {
         DispatchQueue.main.async {
@@ -776,13 +785,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     
 
     @IBAction func clickOn_btnDownload(_ sender: Any) {
-        
         let purchase = IAPHandler.shared.isGetPurchase()
-        
+
         if purchase || self.isPurchaseSuccess {
             if let currentTrack = track?[selectedIndex] {
                 let urlString = currentTrack.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-                guard let mediaPathInfo = urlString, let url = URL(string: songPath + mediaPathInfo) else {
+                guard let mediaPathInfo = urlString,
+                      let url = URL(string: songPath + mediaPathInfo) else {
                     return
                 }
 
@@ -790,30 +799,41 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                 let destinationURL = documentsURL.appendingPathComponent(name)
 
-                // Alamofire 5 way of downloading
+                // UI: Replace button with progress view
+                btnDownload.isHidden = true
+                vwProgress.isHidden = false
+                circularProgressView.setProgress(0)
+                circularProgressView.isHidden = false
+
+                // Start download
                 AF.download(url, to: { _, _ in
                     return (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
                 })
                 .downloadProgress { progress in
-                    self.vwDownloadProgress.isHidden = false
                     DispatchQueue.main.async {
-                        self.vwDownloadProgress.setProgress(Float(progress.fractionCompleted), animated: true)
+                        self.circularProgressView.setProgress(Float(CGFloat(Float(progress.fractionCompleted))))
                     }
-                    print("Download Progress: \(progress.fractionCompleted)")
-                    if progress.fractionCompleted == 1 {
-                        self.navigationController?.finishProgress()
-                        self.vwDownloadProgress.isHidden = true
-                        self.vwDownloadProgress.setProgress(0.0, animated: false)
+
+                    if progress.fractionCompleted == 1.0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            self.circularProgressView.setProgress(1.0)
+                            self.circularProgressView.lineWidth = 2  // 👈 Make border thicker on success
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                self.vwProgress.isHidden = true
+                                self.btnDownload.isHidden = false
+                                self.circularProgressView.resetProgress()
+                            }
+                        }
                     }
+
                 }
                 .response { response in
                     if let destinationURL = response.fileURL {
                         print("File downloaded to: \(destinationURL)")
-                        // You can add any post-download logic here
                     }
                 }
 
-                // Save artcover in UserDefaults
+                // Save cover
                 UserDefaults.standard.set(currentTrack.artcover, forKey: "\(url.deletingPathExtension().lastPathComponent)")
             }
         } else {
@@ -825,6 +845,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.present(navVC, animated: true)
         }
     }
+
+
+
 
     
     private func setHeaderData(headerTitle: String) -> UIView {

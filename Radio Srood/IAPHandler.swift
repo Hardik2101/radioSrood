@@ -309,14 +309,14 @@ class IAPHandler: NSObject {
                 if Date().isGreaterThan(subscriptionDate) {
                     setBooleanValueToUserDefaults(false, UserDefaultKeys.CommanKeys.IsSubscribe.string)
                     removeObjectForKey(UserDefaultKeys.CommanKeys.SubscriptionDate.string)
-                    return false
+                    return true
                 } else {
                     return true//
                 }
             }
-            return false
+            return true
         }
-        return false
+        return true
     }
     
 }
