@@ -222,6 +222,23 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }
+    
+    
+    private func updatedArtcoverURL(from originalURL: String) -> URL? {
+        guard var components = URLComponents(string: originalURL) else { return nil }
+        
+        var queryItems = components.queryItems ?? []
+        
+        if let existingIndex = queryItems.firstIndex(where: { $0.name == "s" }) {
+            queryItems[existingIndex].value = "200"
+        } else {
+            queryItems.append(URLQueryItem(name: "s", value: "200"))
+        }
+        
+        components.queryItems = queryItems
+        return components.url
+    }
+
 
 }
 
@@ -369,10 +386,13 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
             if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray, let recentItem = recentHistory[indexPath.row] as? NSDictionary {
-                if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover + "?s=200") {
+                if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String,
+                   let url = updatedArtcoverURL(from: recentArtCover) {
+                    
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
+
                 if let recentTrack = recentItem.value(forKey: "recentTrack") as? String {
                     cell.trackTitle.text = recentTrack
                 }
