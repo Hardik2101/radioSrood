@@ -727,6 +727,10 @@ extension RecentPlayerViewController {
                 self.btnDownload.isUserInteractionEnabled = false
             } else {
                 self.btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+                self.btnDownload.layer.cornerRadius = 0
+                self.btnDownload.layer.borderWidth = 0
+                self.btnDownload.layer.borderColor = nil
+                self.btnDownload.clipsToBounds = false
                 self.btnDownload.isUserInteractionEnabled = true
             }
         }

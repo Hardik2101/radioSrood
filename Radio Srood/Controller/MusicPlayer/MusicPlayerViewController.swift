@@ -1489,6 +1489,10 @@ extension MusicPlayerViewController{
             btnDownload.isUserInteractionEnabled = false
         } else {
             btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+            btnDownload.layer.cornerRadius = 0
+            btnDownload.layer.borderWidth = 0
+            btnDownload.layer.borderColor = nil
+            btnDownload.clipsToBounds = false
             btnDownload.isUserInteractionEnabled = true
 
         }

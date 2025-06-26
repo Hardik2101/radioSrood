@@ -61,8 +61,8 @@ class CircularProgressView: UIView {
         NSLayoutConstraint.activate([
             checkmarkImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
             checkmarkImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            checkmarkImageView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.6),
-            checkmarkImageView.heightAnchor.constraint(equalTo: checkmarkImageView.widthAnchor)
+            checkmarkImageView.widthAnchor.constraint(equalToConstant: 36),
+            checkmarkImageView.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
 
