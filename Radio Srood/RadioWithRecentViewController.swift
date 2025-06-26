@@ -210,18 +210,44 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     }
 
     func recentPlayerViewControllerPush() {
-        if let selectedIndex = selectedIndex {
+        guard let selectedIndex = selectedIndex else { return }
+
+        if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary,
+           let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray,
+           let recentItem = recentHistory[selectedIndex] as? NSDictionary {
+
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "RecentPlayerViewController") as! RecentPlayerViewController
-            if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray, let recentItem = recentHistory[selectedIndex] as? NSDictionary {
-                self.isPrevent = true
-                vc.selectedIndex = selectedIndex
-                vc.recentListData = recentItem
-                vc.recentListArray = recentHistory
+
+            self.isPrevent = true
+            vc.selectedIndex = selectedIndex
+            vc.recentListData = recentItem
+            vc.recentListArray = recentHistory
+
+            guard let songModel = SongModel(recentItem: recentItem) else { return }
+
+            var updatedLocalTracks = UserDefaultsManager.shared.localTracksData
+
+            if let existing = updatedLocalTracks.first(where: { $0.trackid == songModel.trackid }) {
+                songModel.isFav = existing.isFav
+                songModel.isDownload = existing.isDownload
             }
+
+            updatedLocalTracks.removeAll {
+                $0.trackid == songModel.trackid || (!$0.mediaPath.isEmpty && $0.mediaPath == songModel.mediaPath)
+            }
+
+            updatedLocalTracks.insert(songModel, at: 0)
+            UserDefaultsManager.shared.localTracksData = updatedLocalTracks
+
             self.selectedIndex = nil
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }
+
+
+
+
+
     
     
     private func updatedArtcoverURL(from originalURL: String) -> URL? {

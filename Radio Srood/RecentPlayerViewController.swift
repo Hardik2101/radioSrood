@@ -43,6 +43,7 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isSetMusic = true
    // var player: AVPlayer?
     var isLike = false
+    var isDownload = false
     var isRepeat = false
     var timeObserver: Any?
     private var isPurchaseSuccess: Bool = false
@@ -193,6 +194,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                     self.setupRemoteTransportControls()
                 }
             }
+            self.isAlreadyLiked()
+            self.isAlreadyDownloaded()
+
         }
         AppPlayer.miniPlayerInfo = miniPlayerInfo
         //config****
@@ -275,12 +279,10 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                 return (documentsURL, [.removePreviousFile, .createIntermediateDirectories])
             }
             
-            
             btnDownload.isHidden = true
             vwProgress.isHidden = false
             circularProgressView.setProgress(0)
             circularProgressView.isHidden = false
-
 
             AF.download(downloadURL, to: destination)
                 .downloadProgress { progress in
@@ -291,27 +293,34 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                     if progress.fractionCompleted == 1.0 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             self.circularProgressView.setProgress(1.0)
-                            self.circularProgressView.lineWidth = 2  // 👈 Make border thicker on success
+                            self.circularProgressView.lineWidth = 2
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                self.isDownload = true
+                                self.configureDownload()
+                                
+                                let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+                                self.btnDownload.setImage(image, for: .normal)
+                                self.btnDownload.tintColor = .systemGreen
+                                self.btnDownload.layer.cornerRadius = 15
+                                self.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+                                self.btnDownload.layer.borderWidth = 2
+                                self.btnDownload.clipsToBounds = true
+                                self.btnDownload.isUserInteractionEnabled = false
+                                
                                 self.vwProgress.isHidden = true
                                 self.btnDownload.isHidden = false
                                 self.circularProgressView.resetProgress()
                             }
                         }
                     }
-
                 }
                 .response { response in
                     if let destinationURL = response.fileURL {
                         print("Downloaded to: \(destinationURL)")
-                        // self.shareBtnClicked(url: destinationURL)
-                    } else if let error = response.error {
-                        print("Download failed: \(error.localizedDescription)")
                     }
                 }
-            
-
         } else {
+            // Show purchase screen
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
             vc.isshowbackButton = true
             let navVC = UINavigationController(rootViewController: vc)
@@ -534,13 +543,16 @@ extension RecentPlayerViewController {
     }
 
     @IBAction func likeBtnPressed(_ sender: Any) {
-        if isLike {
-            btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
-            isLike = false
-        } else {
-            btnLike.setImage(UIImage(named: "ic_like_filled"), for: .normal)
-            isLike = true
+        isLike = !isLike
+        
+        DispatchQueue.main.async {
+            self.btnLike.setImage(
+                UIImage(named: self.isLike ? "ic_like_filled" : "ic_like"),
+                for: .normal
+            )
         }
+        
+        configureLike()
     }
 
     @IBAction func repeatBtnPressed(_ sender: Any) {
@@ -675,3 +687,102 @@ extension RecentPlayerViewController {
     }
 
 }
+
+// MARK: - Like/Download Management
+extension RecentPlayerViewController {
+
+    func isAlreadyLiked() {
+        guard let recentItem = recentListData else { return }
+
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let trackID = recentItem["recentTrackID"] as? Int ?? 0
+
+        let isInFav = savedTracks.contains { $0.trackid == trackID && $0.isFav }
+        isLike = isInFav
+
+        DispatchQueue.main.async {
+            let imageName = self.isLike ? "ic_like_filled" : "ic_like"
+            self.btnLike.setImage(UIImage(named: imageName), for: .normal)
+        }
+    }
+
+    func isAlreadyDownloaded() {
+        guard let recentItem = recentListData else { return }
+
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let trackID = recentItem["recentTrackID"] as? Int ?? 0
+
+        let isDownloaded = savedTracks.contains { $0.trackid == trackID && $0.isDownload }
+        isDownload = isDownloaded
+
+        DispatchQueue.main.async {
+            if self.isDownload {
+                let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+                self.btnDownload.setImage(image, for: .normal)
+                self.btnDownload.tintColor = .systemGreen
+                self.btnDownload.layer.cornerRadius = 15
+                self.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+                self.btnDownload.layer.borderWidth = 2
+                self.btnDownload.clipsToBounds = true
+                self.btnDownload.isUserInteractionEnabled = false
+            } else {
+                self.btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+                self.btnDownload.isUserInteractionEnabled = true
+            }
+        }
+    }
+
+    func configureLike() {
+        guard let recentItem = recentListData else { return }
+
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        let trackID = recentItem["recentTrackID"] as? Int ?? 0
+
+        if let index = savedTracks.firstIndex(where: { $0.trackid == trackID }) {
+            savedTracks[index].isFav = isLike
+        } else if let newItem = SongModel(recentItem: recentItem) {
+            newItem.isFav = isLike
+            savedTracks.append(newItem)
+        }
+
+        UserDefaultsManager.shared.localTracksData = savedTracks
+    }
+
+    
+    func configureLik1e(index : Int){
+//        if let item = track?[index] {
+//            var savedTracks = UserDefaultsManager.shared.localTracksData
+//            let trackIndex = savedTracks.firstIndex(where: {$0.trackid == item.trackid})
+//            if let trackIndex = trackIndex{
+//                savedTracks[trackIndex].isFav = isLike
+//            }
+//            else{
+//                let newItem = item.convertToSongModel()
+//                newItem.isFav = true
+//                savedTracks.append(newItem)
+//            }
+//            UserDefaultsManager.shared.localTracksData = savedTracks
+//        }
+    }
+
+    func configureDownload() {
+        guard let recentItem = recentListData else { return }
+
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        let trackID = recentItem["recentTrackID"] as? Int ?? 0
+
+        if let index = savedTracks.firstIndex(where: { $0.trackid == trackID }) {
+            savedTracks[index].isDownload = true
+            savedTracks[index].track = recentItem["recentTrack"] as? String ?? savedTracks[index].track
+            savedTracks[index].artist = recentItem["recentArtist"] as? String ?? savedTracks[index].artist
+            savedTracks[index].artcover = recentItem["recentArtCover"] as? String ?? savedTracks[index].artcover
+        } else if let newItem = SongModel(recentItem: recentItem) {
+            newItem.isDownload = true
+            savedTracks.append(newItem)
+        }
+
+        UserDefaultsManager.shared.localTracksData = savedTracks
+    }
+
+}
+

@@ -524,6 +524,8 @@ class HomeViewController: UI_VC {
     
     func openMusicPlayerViewController() {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MusicPlayerViewController") as! MusicPlayerViewController
+        NotificationCenter.default.post(name: .aaaaaaaaaa, object: nil)
+
         print("*-*-*-* \(groupID ?? -1) \(homeHeader) \(#function)")
         vc.groupID = groupID
         groupID = nil

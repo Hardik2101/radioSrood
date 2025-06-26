@@ -45,6 +45,7 @@ enum IAProduct: String {
 extension Notification.Name {
     static let PurchaseSuccess = Notification.Name("purchaseSuccess")
     static let FetchAds = Notification.Name("fetchAds")
+    static let aaaaaaaaaa = Notification.Name("aaaaaaaaa")
 }
 
 class IAPHandler: NSObject {

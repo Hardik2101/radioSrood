@@ -52,6 +52,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     var groupID: Int?
     var isSetMusic = false
     var isLike = false
+    var isDownload = false
     var isRepeat = false
     var timeObserver: Any?
     private var lastIndex: Int? = nil
@@ -106,6 +107,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         )
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase1), name: .aaaaaaaaaa, object: nil)
+
         
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         radioTableView.register(UINib(nibName: "HeaderCell", bundle: nil), forCellReuseIdentifier: "HeaderCell")
@@ -460,6 +463,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.trackTitle.text = item.track
             self.artistName.text = item.artist
             self.isAlreadyLiked(track: item)
+            self.isAlreadyDownloaded(track: item)
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
             if item.lyric_synced == "" || item.lyric_synced == nil {
@@ -770,6 +774,11 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.isPurchaseSuccess = false
         })
     }
+    
+    @objc private func handleIAPPurchase1() {
+        print("ahsahksajkshajkhsahsa")
+    }
+
 
     private func shouldPlayerListPressed() -> Bool {
         return playerListTapCount >= 6
@@ -817,11 +826,22 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                     if progress.fractionCompleted == 1.0 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             self.circularProgressView.setProgress(1.0)
-                            self.circularProgressView.lineWidth = 2  // 👈 Make border thicker on success
+                            self.circularProgressView.lineWidth = 2
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 self.vwProgress.isHidden = true
                                 self.btnDownload.isHidden = false
+                                self.isDownload = true
                                 self.circularProgressView.resetProgress()
+                                self.configureDownload(index: self.selectedIndex)
+                                let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+                                self.btnDownload.setImage(image, for: .normal)
+                                self.btnDownload.tintColor = .systemGreen
+                                self.btnDownload.layer.cornerRadius = 15
+                                self.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+                                self.btnDownload.layer.borderWidth = 2
+                                self.btnDownload.clipsToBounds = true
+                                self.btnDownload.isUserInteractionEnabled = false
+
                             }
                         }
                     }
@@ -1447,6 +1467,33 @@ extension MusicPlayerViewController{
         }
     }
     
+    
+    func isAlreadyDownloaded(track : Track){
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let isInFav = savedTracks.filter({$0.isDownload && track.trackid == $0.trackid})
+        if isInFav.count > 0{
+            isDownload = true
+        }
+        else{
+            isDownload = false
+        }
+        if isDownload {
+            let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+            btnDownload.setImage(image, for: .normal)
+            btnDownload.tintColor = .systemGreen
+
+            btnDownload.layer.cornerRadius = 15
+            btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+            btnDownload.layer.borderWidth = 2
+            btnDownload.clipsToBounds = true
+            btnDownload.isUserInteractionEnabled = false
+        } else {
+            btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+            btnDownload.isUserInteractionEnabled = true
+
+        }
+    }
+    
     func configureLike(index : Int){
         if let item = track?[index] {
             var savedTracks = UserDefaultsManager.shared.localTracksData
@@ -1457,6 +1504,22 @@ extension MusicPlayerViewController{
             else{
                 let newItem = item.convertToSongModel()
                 newItem.isFav = true
+                savedTracks.append(newItem)
+            }
+            UserDefaultsManager.shared.localTracksData = savedTracks
+        }
+    }
+    
+    func configureDownload(index : Int){
+        if let item = track?[index] {
+            var savedTracks = UserDefaultsManager.shared.localTracksData
+            let trackIndex = savedTracks.firstIndex(where: {$0.trackid == item.trackid})
+            if let trackIndex = trackIndex{
+                savedTracks[trackIndex].isDownload = isDownload
+            }
+            else{
+                let newItem = item.convertToSongModel()
+                newItem.isDownload = true
                 savedTracks.append(newItem)
             }
             UserDefaultsManager.shared.localTracksData = savedTracks
