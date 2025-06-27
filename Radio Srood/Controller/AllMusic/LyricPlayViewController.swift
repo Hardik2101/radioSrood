@@ -27,6 +27,7 @@ class LyricPlayViewController: UIViewController {
     var timeObserver: Any?
     var lyricsUrl = ""
     var imageURl: URL?
+    var lyricnew : String?
 
     private let totalDuration = player?.currentItem?.duration
         
@@ -46,8 +47,9 @@ class LyricPlayViewController: UIViewController {
         }
         
         // Use UILabel to display default text when lyrics are nil
-        if let lyrics = lyrics {
-            lyricsView.lyrics = lyrics
+        if let lyrics = lyricnew {
+            print("lyric====", lyrics)
+            lyricsView.lyrics = lyricnew
         } else {
             let placeholderLabel = UILabel()
             placeholderLabel.text = "Lyric Not Available \n\n Please send lyric to lyric@radiosrood.com"

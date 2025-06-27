@@ -14,6 +14,11 @@ protocol MusicPlayerViewControllerDelegate : AnyObject{
     func dismissMusicPlayer()
 }
 
+private struct LyricLine {
+    let time: TimeInterval
+    let text: String
+}
+
 class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIViewDelegate {
     
     @IBOutlet weak var lblLyrics: UILabel!
@@ -65,6 +70,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     var playerListTapCount = 0
 
     var forwardButtonTapCount = 0
+    private var parsedLyrics: [LyricLine] = []
+
 //    var adsView: AdsAPIView?
 
     var isPlayerListTap = false
@@ -452,7 +459,32 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
         }
     }
     
-    
+    private func parseLyricSynced() {
+        parsedLyrics.removeAll()
+
+        let lines = lyricSynced.components(separatedBy: .newlines)
+        let regex = try? NSRegularExpression(pattern: #"\[(\d{2}):(\d{2})\.(\d{2})\](.*)"#)
+
+        for line in lines {
+            guard let match = regex?.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
+                  match.numberOfRanges == 5,
+                  let minRange = Range(match.range(at: 1), in: line),
+                  let secRange = Range(match.range(at: 2), in: line),
+                  let msecRange = Range(match.range(at: 3), in: line),
+                  let textRange = Range(match.range(at: 4), in: line)
+            else { continue }
+
+            let minutes = Double(line[minRange]) ?? 0
+            let seconds = Double(line[secRange]) ?? 0
+            let millis = Double(line[msecRange]) ?? 0
+
+            let time = minutes * 60 + seconds + millis / 100
+            let text = String(line[textRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+            parsedLyrics.append(LyricLine(time: time, text: text))
+        }
+    }
+
     func handleRecentInView(index: Int) {
         self.artCoverImage.layer.cornerRadius = 3
         self.artCoverImage.layer.masksToBounds = true
@@ -469,51 +501,46 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
             
-            DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { item in
-                if let item = item {
-                    print("Artist: \(item.artistName)")
-                    print("Track: \(item.trackName)")
-                    print("Lyrics: \(item.syncedLyrics)")
-                    self.lyricSynced = item.syncedLyrics
+            DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { lyricItem in
+                if let lyricItem = lyricItem {
+                    print("✅ Artist: \(lyricItem.artistName)")
+                    print("✅ Track: \(lyricItem.trackName)")
+                    print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
+                    self.lyricSynced = lyricItem.syncedLyrics
+                    self.parseLyricSynced()
                 } else {
-                    print("No lyrics found.")
-                }
-            }
-
-            if item.lyric_synced == "" || item.lyric_synced == nil {
-                self.heightView.constant  = 0
-                self.viewLyrics.isHidden = true
-                self.parser = nil
-            }
-            else{
-                var lyricURL: String = ""
-                self.heightView.constant  = 40
-                self.viewLyrics.isHidden = false
-                self.lblLyrics.text = ""
-                let lyricsUrl = "\(lyricsURL)\(item.lyric_synced ?? "")"
-                lyricURL = lyricsUrl
-                if lyricsUrl.isEmpty {
-                    print("there is no more!!!!")
-                    return
+                    print("⚠️ No lyrics found.")
+                    self.lyricSynced = ""
                 }
 
-                guard let url = URL(string: lyricsUrl) else {
-                    print("Invalid URL string: \(lyricsUrl)")
-                    return
-                }
+                if self.lyricSynced.isEmpty {
+                    self.heightView.constant = 0
+                    self.viewLyrics.isHidden = true
+                    self.parser = nil
+                } else {
+                    self.heightView.constant = 40
+                    self.viewLyrics.isHidden = false
+                    self.lblLyrics.text = ""
 
-                do {
-                    let data = try Data(contentsOf: url)
-                    guard let lyrics = String(data: data, encoding: .utf8)?.emptyToNil() else {
-                        print("Lyrics are empty or nil")
+                    let fullLyricURL = "\(lyricsURL)\(self.lyricSynced)"
+                    guard let url = URL(string: fullLyricURL), !fullLyricURL.isEmpty else {
+                        print("🚫 Invalid or empty lyrics URL: \(fullLyricURL)")
                         return
                     }
-                    parser = LyricsParser(lyrics: lyrics)
-                } catch {
-                    print("Failed to load lyrics data: \(error.localizedDescription)")
+
+                    do {
+                        let data = try Data(contentsOf: url)
+                        guard let lyricsString = String(data: data, encoding: .utf8)?.emptyToNil() else {
+                            print("🈳 Lyrics content is empty")
+                            return
+                        }
+                        self.parser = LyricsParser(lyrics: lyricsString)
+                    } catch {
+                        print("❌ Failed to load synced lyrics: \(error.localizedDescription)")
+                    }
                 }
             }
-            
+
             if let urlString = item.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
                 if isSetMusic {
                     isSetMusic = false
@@ -536,25 +563,24 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     }
     
     func showLyric(toTime time: TimeInterval) {
-        guard let lyrics = parser?.lyrics else {
+        guard !parsedLyrics.isEmpty else { return }
+
+        guard let index = parsedLyrics.firstIndex(where: { $0.time >= time }) else {
             return
         }
-        
-        guard let index = lyrics.index(where: { $0.time >= player?.currentTime().seconds ?? time }) else {
-            // when no lyric is before the time passed in means scrolling to the first
-            return
-        }
-        
+
         guard lastIndex == nil || index - 1 != lastIndex else {
             return
         }
-        
+
         if index > 0 {
-            self.lblLyrics.text = lyrics[index - 1].text
-            print(self.lblLyrics.text)
+            let line = parsedLyrics[index - 1]
+            self.lblLyrics.text = line.text
             lastIndex = index - 1
+            print("🎵 \(line.text)")
         }
     }
+
     
     @objc func lyricsBtnClicked() {
     
@@ -564,12 +590,14 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
+                vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
             } else {
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
                 vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
+                vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
 
             }
@@ -766,12 +794,14 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                 vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
+                vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
             } else {
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
                 vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
+                vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
 
             }
@@ -1190,15 +1220,13 @@ extension MusicPlayerViewController {
             self.updateNowPlaying(isPause: false)
             let subtitleURL = URL(string: "https://lyric.srood.stream/jostojo?artist=Fardin%20Faryad&track=Aziz%20Jan&api_key=arman")//URL(fileURLWithPath: subtitleFile!)
             let parser = try? Subtitles(file: subtitleURL!, encoding: .utf8)
-            player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: DispatchQueue.main, using: { [weak self] (time)  in
-                  if player?.currentItem?.status == .readyToPlay {
-                      let currentTime = CMTimeGetSeconds(player?.currentTime() ?? CMTime())
-                      let secs = Int(currentTime)
-                      let text = parser?.searchSubtitles(at: TimeInterval(secs)) ?? ""
-                      self?.showLyric(toTime: TimeInterval(secs))
-                      print("\(secs)------>\(text)")
-                  }
-              })
+            player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: .main) { [weak self] time in
+                guard let self = self else { return }
+                if player?.currentItem?.status == .readyToPlay {
+                    let currentSeconds = CMTimeGetSeconds(player?.currentTime() ?? .zero)
+                    self.showLyric(toTime: currentSeconds)
+                }
+            }
             player?.play()
         }
        // self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
