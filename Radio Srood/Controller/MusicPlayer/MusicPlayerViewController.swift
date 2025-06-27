@@ -69,6 +69,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
 
     var isPlayerListTap = false
     var songCounter = 0
+    
+    private var lyricSynced: String = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -466,6 +468,18 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.isAlreadyDownloaded(track: item)
             self.configureRecentlyPlayed(index: self.selectedIndex)
             lastIndex = nil
+            
+            DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { item in
+                if let item = item {
+                    print("Artist: \(item.artistName)")
+                    print("Track: \(item.trackName)")
+                    print("Lyrics: \(item.syncedLyrics)")
+                    self.lyricSynced = item.syncedLyrics
+                } else {
+                    print("No lyrics found.")
+                }
+            }
+
             if item.lyric_synced == "" || item.lyric_synced == nil {
                 self.heightView.constant  = 0
                 self.viewLyrics.isHidden = true

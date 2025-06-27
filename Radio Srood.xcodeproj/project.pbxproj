@@ -118,6 +118,7 @@
 		80BFD93B291BFA6C003B4C58 /* RecentPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */; };
 		88150FE02E0BEECB0006354C /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150FDF2E0BEECB0006354C /* CircularProgressView.swift */; };
 		887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */; };
+		889A05982E0EC3AD004B4036 /* LyricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889A05972E0EC3AD004B4036 /* LyricsModel.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
 		B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7131DCD2B43104D00F65434 /* BannerAdCell.swift */; };
 		B7131DD02B43104D00F65434 /* BannerAdCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7131DCE2B43104D00F65434 /* BannerAdCell.xib */; };
@@ -315,6 +316,7 @@
 		80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentPlayerViewController.swift; sourceTree = "<group>"; };
 		88150FDF2E0BEECB0006354C /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
 		887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTopPicModel.swift; sourceTree = "<group>"; };
+		889A05972E0EC3AD004B4036 /* LyricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsModel.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
 		B700ED762C750261006FF099 /* TabbarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbarVC.swift; sourceTree = "<group>"; };
@@ -925,6 +927,7 @@
 				567AC5B22CC29C4E0096B25F /* RadioModel.swift */,
 				887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */,
 				563036EC2DFB4CF30099A7BE /* RecentlyAddedModel.swift */,
+				889A05972E0EC3AD004B4036 /* LyricsModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1282,6 +1285,7 @@
 				DCB7038C299C14C600ABFB8D /* FeaturedArtistModles.swift in Sources */,
 				B700ED772C750261006FF099 /* TabbarVC.swift in Sources */,
 				3F0E15691EADEFB70009734F /* TimelineModel.swift in Sources */,
+				889A05982E0EC3AD004B4036 /* LyricsModel.swift in Sources */,
 				DC02D41D29674B280009FF39 /* UIView+Extension.swift in Sources */,
 				18C788362A1AAB9000712ECE /* PlayListModel.swift in Sources */,
 				DCA476FD2ADAABE700203775 /* RecentlyPlayedCell.swift in Sources */,

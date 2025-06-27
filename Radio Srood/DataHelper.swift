@@ -299,6 +299,30 @@ class DataHelper: NSObject {
             completion(response.value)
         }
     }
+    
+    static func getLyricsData(artist: String, track: String, completion: @escaping (_ lyrics: LyricsItem?) -> Void) {
+        let baseURL = lyricsBaseURL
+        let apiKey = "arman"
+        
+        let parameters: Parameters = [
+            "artist": artist,
+            "track": track,
+            "api_key": apiKey
+        ]
+        
+        AF.request(baseURL, parameters: parameters)
+            .validate()
+            .responseDecodable(of: LyricsResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.nateja.first)
+                case .failure(let error):
+                    print("Failed to fetch lyrics: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
 
     func fetchMp3(completion: @escaping (_ resp: [PodcastObject]) -> Void) {
         var object = [PodcastObject]()
