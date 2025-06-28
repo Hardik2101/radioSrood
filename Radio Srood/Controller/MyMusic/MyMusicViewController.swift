@@ -158,6 +158,10 @@ class MyMusicViewController: UIViewController {
         }
     }
     
+    @IBAction func clickOn_btnBack(_ sender: Any) {
+        self.popToBack()
+    }
+    
 }
 
 //MARK: - Collectionview delegate methods
@@ -183,7 +187,7 @@ extension MyMusicViewController: UICollectionViewDelegate, UICollectionViewDataS
         vc.selectedIndex = indexPath.row
         vc.tempTrack = trackData
         vc.track = trackData
-        self.present(vc, animated: true)//navigationController?.pushViewController(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

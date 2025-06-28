@@ -142,13 +142,13 @@ class AllMusicViewController: UI_VC {
         vc.isForLikes = true
         vc.isFav = false
         vc.trackData = bookmarkTracks.reversed()
-        self.navigationController?.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
    
     @IBAction func actionMyDownlaods(_ sender: Any) {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicViewController") as! MyMusicViewController
         vc.isDownload = true
-        self.navigationController?.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     @IBAction func actionMyLikes(_ sender: Any) {
@@ -159,7 +159,7 @@ class AllMusicViewController: UI_VC {
         vc.isForLikes = true
         vc.isFav = true
         vc.trackData = likesTracks.reversed()
-        self.navigationController?.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     @objc func longPressed(sender: UILongPressGestureRecognizer) {
@@ -200,7 +200,7 @@ extension AllMusicViewController : UITableViewDelegate , UITableViewDataSource{
         vc.track = recentTracks
         vc.tempTrack = recentTracks
         //vc.modalPresentationStyle = .overCurrentContext
-        self.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
 }
@@ -233,6 +233,6 @@ extension AllMusicViewController : UICollectionViewDelegate , UICollectionViewDa
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicViewController") as! MyMusicViewController
         vc.isForLikes = true
         vc.trackData = playListSongs
-        self.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }

@@ -271,6 +271,10 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         self.present(vc, animated: true, completion: nil)
     }
+    
+    @IBAction func clickOn_btnBack(_ sender: Any) {
+        self.popToBack()
+    }
 
 }
 
