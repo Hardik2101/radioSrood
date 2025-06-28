@@ -522,22 +522,22 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
                     self.viewLyrics.isHidden = false
                     self.lblLyrics.text = ""
 
-                    let fullLyricURL = "\(lyricsURL)\(self.lyricSynced)"
-                    guard let url = URL(string: fullLyricURL), !fullLyricURL.isEmpty else {
-                        print("🚫 Invalid or empty lyrics URL: \(fullLyricURL)")
-                        return
-                    }
-
-                    do {
-                        let data = try Data(contentsOf: url)
-                        guard let lyricsString = String(data: data, encoding: .utf8)?.emptyToNil() else {
-                            print("🈳 Lyrics content is empty")
-                            return
-                        }
-                        self.parser = LyricsParser(lyrics: lyricsString)
-                    } catch {
-                        print("❌ Failed to load synced lyrics: \(error.localizedDescription)")
-                    }
+//                    let fullLyricURL = "\(lyricsURL)\(self.lyricSynced)"
+//                    guard let url = URL(string: fullLyricURL), !fullLyricURL.isEmpty else {
+//                        print("🚫 Invalid or empty lyrics URL: \(fullLyricURL)")
+//                        return
+//                    }
+//
+//                    do {
+//                        let data = try Data(contentsOf: url)
+//                        guard let lyricsString = String(data: data, encoding: .utf8)?.emptyToNil() else {
+//                            print("🈳 Lyrics content is empty")
+//                            return
+//                        }
+//                        self.parser = LyricsParser(lyrics: lyricsString)
+//                    } catch {
+//                        print("❌ Failed to load synced lyrics: \(error.localizedDescription)")
+//                    }
                 }
             }
 
@@ -585,16 +585,16 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     @objc func lyricsBtnClicked() {
     
         if let track = track {
-            if track[selectedIndex].lyric_synced != ""{
+            if self.lyricSynced != ""{
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
+//                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
                 vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
             } else {
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
+//                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
                 vc.lyricnew = self.lyricSynced
@@ -611,6 +611,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             vc.currentSong = track[selectedIndex].convertToSongModel()
         }
         vc.track = track?[selectedIndex]
+        vc.lyricsNew = self.lyricSynced
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true, completion: nil)
     }
@@ -789,16 +790,16 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
     
     @IBAction func actionLyrics(_ sender: Any) {
         if let track = track {
-            if track[selectedIndex].lyric_synced != ""{
+            if self.lyricSynced != ""{
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
+//                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
                 vc.lyricnew = self.lyricSynced
                 self.present(vc, animated: true)
             } else {
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
+//                vc.lyricsUrl = "\(lyricsURL)\(track[selectedIndex].lyric_synced ?? "")"
                 vc.currentSong = track[selectedIndex].convertToSongModel()
                 vc.imageURl = self.imageURl
                 vc.lyricnew = self.lyricSynced

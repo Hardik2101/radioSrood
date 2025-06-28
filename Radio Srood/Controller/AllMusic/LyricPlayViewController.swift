@@ -39,17 +39,17 @@ class LyricPlayViewController: UIViewController {
         }
         lyricsView.backgroundColor = .clear
         // Load lyrics data
-        var lyrics: String? = nil
-        if let lyricsUrl = URL(string: lyricsUrl) {
-            if let data = try? Data(contentsOf: lyricsUrl) {
-                lyrics = String(data: data, encoding: .utf8)
-            }
-        }
+//        var lyrics: String? = nil
+//        if let lyricsUrl = URL(string: lyricsUrl) {
+//            if let data = try? Data(contentsOf: lyricsUrl) {
+//                lyrics = String(data: data, encoding: .utf8)
+//            }
+//        }
         
         // Use UILabel to display default text when lyrics are nil
-        if let lyrics = lyricnew {
-            print("lyric====", lyrics)
-            lyricsView.lyrics = lyricnew
+        if let lyrics = lyricnew, !lyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            print("lyric ====", lyrics)
+            lyricsView.lyrics = lyrics
         } else {
             let placeholderLabel = UILabel()
             placeholderLabel.text = "Lyric Not Available \n\n Please send lyric to lyric@radiosrood.com"
@@ -61,7 +61,7 @@ class LyricPlayViewController: UIViewController {
             placeholderLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             lyricsView.addSubview(placeholderLabel)
         }
-        
+
         lyricsView.backgroundColor = .clear
         lyricsView.lyricFont = UIFont.boldSystemFont(ofSize: 24)
         lyricsView.lyricTextColor = UIColor.lightGray

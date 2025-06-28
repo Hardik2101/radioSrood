@@ -28,6 +28,8 @@ class PlayerOptionViewController: UIViewController , PlayListViewControllerDeleg
     var isMyMusic = false
     
     var track: Track?
+    
+    var lyricsNew: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -112,17 +114,19 @@ class PlayerOptionViewController: UIViewController , PlayListViewControllerDeleg
     }
 
     @IBAction func actionLyrics(_ sender: Any) {
-        if currentSong.lyric_synced != ""{
+        if self.lyricsNew != ""{
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-            vc.lyricsUrl = "\(lyricsURL)\(currentSong.lyric_synced)"
+//            vc.lyricsUrl = "\(lyricsURL)\(currentSong.lyric_synced)"
             vc.currentSong = currentSong
+            vc.lyricnew = self.lyricsNew
             vc.imageURl = URL(string: currentSong.artcover)
             self.present(vc, animated: true)
         } else {
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-            vc.lyricsUrl = "\(lyricsURL)\(currentSong.lyric_synced)"
+//            vc.lyricsUrl = "\(lyricsURL)\(currentSong.lyric_synced)"
             vc.currentSong = currentSong
             vc.imageURl = URL(string: currentSong.artcover)
+            vc.lyricnew = self.lyricsNew
             self.present(vc, animated: true)
 
             
