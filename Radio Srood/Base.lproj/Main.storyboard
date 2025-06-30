@@ -1436,7 +1436,7 @@
                                 </connections>
                             </button>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="vsQ-6x-IGk">
-                                <rect key="frame" x="0.0" y="159" width="393" height="693"/>
+                                <rect key="frame" x="0.0" y="211" width="393" height="641"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="Lq4-JW-yZ6">
                                     <size key="itemSize" width="128" height="128"/>
@@ -1450,15 +1450,51 @@
                                     <outlet property="delegate" destination="Sse-6D-LJk" id="mdm-q2-GMu"/>
                                 </connections>
                             </collectionView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iTe-m6-gEX">
+                                <rect key="frame" x="24" y="159" width="40" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="0ad-l2-Nbt"/>
+                                    <constraint firstAttribute="width" constant="40" id="HBE-bJ-d7o"/>
+                                </constraints>
+                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                <state key="normal" image="play_button"/>
+                                <connections>
+                                    <action selector="clickOn_btnPlay:" destination="Sse-6D-LJk" eventType="touchUpInside" id="PFn-Ce-h4z"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="If0-JW-XhH">
+                                <rect key="frame" x="76" y="159" width="40" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="40" id="mk6-Iw-oN9"/>
+                                    <constraint firstAttribute="height" constant="40" id="pfe-Ie-MWO"/>
+                                </constraints>
+                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                <state key="normal" image="ic_shuffle"/>
+                                <connections>
+                                    <action selector="clickOn_btnShuffle:" destination="Sse-6D-LJk" eventType="touchUpInside" id="llI-FU-qnx"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cwe-A7-xlz">
+                                <rect key="frame" x="319" y="168.66666666666666" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.11764705882352941" green="0.11764705882352941" blue="0.11764705882352941" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="vsQ-6x-IGk" secondAttribute="bottom" id="1Ra-C7-10q"/>
+                            <constraint firstItem="cwe-A7-xlz" firstAttribute="centerY" secondItem="If0-JW-XhH" secondAttribute="centerY" id="24U-7V-47c"/>
                             <constraint firstItem="ph1-YQ-K3d" firstAttribute="leading" secondItem="fw8-Pi-vLQ" secondAttribute="leadingMargin" id="9YK-U3-Hfr"/>
+                            <constraint firstItem="iTe-m6-gEX" firstAttribute="leading" secondItem="fw8-Pi-vLQ" secondAttribute="leadingMargin" constant="8" id="LcD-Lp-NYc"/>
                             <constraint firstItem="ph1-YQ-K3d" firstAttribute="top" secondItem="pQR-NC-EKj" secondAttribute="bottom" id="XAG-YE-Pgr"/>
-                            <constraint firstItem="vsQ-6x-IGk" firstAttribute="top" secondItem="ph1-YQ-K3d" secondAttribute="bottom" constant="16" id="gov-Yy-jfG"/>
+                            <constraint firstItem="If0-JW-XhH" firstAttribute="top" secondItem="iTe-m6-gEX" secondAttribute="top" id="Xhi-2E-t3U"/>
+                            <constraint firstItem="iTe-m6-gEX" firstAttribute="top" secondItem="ph1-YQ-K3d" secondAttribute="bottom" constant="16" id="fFg-du-ngC"/>
+                            <constraint firstItem="If0-JW-XhH" firstAttribute="leading" secondItem="iTe-m6-gEX" secondAttribute="trailing" constant="12" id="fff-i5-ylj"/>
                             <constraint firstItem="vsQ-6x-IGk" firstAttribute="leading" secondItem="fw8-Pi-vLQ" secondAttribute="leading" id="ohr-UM-oUM"/>
                             <constraint firstAttribute="trailing" secondItem="vsQ-6x-IGk" secondAttribute="trailing" id="pX0-r7-et2"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="cwe-A7-xlz" secondAttribute="trailing" constant="16" id="ws8-LZ-m6f"/>
+                            <constraint firstItem="vsQ-6x-IGk" firstAttribute="top" secondItem="iTe-m6-gEX" secondAttribute="bottom" constant="12" id="y8r-1s-TI5"/>
                         </constraints>
                     </view>
                     <toolbarItems/>
@@ -1469,6 +1505,9 @@
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="btnPlay" destination="iTe-m6-gEX" id="DvI-cu-y0i"/>
+                        <outlet property="btnShuffle" destination="If0-JW-XhH" id="DQx-kQ-xRi"/>
+                        <outlet property="lblTotalCounts" destination="cwe-A7-xlz" id="wcp-et-zep"/>
                         <outlet property="menuBtn" destination="zZH-Dw-Bp6" id="m5k-Uy-0Wy"/>
                         <outlet property="myMusicCollectionView" destination="vsQ-6x-IGk" id="2Vi-Ee-3on"/>
                     </connections>
@@ -6893,6 +6932,7 @@ Your support means the world to us!</string>
         <image name="ic_purchase" width="64" height="64"/>
         <image name="ic_repeat" width="30" height="30"/>
         <image name="ic_share" width="30" height="30"/>
+        <image name="ic_shuffle" width="32" height="32"/>
         <image name="ic_song" width="16" height="16"/>
         <image name="ic_view" width="16" height="16"/>
         <image name="ic_youtube" width="16" height="16"/>

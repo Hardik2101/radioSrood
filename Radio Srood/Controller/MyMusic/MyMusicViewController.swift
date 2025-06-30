@@ -8,6 +8,12 @@ class MyMusicViewController: UIViewController {
     @IBOutlet private weak var myMusicCollectionView: UICollectionView!
     @IBOutlet private weak var menuBtn: UIBarButtonItem!
     
+    @IBOutlet var btnPlay: UIButton!
+    
+    @IBOutlet var btnShuffle: UIButton!
+    
+    @IBOutlet var lblTotalCounts: UILabel!
+    
     var radioData: NSDictionary?
     var bannerView: GADBannerView!
     var dataHelper: DataHelper!
@@ -162,13 +168,44 @@ class MyMusicViewController: UIViewController {
         self.popToBack()
     }
     
+    @IBAction func clickOn_btnPlay(_ sender: Any) {
+        guard !trackData.isEmpty else { return }
+        playMusic(at: 0)
+    }
+
+    @IBAction func clickOn_btnShuffle(_ sender: Any) {
+        guard !trackData.isEmpty else { return }
+        let randomIndex = Int.random(in: 0..<trackData.count)
+        playMusic(at: randomIndex)
+    }
+
+    private func playMusic(at index: Int) {
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicPlayerViewController") as! MyMusicPlayerViewController
+        vc.selectedIndex = index
+        vc.tempTrack = trackData
+        vc.track = trackData
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+
 }
 
 //MARK: - Collectionview delegate methods
 extension MyMusicViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return trackData.count
+        let totalCount = self.trackData.count
+        self.lblTotalCounts.text = "\(totalCount) Songs"
+        if totalCount > 0 {
+            [self.btnPlay, self.btnShuffle, self.lblTotalCounts].forEach {
+                $0?.isHidden = false
+            }
+        } else {
+            [self.btnPlay, self.btnShuffle, self.lblTotalCounts].forEach {
+                $0?.isHidden = true
+            }
+            
+        }
+        return totalCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
