@@ -322,6 +322,29 @@ class DataHelper: NSObject {
                 }
             }
     }
+    
+    static func getSearchResults(query: String, completion: @escaping (_ results: [SearchModel]?) -> Void) {
+        let baseURL = searchBaseURL
+        let apiKey = "SaReO9O0D45a03b-47c79ec2-fcc9775e78b2"
+
+        let parameters: Parameters = [
+            "q": query,
+            "api_key": apiKey
+        ]
+
+        AF.request(baseURL, parameters: parameters)
+            .validate()
+            .responseDecodable(of: SearchResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.Search_Data)
+                case .failure(let error):
+                    print("Search API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
 
 
     func fetchMp3(completion: @escaping (_ resp: [PodcastObject]) -> Void) {

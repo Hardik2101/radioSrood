@@ -23,6 +23,15 @@ class BrowseTabVC: UI_VC {
     }
     
     
+    @IBOutlet var tblSearch: UITableView! {
+        didSet {
+            self.tblSearch.delegate = self
+            self.tblSearch.dataSource = self
+        }
+    }
+    
+    @IBOutlet var tfSearchBar: UITextField!
+    
     var interstitial: GADInterstitial!
     var isInterstitialPresent = false
 ////////////////    var nativeAd: [GADUnifiedNativeAd] = []
@@ -44,6 +53,9 @@ class BrowseTabVC: UI_VC {
     private var isPurchaseSuccess: Bool = false
     var bannerAdViews: [GADBannerView] = []
     var radioModel: [RadioModelData] = []
+    
+    var arrSearch: [SearchModel] = [] // Or whatever model type you're searching
+
 
     
     var timer = Timer()
@@ -60,6 +72,7 @@ class BrowseTabVC: UI_VC {
 //        self.heightOfAdsView.constant = 0
         tblBrowse.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         tblBrowse.register(UINib(nibName: "RJTVTableViewCell", bundle: nil), forCellReuseIdentifier: "RJTVTableViewCell")
+        tblSearch.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
 //        loadBannerAds()
 //        
 //        pageView.numberOfPages = featuredTop?.count ?? 0
@@ -68,6 +81,10 @@ class BrowseTabVC: UI_VC {
 ////////////////            self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.changeImage), userInfo: nil, repeats: true)
 ////////////////        }
         loadFeaturedRadioData()
+        
+        self.tblSearch.isHidden = true
+        self.tblBrowse.isHidden = false
+
     }
 
 
@@ -160,6 +177,38 @@ class BrowseTabVC: UI_VC {
         loadInterstitial()
         loadRedioHomeData()
         loadBannerAd()
+        
+        tfSearchBar.delegate = self
+        tfSearchBar.addTarget(self, action: #selector(searchTextChanged(_:)), for: .editingChanged)
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white.withAlphaComponent(0.7),
+            .font: UIFont.systemFont(ofSize: 16)
+        ]
+        tfSearchBar.attributedPlaceholder = NSAttributedString(
+            string: "Search song...",
+            attributes: attributes
+        )
+        tfSearchBar.textColor = .white
+
+        let cancelButton = UIButton(type: .system)
+        cancelButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        cancelButton.tintColor = .lightGray
+        cancelButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
+        cancelButton.addTarget(self, action: #selector(cancelSearch), for: .touchUpInside)
+        cancelButton.isEnabled = true
+
+        let padding: CGFloat = 8 // Adjust this value for more/less spacing
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: cancelButton.frame.width + padding, height: cancelButton.frame.height))
+
+        // 3. Add the button to the container
+        containerView.addSubview(cancelButton)
+
+        // 4. Set the container as the rightView
+        tfSearchBar.rightView = containerView
+        tfSearchBar.rightViewMode = .whileEditing
+        tfSearchBar.rightViewMode = .always
+
 //        vwAds.isHidden = true
 //        imgAdClose.isHidden = true
 //        heightOfAdsView.constant = 0
@@ -170,6 +219,49 @@ class BrowseTabVC: UI_VC {
 
 ////////////////        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
     }
+    
+    @objc private func searchTextChanged(_ textField: UITextField) {
+        guard let searchText = textField.text?.trimmingCharacters(in: .whitespaces) else { return }
+        
+        if searchText.isEmpty {
+            cancelSearch()
+            return
+        }
+        
+        // Show search table and hide browse table
+        tblSearch.isHidden = false
+        tblBrowse.isHidden = true
+        
+        // Call API after a short delay to avoid too many requests while typing
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
+        self.perform(#selector(performSearch), with: searchText, afterDelay: 0.5)
+    }
+
+    @objc private func performSearch(_ query: String) {
+        DataHelper.getSearchResults(query: query) { [weak self] results in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                if let results = results {
+                    self.arrSearch = results
+                } else {
+                    self.arrSearch = []
+                    print("No results found for: \(query)")
+                }
+                self.tblSearch.reloadData()
+            }
+        }
+    }
+    
+    @objc private func cancelSearch() {
+        tfSearchBar.text = ""
+        tfSearchBar.resignFirstResponder()
+        arrSearch.removeAll()
+        tblSearch.reloadData()
+        tblSearch.isHidden = true
+        tblBrowse.isHidden = false
+    }
+
     
     @objc private func vwAdsTapped() {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
@@ -593,14 +685,35 @@ extension BrowseTabVC : MusicPlayerViewControllerDelegate {
 extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
+        if tableView == tblSearch {
+            return 1 // Search results typically have just one section
+        }
+
         return BrowseheaderArray.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if tableView == tblSearch {
+            return arrSearch.count
+        }
+
         return 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        if tableView == tblSearch {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
+            cell.selectionStyle = .none
+            if let url = URL(string: self.arrSearch[indexPath.row].artcover_200) {
+                cell.imgArtist.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            }
+            cell.lblArtistName.text = self.arrSearch[indexPath.row].artist
+            cell.lblSongName.text = self.arrSearch[indexPath.row].track
+            return cell
+        }
+
         switch BrowseheaderArray[indexPath.section] {
         case Browseheader.playlist.title:     return playlistsCell(with: tableView)
         case Browseheader.newMusic.title:     return newReleasesCell(with: tableView)
@@ -621,21 +734,13 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
     }
     
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        switch indexPath.section {
-//        case 0:
-//            browseheader = .playlist
-//            if interstitial != nil {
-//                interstitial.present(fromRootViewController: self)
-//            } else {
-//                openRadioWithRecentViewController()
-//            }
-//        default:
-//            break
-//        }
-//    }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        
+        if tableView == tblSearch {
+            return nil // No headers for search results
+        }
+
         switch BrowseheaderArray[section] {
         case Browseheader.playlist.title:     return setHeaderData(headerTitle: Browseheader.playlist.title)
         case Browseheader.newMusic.title:     return setHeaderData(headerTitle: Browseheader.newMusic.title)
@@ -649,6 +754,11 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        
+        if tableView == tblSearch {
+            return 0 // No headers for search results
+        }
+
         switch BrowseheaderArray[section] {
         case Browseheader.playlist.title:       return 27
         case Browseheader.newMusic.title:       return 27
@@ -662,22 +772,26 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Selected section: \(indexPath.section), row: \(indexPath.row)")
         
-        if indexPath.section == 3 { //indexPath.section == 3
-            openRadioWithRecentViewController()
-        } else if indexPath.section == 4 {
-            guard let url = URL(string: "https://live.pamirtv.com/stream/ptv.m3u8") else { return }
-            NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
-            player = PlayObserver() //killing player before stream
-            let asset = AVAsset(url: url)
-            let playerItem = AVPlayerItem(asset: asset)
-            self.avPlayer = AVPlayer(playerItem: playerItem)
-            self.avPlayerViewController.player = self.avPlayer
-            self.present(self.avPlayerViewController, animated: true) { [weak self] in
-                self?.avPlayerViewController.player?.play()
+        if tableView == tblSearch {
+        } else {
+            print("Selected section: \(indexPath.section), row: \(indexPath.row)")
+            
+            if indexPath.section == 3 { //indexPath.section == 3
+                openRadioWithRecentViewController()
+            } else if indexPath.section == 4 {
+                guard let url = URL(string: "https://live.pamirtv.com/stream/ptv.m3u8") else { return }
+                NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
+                player = PlayObserver() //killing player before stream
+                let asset = AVAsset(url: url)
+                let playerItem = AVPlayerItem(asset: asset)
+                self.avPlayer = AVPlayer(playerItem: playerItem)
+                self.avPlayerViewController.player = self.avPlayer
+                self.present(self.avPlayerViewController, animated: true) { [weak self] in
+                    self?.avPlayerViewController.player?.play()
+                }
+                
             }
-
         }
     }
     
@@ -882,5 +996,13 @@ extension BrowseTabVC: GADBannerViewDelegate {
     func adViewWillLeaveApplication(_ bannerView: GADBannerView) {
         print("User click will leave the application")
         
+    }
+}
+
+
+extension BrowseTabVC: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
 }

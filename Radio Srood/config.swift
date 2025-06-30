@@ -29,6 +29,10 @@ let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 
 
 let lyricsBaseURL = "https://lyric.srood.stream/jostojo"
+let searchBaseURL = "https://srood.stream/search/jostojo"
+
+
+
 
 
 let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"
