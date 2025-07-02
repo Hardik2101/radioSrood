@@ -42,6 +42,8 @@ class AllMusicViewController: UI_VC {
         super.viewWillAppear(animated)
         
         self.fetchRecentlyPlayed()
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+
     }
     
     override func viewDidAppear(_ animated: Bool) {

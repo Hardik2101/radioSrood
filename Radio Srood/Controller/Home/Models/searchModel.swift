@@ -24,3 +24,38 @@ struct SearchModel: Decodable {
 struct SearchResponse: Decodable {
     let Search_Data: [SearchModel]
 }
+
+extension SearchModel {
+    func convertToPodcastModel() -> PodcastObject {
+        // Build the cover URL
+        let coverURL = URL(string: artcover) ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
+
+        // Encode the media path
+        if let urlString = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let fullURL = URL(string: songPath + urlString) {
+            return PodcastObject(
+                file: fullURL,
+                trackName: track,
+                artistName: artist,
+                imageURL: coverURL
+            )
+        }
+        // Fallback if songPath is not needed
+        else if let fallbackURL = URL(string: mediaPath) {
+            return PodcastObject(
+                file: fallbackURL,
+                trackName: track,
+                artistName: artist,
+                imageURL: coverURL
+            )
+        } else {
+            // Last fallback
+            return PodcastObject(
+                file: URL(string: "https://defaultaudio.com/placeholder.mp3")!,
+                trackName: track,
+                artistName: artist,
+                imageURL: coverURL
+            )
+        }
+    }
+}

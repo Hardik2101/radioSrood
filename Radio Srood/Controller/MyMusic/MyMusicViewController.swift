@@ -47,8 +47,16 @@ class MyMusicViewController: UIViewController {
         self.navigationController?.navigationBar.topItem?.title = "My Music"
         self.navigationController?.navigationBar.backItem?.title = "My Music"
         navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+
     }
     
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
     // MARK: - Private Methods
     private func prepareView() {
         navigationController?.navigationBar.titleTextAttributes =  [NSAttributedString.Key.foregroundColor: UIColor.white]
@@ -166,6 +174,8 @@ class MyMusicViewController: UIViewController {
     
     @IBAction func clickOn_btnBack(_ sender: Any) {
         self.popToBack()
+        self.dismiss(animated: true)
+
     }
     
     @IBAction func clickOn_btnPlay(_ sender: Any) {

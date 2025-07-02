@@ -551,7 +551,7 @@ class BrowseTabVC: UI_VC {
         vc.selectedIndex = index
         vc.tempTrack = recentTracks
         vc.track = recentTracks
-        self.present(vc, animated: true)////////////////navigationController?.pushViewController(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     let avPlayerViewController = AVPlayerViewController()
@@ -590,7 +590,7 @@ class BrowseTabVC: UI_VC {
         vc.isForLikes = true
         vc.isMyPlaylist = true
         vc.trackData = playListSongs
-        self.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     func handleMyPlayListItemEvent(_ index: Int) {
@@ -774,6 +774,14 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         if tableView == tblSearch {
+            
+            let recentTracks = self.arrSearch.map { $0.convertToPodcastModel() }
+            let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicPlayerViewController") as! MyMusicPlayerViewController
+            vc.selectedIndex = indexPath.row
+            vc.tempTrack = recentTracks
+            vc.track = recentTracks
+            self.navigationController?.pushViewController(vc, animated: true)
+
         } else {
             print("Selected section: \(indexPath.section), row: \(indexPath.row)")
             
@@ -803,64 +811,6 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
       return CGFloat.leastNonzeroMagnitude
     }
 }
-
-////////////////extension BrowseTabVC: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-////////////////    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-////////////////        return self.featuredTop?.count ?? 0
-////////////////    }
-////////////////
-////////////////    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-////////////////        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewHomeCollectionViewCell", for: indexPath) as! NewHomeCollectionViewCell
-////////////////
-////////////////        let featuredItem = self.featuredTop?[indexPath.row]
-////////////////        print("aaaaaaa==1", featuredItem?.featuredImage)
-////////////////        if let url = URL(string: featuredItem?.featuredImage ?? "") {
-////////////////            cell.imgView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-////////////////        }
-////////////////
-////////////////        return cell
-////////////////    }
-////////////////    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-////////////////        let featuredItem = self.featuredTop?[indexPath.row]
-////////////////
-////////////////        //////////////// Check if the item is sponsored and print the appropriate message
-////////////////        if featuredItem?.sponsored == true {
-////////////////            if let url = URL(string: featuredItem?.externalLink ?? "https:////////////////instagram.com/RadioSrood") {
-////////////////                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-////////////////            }
-////////////////        } else {
-////////////////            let vc = self.storyboard?.instantiateViewController(withIdentifier: "MusicPlayerViewController") as! MusicPlayerViewController
-////////////////            vc.groupID = featuredItem?.featuredSongID
-////////////////            groupID = nil
-////////////////            vc.delegate = self
-////////////////            vc.Browseheader = Browseheader
-////////////////            vc.isSponser = true
-////////////////            vc.modalPresentationStyle = .overCurrentContext
-////////////////            self.present(vc, animated: true)
-////////////////        }
-////////////////
-////////////////////////////////        openMusicPlayerViewController()
-////////////////////////////////        print(indexPath.row)
-////////////////    }
-////////////////
-////////////////    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-////////////////        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-////////////////    }
-////////////////
-////////////////    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-////////////////        let size = sliderCollectionView.frame.size
-////////////////        return CGSize(width: size.width, height: size.height)
-////////////////    }
-////////////////
-////////////////    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-////////////////        return 0.0
-////////////////    }
-////////////////
-////////////////    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-////////////////        return 0.0
-////////////////    }
-////////////////
-////////////////}
 
 extension BrowseTabVC: GADInterstitialDelegate {
     

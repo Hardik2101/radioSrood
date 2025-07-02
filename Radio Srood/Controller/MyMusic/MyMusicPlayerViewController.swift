@@ -91,12 +91,17 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         TabbarVC.available?.miniPlayer.miniplayer(hide: false)
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
+
     }
+
 
     deinit {
         //timeObserver = nil
@@ -274,6 +279,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     
     @IBAction func clickOn_btnBack(_ sender: Any) {
         self.popToBack()
+        self.dismiss(animated: true)
+
     }
 
 }

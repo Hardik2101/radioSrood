@@ -663,5 +663,7 @@ class RadioViewController: UI_VC, GADInterstitialDelegate {
     
     @IBAction func clickOn_btnBack(_ sender: Any) {
         self.navigationController?.popViewController(animated: true)
+        self.dismiss(animated: true)
+
     }
 }
