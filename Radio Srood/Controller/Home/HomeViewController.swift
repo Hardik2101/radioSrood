@@ -134,9 +134,13 @@ class HomeViewController: UI_VC {
     }
     
     private func showLongPressAlert(for index: Int, section: String) {
-        let alert = UIAlertController(title: "Long Press", message: "Long pressed item \(index) in section \(section)", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let optionsVC = storyboard.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController {
+            optionsVC.modalPresentationStyle = .overFullScreen // or .fullScreen / .pageSheet / .formSheet etc.
+            
+            self.present(optionsVC, animated: true, completion: nil)
+        }
+        print("Long pressed item \(index) in section \(section)")
     }
     
     override func viewDidAppear(_ animated: Bool) {

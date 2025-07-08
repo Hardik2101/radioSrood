@@ -110,6 +110,7 @@
 		567AC5B82CC2A0FF0096B25F /* BrowseRadioTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */; };
 		567AC5BB2CC2A1210096B25F /* BrowseRadioCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567AC5B92CC2A1210096B25F /* BrowseRadioCollectionCell.swift */; };
 		567AC5BC2CC2A1210096B25F /* BrowseRadioCollectionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 567AC5BA2CC2A1210096B25F /* BrowseRadioCollectionCell.xib */; };
+		56B076272E1D893A00F1836D /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B076262E1D893A00F1836D /* OptionsViewController.swift */; };
 		803C90B0291F60F700BBA60D /* RecentPlayerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803C90AF291F60F700BBA60D /* RecentPlayerCell.swift */; };
 		804A215728C35A91000E40B7 /* RadioWithRecentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804A215628C35A91000E40B7 /* RadioWithRecentViewController.swift */; };
 		804A215928C36D9D000E40B7 /* RecentListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804A215828C36D9D000E40B7 /* RecentListCell.swift */; };
@@ -310,6 +311,7 @@
 		567AC5B62CC2A0FF0096B25F /* BrowseRadioTableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseRadioTableCell.xib; sourceTree = "<group>"; };
 		567AC5B92CC2A1210096B25F /* BrowseRadioCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseRadioCollectionCell.swift; sourceTree = "<group>"; };
 		567AC5BA2CC2A1210096B25F /* BrowseRadioCollectionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BrowseRadioCollectionCell.xib; sourceTree = "<group>"; };
+		56B076262E1D893A00F1836D /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		5C56FCFD7ED829FDD9575D78 /* Pods-Radio Srood.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.release.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.release.xcconfig"; sourceTree = "<group>"; };
 		803C90AF291F60F700BBA60D /* RecentPlayerCell.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentPlayerCell.swift; sourceTree = "<group>"; };
 		804A215628C35A91000E40B7 /* RadioWithRecentViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RadioWithRecentViewController.swift; sourceTree = "<group>"; };
@@ -983,6 +985,7 @@
 				DC400EF52981B2B6005A5B50 /* Cell */,
 				DC5639C229805FB200697113 /* HomeViewController.swift */,
 				DC400EF32981AF8A005A5B50 /* HomeHeaderEnum.swift */,
+				56B076262E1D893A00F1836D /* OptionsViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -1354,6 +1357,7 @@
 				DC400EF42981AF8A005A5B50 /* HomeHeaderEnum.swift in Sources */,
 				3F9AB1551EAB5107000D8FE3 /* Player.swift in Sources */,
 				DC0B7FFE29828B3000CD7A08 /* NewReleasesCell.swift in Sources */,
+				56B076272E1D893A00F1836D /* OptionsViewController.swift in Sources */,
 				3F0E15721EAE19DB0009734F /* NewsTableViewCell.swift in Sources */,
 				04E213162CE22BFD00EE8F9B /* BrowseShowAllTableCell.swift in Sources */,
 				3F0E156D1EAE14F70009734F /* NewsTableViewController.swift in Sources */,
