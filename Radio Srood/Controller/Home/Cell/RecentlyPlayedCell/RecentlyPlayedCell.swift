@@ -3,7 +3,7 @@ import UIKit
 
 class RecentlyPlayedCell: UITableViewCell {
     
-    @IBOutlet private weak var recentlyPlayedCollectionView: UICollectionView!
+    @IBOutlet  weak var recentlyPlayedCollectionView: UICollectionView!
     @IBOutlet private weak var rcentlyPlayedHeightConstraint: NSLayoutConstraint!
     
     var trackData: [PodcastObject] = []

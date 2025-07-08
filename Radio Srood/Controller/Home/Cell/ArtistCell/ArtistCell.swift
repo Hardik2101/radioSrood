@@ -3,7 +3,7 @@ import UIKit
 
 class ArtistCell: UITableViewCell {
     
-    @IBOutlet private weak var artistCollectionView: UICollectionView!
+    @IBOutlet  weak var artistCollectionView: UICollectionView!
     
     var featuredArtist: [FeaturedArtist] = []
     var presentView: HomeViewController?

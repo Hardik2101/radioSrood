@@ -3,7 +3,7 @@ import UIKit
 
 class MyPlaylistCell: UITableViewCell {
     
-    @IBOutlet private weak var myPlaylistCollectionView: UICollectionView!
+    @IBOutlet  weak var myPlaylistCollectionView: UICollectionView!
     @IBOutlet private weak var myPlaylistHeightConstraint: NSLayoutConstraint!
     
     var playList = [PlayListModel]()

@@ -10,7 +10,7 @@ import UIKit
 
 class BrowsePopularTableCell: UITableViewCell {
 
-    @IBOutlet private weak var trackCollectionView: UICollectionView!
+    @IBOutlet  weak var trackCollectionView: UICollectionView!
     @IBOutlet private weak var trackHeightConstraint: NSLayoutConstraint!
     
     var trendingTracks: [TrendingTrack] = []

@@ -2,7 +2,7 @@ import UIKit
 
 class NewReleasesCell: UITableViewCell {
     
-    @IBOutlet private weak var newReleasesCollectionView: UICollectionView!
+    @IBOutlet  weak var newReleasesCollectionView: UICollectionView!
     @IBOutlet private weak var newReleasesHeightConstraint: NSLayoutConstraint!
     
     var newReleases: [NewRelease] = []

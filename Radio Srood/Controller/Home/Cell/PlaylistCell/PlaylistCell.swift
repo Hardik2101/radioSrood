@@ -2,7 +2,7 @@ import UIKit
 
 class PlaylistCell: UITableViewCell {
     
-    @IBOutlet private weak var playlistCollectionView: UICollectionView!
+    @IBOutlet  weak var playlistCollectionView: UICollectionView!
     @IBOutlet private weak var playlistHeightConstraint: NSLayoutConstraint!
     
     var playlist: [Playlist] = []
