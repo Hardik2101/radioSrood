@@ -5,7 +5,11 @@ import GoogleMobileAds
 import CoreMedia
 import StoreKit
 
-class HomeViewController: UI_VC {
+class HomeViewController: UI_VC, OptionsViewControllerDelegate {
+    func didUpdateTrackMetadata() {
+        
+    }
+
     @IBOutlet private weak var radiosroodTableView: UITableView!
     @IBOutlet weak var pageView: UIPageControl!
     
@@ -135,13 +139,174 @@ class HomeViewController: UI_VC {
     
     private func showLongPressAlert(for index: Int, section: String) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let optionsVC = storyboard.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController {
-            optionsVC.modalPresentationStyle = .overFullScreen // or .fullScreen / .pageSheet / .formSheet etc.
-            
-            self.present(optionsVC, animated: true, completion: nil)
+        guard let optionsVC = storyboard.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
         }
-        print("Long pressed item \(index) in section \(section)")
+        
+        // Determine the track based on the section
+        var selectedTrack: Track?
+        
+        switch section {
+        case "Hot Tracks":
+            if index >= 0, index < homeMusic?.newReleases.count ?? 0,
+               let groupID = homeMusic?.newReleases[index].newReleasesTrackID {
+                // Fetch tracks for the selected new release playlist
+                dataHelper.getNewReleaseData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.newRelease.first(where: { $0.id == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for groupID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Recently Played":
+//            if index >= 0, index < recenltPlayed.count {
+//                selectedTrack = recenltPlayed[index].convertToTrackModel()
+//                presentOptionsVC(optionsVC, track: selectedTrack)
+//            } else {
+//                print("Error: Invalid index \(index) for Recently Played, count: \(recenltPlayed.count)")
+//                presentOptionsVC(optionsVC, track: nil)
+//            }
+            break;
+            
+        case "Playlists":
+            if index >= 0, index < homeMusic?.playlists.count ?? 0,
+               let groupID = homeMusic?.playlists[index].playlistid {
+                dataHelper.getPlaylistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.trendingPlaylist.first(where: { $0.id == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for playlistID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Trending":
+            if index >= 0, index < homeMusic?.trendingTracks.count ?? 0,
+               let groupID = homeMusic?.trendingTracks[index].trendingTrackID {
+                dataHelper.getTrendingPlaylistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.trendingTracks.first(where: { $0.id == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for trendingTrackID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Popular Tracks":
+            if index >= 0, index < homeMusic?.popularTracks.count ?? 0,
+               let groupID = homeMusic?.popularTracks[index].popularTrackID {
+                dataHelper.getPopularPlaylistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.popularTracks.first(where: { $0.id == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for popularTrackID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Featured Artist":
+            if index >= 0, index < homeMusic?.featuredArtist.count ?? 0,
+               let groupID = homeMusic?.featuredArtist[index].featuredTrackID {
+                dataHelper.getFeaturedArtistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.rSroodFeaturedArtistData.first(where: { $0.id == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for featuredTrackID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Today Top Picks":
+            if index >= 0, index < todayTopPic?.count ?? 0,
+               let groupID = todayTopPic?[index].id {
+                dataHelper.getTodayTopPicDetailed { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.todayTopPick.first(where: { $0.playlistID == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for todayTopPick playlistID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case "Recently Added":
+            if index >= 0, index < recenltyAdded?.count ?? 0,
+               let groupID = recenltyAdded?[index].id {
+                dataHelper.getRecentlyAddedDataDetailed { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.recentlyAddedPlayListDetailed.first(where: { $0.playlistID == groupID })?.tracks,
+                       index < tracks.count {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for recentlyAdded playlistID \(groupID) or invalid index \(index)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        default:
+            print("Section \(section) not handled for track selection")
+            presentOptionsVC(optionsVC, track: nil)
+        }
     }
+
+    private func presentOptionsVC(_ optionsVC: OptionsViewController, track: Track?) {
+        if let track = track {
+            optionsVC.track = track
+            optionsVC.delegate = self
+            // Fetch lyrics for the track
+            DataHelper.getLyricsData(artist: track.artist ?? "", track: track.track ?? "") { lyricItem in
+                optionsVC.lyricsNew = lyricItem?.syncedLyrics ?? ""
+                optionsVC.modalPresentationStyle = .overFullScreen
+                DispatchQueue.main.async {
+                    self.present(optionsVC, animated: true, completion: nil)
+                }
+            }
+        } else {
+            print("No track found for index in section")
+            // Optionally, show an alert to the user
+            let alert = UIAlertController(title: "Error", message: "Unable to load track information", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            DispatchQueue.main.async {
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+    }
+    
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)

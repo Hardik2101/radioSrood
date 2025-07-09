@@ -1517,6 +1517,10 @@
                             <constraint firstAttribute="trailing" secondItem="FCM-No-iKG" secondAttribute="trailing" id="pB6-kh-JvM"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="addTocoolectionImage" destination="CTd-cq-j7S" id="vaI-ga-YnK"/>
+                        <outlet property="btnDownload" destination="9bs-wk-KZw" id="4m7-oL-uS1"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tjr-73-j4c" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
