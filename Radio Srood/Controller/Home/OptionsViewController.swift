@@ -12,9 +12,18 @@ class OptionsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        addBlurBackground()
     }
     
+    func addBlurBackground() {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = view.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+        view.insertSubview(blurView, at: 0)
+    }
+
     
     @IBAction func clickOn_btnAddToQueue(_ sender: UIButton) {
     }
