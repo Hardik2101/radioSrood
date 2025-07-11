@@ -1263,7 +1263,7 @@
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PMA-JZ-uFh">
                                                 <rect key="frame" x="0.0" y="62" width="393" height="50"/>
                                                 <subviews>
-                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_addPlaylist" translatesAutoresizingMaskIntoConstraints="NO" id="CTd-cq-j7S">
+                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_bookmark" translatesAutoresizingMaskIntoConstraints="NO" id="CTd-cq-j7S">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="30" id="IW9-kf-2No"/>
@@ -1310,13 +1310,28 @@
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OB3-mm-5Ob">
                                                 <rect key="frame" x="0.0" y="124" width="393" height="50"/>
                                                 <subviews>
-                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_download" translatesAutoresizingMaskIntoConstraints="NO" id="9bs-wk-KZw">
+                                                    <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_download" translatesAutoresizingMaskIntoConstraints="NO" id="9bs-wk-KZw">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="30" id="WtQ-5c-bgf"/>
                                                             <constraint firstAttribute="width" constant="30" id="pwU-yk-Ewm"/>
                                                         </constraints>
                                                     </imageView>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iuz-mq-T4N">
+                                                        <rect key="frame" x="20" y="10" width="30" height="30"/>
+                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    </view>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jwi-bK-qWG">
+                                                        <rect key="frame" x="20" y="10" width="30" height="30"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="height" constant="30" id="KgY-wb-cgp"/>
+                                                            <constraint firstAttribute="width" constant="30" id="sEt-8o-rHq"/>
+                                                        </constraints>
+                                                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                        <connections>
+                                                            <action selector="clickOn_btnDownload:" destination="pNp-dh-7n6" eventType="touchUpInside" id="VOE-Wv-5lB"/>
+                                                        </connections>
+                                                    </button>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Download" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u0Z-qK-4l0">
                                                         <rect key="frame" x="62" y="12.333333333333369" width="82" height="25.333333333333329"/>
                                                         <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="18"/>
@@ -1330,7 +1345,7 @@
                                                             <constraint firstAttribute="height" constant="1" id="2mR-wI-Gfe"/>
                                                         </constraints>
                                                     </view>
-                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5TE-Ha-msl">
+                                                    <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5TE-Ha-msl">
                                                         <rect key="frame" x="0.0" y="0.0" width="393" height="47"/>
                                                         <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                         <connections>
@@ -1340,15 +1355,21 @@
                                                 </subviews>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <constraints>
+                                                    <constraint firstItem="iuz-mq-T4N" firstAttribute="centerX" secondItem="jwi-bK-qWG" secondAttribute="centerX" id="1rk-Dh-Aqc"/>
                                                     <constraint firstItem="u0Z-qK-4l0" firstAttribute="leading" secondItem="9bs-wk-KZw" secondAttribute="trailing" constant="12" id="26y-kZ-VRw"/>
+                                                    <constraint firstItem="jwi-bK-qWG" firstAttribute="centerY" secondItem="u0Z-qK-4l0" secondAttribute="centerY" id="73x-0J-JFX"/>
+                                                    <constraint firstItem="iuz-mq-T4N" firstAttribute="top" secondItem="jwi-bK-qWG" secondAttribute="top" id="ATl-s8-5oW"/>
                                                     <constraint firstItem="l66-9e-eOD" firstAttribute="leading" secondItem="OB3-mm-5Ob" secondAttribute="leading" id="EW1-wF-RI2"/>
                                                     <constraint firstItem="u0Z-qK-4l0" firstAttribute="centerY" secondItem="9bs-wk-KZw" secondAttribute="centerY" id="GYK-w6-ycp"/>
+                                                    <constraint firstItem="u0Z-qK-4l0" firstAttribute="leading" secondItem="jwi-bK-qWG" secondAttribute="trailing" constant="12" id="IxW-a1-b7y"/>
                                                     <constraint firstAttribute="bottom" secondItem="l66-9e-eOD" secondAttribute="bottom" constant="2" id="Ndo-Gg-uJr"/>
                                                     <constraint firstItem="5TE-Ha-msl" firstAttribute="top" secondItem="OB3-mm-5Ob" secondAttribute="top" id="TqK-V0-yGs"/>
+                                                    <constraint firstItem="iuz-mq-T4N" firstAttribute="leading" secondItem="jwi-bK-qWG" secondAttribute="leading" id="cDL-P3-i1F"/>
                                                     <constraint firstAttribute="height" constant="50" id="fBF-Dz-HUr"/>
                                                     <constraint firstItem="9bs-wk-KZw" firstAttribute="centerY" secondItem="OB3-mm-5Ob" secondAttribute="centerY" id="gFy-iC-02k"/>
                                                     <constraint firstItem="9bs-wk-KZw" firstAttribute="leading" secondItem="OB3-mm-5Ob" secondAttribute="leading" constant="20" symbolic="YES" id="iXC-81-5xj"/>
                                                     <constraint firstItem="l66-9e-eOD" firstAttribute="top" secondItem="5TE-Ha-msl" secondAttribute="bottom" id="icn-pl-MW9"/>
+                                                    <constraint firstItem="iuz-mq-T4N" firstAttribute="bottom" secondItem="jwi-bK-qWG" secondAttribute="bottom" id="kQ7-i2-3we"/>
                                                     <constraint firstAttribute="trailing" secondItem="l66-9e-eOD" secondAttribute="trailing" id="rXb-OM-HQV"/>
                                                     <constraint firstItem="5TE-Ha-msl" firstAttribute="leading" secondItem="OB3-mm-5Ob" secondAttribute="leading" id="xS4-CB-bKw"/>
                                                     <constraint firstAttribute="trailing" secondItem="5TE-Ha-msl" secondAttribute="trailing" id="zJQ-fN-1Nf"/>
@@ -1519,7 +1540,11 @@
                     </view>
                     <connections>
                         <outlet property="addTocoolectionImage" destination="CTd-cq-j7S" id="vaI-ga-YnK"/>
-                        <outlet property="btnDownload" destination="9bs-wk-KZw" id="4m7-oL-uS1"/>
+                        <outlet property="btnDownload" destination="jwi-bK-qWG" id="5lS-Gz-FcN"/>
+                        <outlet property="imgAddToCollection" destination="CTd-cq-j7S" id="OVW-ef-8c3"/>
+                        <outlet property="imgDownload" destination="9bs-wk-KZw" id="nlA-i1-Key"/>
+                        <outlet property="lblAddTocolletction" destination="aDt-F5-wnF" id="4qH-Rr-oEZ"/>
+                        <outlet property="vwProgress" destination="iuz-mq-T4N" id="vV8-BQ-amm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tjr-73-j4c" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

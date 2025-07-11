@@ -795,7 +795,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         vc.selectedIndex = index
         vc.tempTrack = recentTracks
         vc.track = recentTracks
-        self.present(vc, animated: true)
+        self.navigationController?.pushViewController(vc, animated: true)
         //navigationController?.pushViewController(vc, animated: true)
     }
     

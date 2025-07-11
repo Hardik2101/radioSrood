@@ -1071,7 +1071,7 @@
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = KFSP6V59LR;
 						LastSwiftMigration = 0830;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -1547,9 +1547,11 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 690;
-				DEVELOPMENT_TEAM = KFSP6V59LR;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KFSP6V59LR;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
@@ -1559,6 +1561,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tecocraft.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev_test_profile;
 				SWIFT_OBJC_BRIDGING_HEADER = "Radio Srood/GlobalOneV2-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
@@ -1576,9 +1579,11 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 690;
-				DEVELOPMENT_TEAM = KFSP6V59LR;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KFSP6V59LR;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
@@ -1588,6 +1593,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tecocraft.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev_test_profile;
 				SWIFT_OBJC_BRIDGING_HEADER = "Radio Srood/GlobalOneV2-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
