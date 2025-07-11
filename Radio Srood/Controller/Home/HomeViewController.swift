@@ -77,6 +77,22 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
 
                 // Handle long press based on section or cell type
                 switch sectionTitle {
+                    
+                case "Featured":
+                    if let featuredCell = cell as? NewFeaturedCell,
+                       let collectionView = featuredCell.newFeaturedsCollectionView {
+                        let collectionViewPoint = radiosroodTableView.convert(touchPoint, to: collectionView)
+                        if let index = collectionView.indexPathForItem(at: collectionViewPoint)?.row {
+                            print("Selected item at index \(index) in Featured section")
+                            showLongPressAlert(for: index, section: sectionTitle)
+                        } else {
+                            print("Error: No item found at point \(collectionViewPoint) in newFeaturedsCollectionView")
+                        }
+                    } else {
+                        print("Error: Cell is not NewFeaturedCell or newFeaturedsCollectionView is nil")
+                    }
+                    
+
                 case "My Playlist":
                     if let myPlaylistCell = cell as? MyPlaylistCell,
                        let collectionView = myPlaylistCell.myPlaylistCollectionView,
@@ -148,6 +164,17 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         var selectedTrack: Track?
         
         switch section {
+        case "Featured":
+            if index >= 0, index < featuredTop?.count ?? 0,
+               let featuredItem = featuredTop?[index].featuredItem {
+                print("Using featuredItem for Featured section, track: \(featuredItem.track ?? "nil")")
+                selectedTrack = featuredItem
+                presentOptionsVC(optionsVC, track: selectedTrack)
+            } else {
+                print("Error: Invalid index \(index) or featuredItem nil for Featured section, featuredTop count: \(featuredTop?.count ?? 0)")
+//                showErrorAlert(message: "Invalid track selection in Featured section")
+            }
+
         case "Hot Tracks":
             if index >= 0, index < homeMusic?.newReleases.count ?? 0,
                let groupID = homeMusic?.newReleases[index].newReleasesTrackID {
