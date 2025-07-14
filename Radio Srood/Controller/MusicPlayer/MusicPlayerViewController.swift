@@ -186,18 +186,22 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
             self.radioTableView.reloadData()
             self.radioTableView.layoutIfNeeded()
             
-            // Set height constraint to full table content height
-            let contentHeight = self.radioTableView.contentSize.height
-            self.tableBgHeightConstraints.constant = contentHeight
-            let mainCount = 2
-            let count =  mainCount + ((self.tempTrack?.count ?? 0) - 1)
-
-            print("TableView content height:::: \(count)")
-
-            self.tableBgHeightConstraints.constant = CGFloat(((count) * 90))
-
-            // Log the height to debug\
-            print("TableView content height: \(contentHeight)")
+            let mainCount = 2 // Banner + Options
+            let trackCount = max((self.tempTrack?.count ?? 0) - 1, 0)
+            let queueCount = PlaybackQueueManager.shared.getQueue().count
+            let queueRows = queueCount > 0 ? queueCount + 1 : 0
+            let totalRows = mainCount + queueRows + 1 + trackCount // Banner, Options, Queue, "Up Next", Tracks
+            
+            // Adjust height based on row types
+            var totalHeight: CGFloat = 0
+            totalHeight += IAPHandler.shared.isGetPurchase() ? 0 : 65 // Banner height
+            totalHeight += 90 // Options cell height
+            totalHeight += queueRows > 0 ? CGFloat(queueRows * 90) : 0 // Queue rows
+            totalHeight += 40 // "Up Next" header
+            totalHeight += CGFloat(trackCount * 90) // Tracks
+            
+            self.tableBgHeightConstraints.constant = totalHeight
+            print("TableView content height: \(totalHeight), totalRows: \(totalRows), queueCount: \(queueCount)")
         }
     }
 
@@ -930,82 +934,50 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate,AdsAPIV
 extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return 1 // Single section
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let mainCount = 2
-        print("dadsda", tempTrack?.count ?? 0)
-        
-        switch homeHeader {
-        case .featured:       return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .hotTrackes:    return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .currentRadio:   return 0
-        case .trending:       return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .popularTracks:  return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .myPlaylist:     return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .recentlyPlayed: return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .playlists:      return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .featuredArtist: return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .todayTopPic:
-            return mainCount + ((tempTrack?.count ?? 0)-1)
-        case .recentlyAdded:
-            return mainCount + ((tempTrack?.count ?? 0)-1)
-        }
-        
-
+        let mainCount = 2 // Banner + Options
+        let trackCount = max((tempTrack?.count ?? 0) - 1, 0) // Ensure non-negative
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0 // Queue items + "Queue Up Next"
+        let totalRows = mainCount + queueRows + 1 + trackCount // Banner, Options, Queue, "Up Next", Tracks
+        print("Row count: mainCount=\(mainCount), queueRows=\(queueRows), trackCount=\(trackCount), total=\(totalRows)")
+        return totalRows
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.row {
-        case 0:
-            
-            let isValid: Bool = false
-            if !isValid {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as! BannerAdCell
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0 // Queue items + "Queue Up Next"
+        
+        print("Configuring cell for row: \(indexPath.row), queueCount: \(queueCount), queueRows: \(queueRows)")
+        
+        if indexPath.row == 0 {
+            // Banner ad
+            let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as! BannerAdCell
             for subview in cell.vwMain.subviews {
                 subview.removeFromSuperview()
             }
-//
-                if IAPHandler.shared.isGetPurchase() {
-                    cell.vwMain.isHidden = true
-                    cell.heightOfVw.constant = 0
-                } else {
-                    cell.vwMain.isHidden = false
-                    cell.heightOfVw.constant = 65
-                }
-                
-                cell.selectionStyle = .none
-                cell.backgroundColor = .clear
-
-                // Load banner ad into the cell's view hierarchy
-                let bannerView = GADBannerView(adSize: kGADAdSizeBanner)
-                bannerView.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
-                bannerView.rootViewController = self
-                bannerView.delegate = self
-                bannerView.load(GADRequest())
-                // Set the banner view frame
-//                bannerView.frame = CGRect(x: 0, y: 0, width: cell.vwMain.frame.width, height: cell.vwMain.frame.height)
-                // Remove any existing subviews from vwAds
-
-                // Add the banner view to the cell's content view
-                cell.vwMain.addSubview(bannerView)
-
-                // Set the banner view frame
-                bannerView.frame = cell.vwMain.bounds
-
-                return cell
+            if IAPHandler.shared.isGetPurchase() {
+                cell.vwMain.isHidden = true
+                cell.heightOfVw.constant = 0
             } else {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as! RecentPlayerOptionCell
-                cell.selectionStyle = .none
-                cell.btnLyrics.addTarget(self, action: #selector(lyricsBtnClicked), for: .touchUpInside)
-                cell.btnMoreInfo.addTarget(self, action: #selector(moreInfoBtnClicked), for: .touchUpInside)
-                cell.btnOption.addTarget(self, action: #selector(optionMenuBtnClicked), for: .touchUpInside)
-                cell.btnAddtoCollection.addTarget(self, action: #selector(addToCollection), for: .touchUpInside)
-
-                return cell
+                cell.vwMain.isHidden = false
+                cell.heightOfVw.constant = 65
             }
-        case 1:
+            cell.selectionStyle = .none
+            cell.backgroundColor = .clear
+            let bannerView = GADBannerView(adSize: kGADAdSizeBanner)
+            bannerView.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
+            bannerView.rootViewController = self
+            bannerView.delegate = self
+            bannerView.load(GADRequest())
+            bannerView.frame = cell.vwMain.bounds
+            cell.vwMain.addSubview(bannerView)
+            return cell
+        } else if indexPath.row == 1 {
+            // Options cell
             let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as! RecentPlayerOptionCell
             cell.selectionStyle = .none
             cell.btnLyrics.addTarget(self, action: #selector(lyricsBtnClicked), for: .touchUpInside)
@@ -1014,164 +986,133 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             cell.btnAddtoCollection.addTarget(self, action: #selector(addToCollection), for: .touchUpInside)
             let item = track?[selectedIndex].convertToSongModel()
             var savedTracks = UserDefaultsManager.shared.localTracksData
-            let trackIndex = savedTracks.firstIndex(where: {$0.trackid == item?.trackid})
-
+            let trackIndex = savedTracks.firstIndex(where: { $0.trackid == item?.trackid })
             let imageName = savedTracks[trackIndex ?? 0].isBookMarked ?? false ? "ic_bookmark_fill" : "ic_bookmark"
             cell.btnAddtoCollection.setImage(UIImage(named: imageName), for: .normal)
-
             return cell
-        case 2:
+        } else if indexPath.row == 2 && queueRows > 0 {
+            // "Queue Up Next" cell
             let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderCell", for: indexPath) as! HeaderCell
-            cell.headerLabel.text = "Up Next"
+            cell.headerLabel.text = "Queue Up Next (\(queueCount) items)"
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
             cell.contentView.isUserInteractionEnabled = false
             return cell
-        case 3:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
-            cell.selectionStyle = .none
-            cell.artCoverImage.layer.cornerRadius = 3
-            cell.artCoverImage.layer.masksToBounds = true
-            if let item = tempTrack?[(indexPath.row + 1) - 2] {
+        } else if indexPath.row >= 2 && indexPath.row < 2 + queueRows {
+            // Queue items
+            let queue = PlaybackQueueManager.shared.getQueue()
+            let queueIndex = indexPath.row - 3
+            print("Queue item at row: \(indexPath.row), queueIndex: \(queueIndex), queue.count: \(queue.count)")
+            if queueIndex >= 0 && queueIndex < queue.count {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
+                cell.selectionStyle = .none
+                cell.artCoverImage.layer.cornerRadius = 3
+                cell.artCoverImage.layer.masksToBounds = true
+                let item = queue[queueIndex]
+                cell.trackTitle.text = item.track
+                cell.artistName.text = item.artist
                 if let url = URL(string: item.artcover ?? "" + "?s=200") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
-                cell.trackTitle.text = item.track
-                cell.artistName.text = item.artist
+                return cell
             }
-            return cell
-
-        default:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
-            cell.selectionStyle = .none
-            cell.artCoverImage.layer.cornerRadius = 3
-            cell.artCoverImage.layer.masksToBounds = true
-            if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = URL(string: item.artcover ?? "" + "?s=200") {
-                    cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-                    cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-
+            print("Error: Invalid queue index \(queueIndex)")
+            return UITableViewCell() // Fallback
+        } else {
+            // "Up Next" and tracks
+            let adjustedRow = indexPath.row - queueRows
+            print("Main content at row: \(indexPath.row), adjustedRow: \(adjustedRow), tempTrack.count: \(tempTrack?.count ?? 0)")
+            if adjustedRow == 2 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderCell", for: indexPath) as! HeaderCell
+                cell.headerLabel.text = "Up Next"
+                cell.selectionStyle = .none
+                cell.backgroundColor = .clear
+                cell.contentView.isUserInteractionEnabled = false
+                return cell
+            } else {
+                let trackIndex = (adjustedRow + 1) - 2
+                if trackIndex >= 0 && trackIndex < tempTrack?.count ?? 0 {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
+                    cell.selectionStyle = .none
+                    cell.artCoverImage.layer.cornerRadius = 3
+                    cell.artCoverImage.layer.masksToBounds = true
+                    if let item = tempTrack?[trackIndex] {
+                        cell.trackTitle.text = item.track
+                        cell.artistName.text = item.artist
+                        if let url = URL(string: item.artcover ?? "" + "?s=200") {
+                            cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                            cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                        }
+                    }
+                    return cell
                 }
-                cell.trackTitle.text = item.track
-                cell.artistName.text = item.artist
+                print("Error: Invalid track index \(trackIndex)")
+                return UITableViewCell() // Fallback
             }
-            return cell
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.row {
-        case 0:
-            break
-        case 1:
-            break
-        case 2:
-            break
-
-        default:
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+        
+        if indexPath.row >= 2 && indexPath.row < 2 + queueRows && indexPath.row != 2 {
+            // Queue item selection
+            let queue = PlaybackQueueManager.shared.getQueue()
+            let queueIndex = indexPath.row - 3
+            print("Selecting queue item at row: \(indexPath.row), queueIndex: \(queueIndex)")
+            if queueIndex >= 0 && queueIndex < queue.count {
+                let selectedTrack = queue[queueIndex]
+                print("Selected queue item: \(selectedTrack.track ?? "")")
+                selectedIndex = 0
+                track = [selectedTrack]
+                isSetMusic = true
+                isPlay = true
+                handleRecentInView(index: 0)
+                PlaybackQueueManager.shared.removeFromQueue(at: queueIndex) // Updated line
+                manageTableViewScroll()
+            } else {
+                print("Error: Invalid queue index \(queueIndex)")
+            }
+        } else if indexPath.row >= 2 + queueRows {
+            // Main content selection
             pausePlayer()
-            let selectedTrackIndex = (firstTrackList?.count ?? 0) + indexPath.row - 1
-
-            if let track = track, selectedTrackIndex < track.count {
+            let adjustedRow = indexPath.row - queueRows
+            let selectedTrackIndex = (firstTrackList?.count ?? 0) + adjustedRow - 1
+            print("Selecting main item at row: \(indexPath.row), adjustedRow: \(adjustedRow), selectedTrackIndex: \(selectedTrackIndex)")
+            if let track = track, selectedTrackIndex >= 0 && selectedTrackIndex < track.count {
                 self.selectedIndex = selectedTrackIndex
                 self.isPlay = true
                 isSetMusic = true
                 handleRecentInView(index: selectedIndex)
-                
-                self.manageTableViewScroll()//                // my new code
-//                currentSelectedTrack = self.track?[self.selectedIndex]
-//                self.track?.remove(at: self.selectedIndex)
-//                self.tempTrack = self.track
-//                // end my new code
-//
-                playerListTapCount = playerListTapCount + 1
-                
+                manageTableViewScroll()
+                playerListTapCount += 1
                 if shouldPlayerListPressed() {
                     isPlayerListTap = true
                     playerListTapCount = 0
-                    
                     if !IAPHandler.shared.isGetPurchase() {
-                        // Pause the player and present AdsAPIView only if isGwrPurchase is false
                         player?.pause()
-                        let vc = self.storyboard?.instantiateViewController(withIdentifier: "AdsAPIView") as! AdsAPIView
+                        let vc = storyboard?.instantiateViewController(withIdentifier: "AdsAPIView") as! AdsAPIView
                         vc.modalPresentationStyle = .fullScreen
                         self.present(vc, animated: true)
                     }
                 } else {
-                    // Check if the selected index is within the bounds of the table view
                     let numberOfVisibleRows = radioTableView.indexPathsForVisibleRows?.count ?? 0
-                    
                     if selectedTrackIndex < numberOfVisibleRows {
                         let indexPathToScroll = IndexPath(row: selectedTrackIndex, section: 0)
                         radioTableView.scrollToRow(at: indexPathToScroll, at: .top, animated: true)
                     } else {
-                        // Handle the case when the selected index is out of bounds
                         print("Invalid selected index: \(selectedTrackIndex)")
                     }
                 }
             } else {
-                // Handle the case when the selected index is out of bounds
-                print("Invalid selected index")
+                print("Error: Invalid selected track index \(selectedTrackIndex)")
             }
         }
+        tableView.deselectRow(at: indexPath, animated: true)
     }
-    
-//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//
-//        switch homeHeader {
-//        case .newReleases:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .currentRadio:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .trending:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .popularTracks:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .myPlaylist:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .recentlyPlayed:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .playlists:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        case .featuredArtist:
-//            return setHeaderData(headerTitle: "Playing Next")
-//        }
-//    }
-//
-//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//
-//        switch homeHeader {
-//        case .newReleases:
-//            return 27
-//        case .currentRadio:
-//            return 27
-//        case .trending:
-//            return 27
-//        case .popularTracks:
-//            return 27
-//        case .myPlaylist:
-//            return 27
-//        case .recentlyPlayed:
-//            return 27
-//        case .playlists:
-//            return 27
-//        case .featuredArtist:
-//            return 27
-//        }
-//    }
-//
-//    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-//        return nil
-//    }
-//
-//    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-//      return CGFloat.leastNonzeroMagnitude
-//    }
-
-
 }
-
 extension MusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
     func loadNativeAd() {
         guard !IAPHandler.shared.isGetPurchase() else {

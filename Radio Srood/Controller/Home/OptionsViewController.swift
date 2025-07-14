@@ -48,6 +48,12 @@ class OptionsViewController: UIViewController {
         setupCircularProgressView()
 
     }
+    override func viewWillAppear(_ animated: Bool) {
+        let queue = PlaybackQueueManager.shared.getQueue()
+            print("Initial queue: \(queue.map { $0.track ?? "unknown" })")
+        
+        print("ququeye count=====", queue.count)
+    }
     
     private func setupCircularProgressView() {
         circularProgressView = CircularProgressView(frame: vwProgress.bounds)
@@ -123,6 +129,9 @@ class OptionsViewController: UIViewController {
             return
         }
         
+        PlaybackQueueManager.shared.addToQueue(track!)
+        print("add to tququewu")
+
         // Add track to MusicPlayerViewController's track list
 //        if let musicVC = AppPlayer.miniPlayerInfo.musicVC {
 //            musicVC.track?.append(currentTrack)
@@ -384,4 +393,79 @@ class OptionsViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
+}
+
+
+import Foundation
+
+import Foundation
+
+class PlaybackQueueManager {
+    static let shared = PlaybackQueueManager()
+    private var queue: [Track] = []
+    private let queueKey = "PlaybackQueue"
+    
+    private init() {
+        loadQueue()
+    }
+    
+    func addToQueue(_ track: Track) {
+        queue.append(track)
+        print("Added to queue: \(track.track ?? "unknown") by \(track.artist ?? "unknown")")
+        saveQueue()
+        NotificationCenter.default.post(name: .queueUpdated, object: nil)
+    }
+    
+    func getQueue() -> [Track] {
+        return queue
+    }
+    
+    func removeFromQueue(at index: Int) {
+        guard index >= 0 && index < queue.count else {
+            print("Error: Invalid queue index \(index)")
+            return
+        }
+        let removedTrack = queue.remove(at: index)
+        print("Removed from queue: \(removedTrack.track ?? "unknown")")
+        saveQueue()
+        NotificationCenter.default.post(name: .queueUpdated, object: nil)
+    }
+    
+    func clearQueue() {
+        queue.removeAll()
+        saveQueue()
+        NotificationCenter.default.post(name: .queueUpdated, object: nil)
+    }
+    
+    private func saveQueue() {
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(queue)
+            UserDefaults.standard.set(data, forKey: queueKey)
+            print("Saved queue to UserDefaults, count: \(queue.count)")
+        } catch {
+            print("Error saving queue to UserDefaults: \(error)")
+        }
+    }
+    
+    private func loadQueue() {
+        if let data = UserDefaults.standard.data(forKey: queueKey) {
+            do {
+                let decoder = JSONDecoder()
+                queue = try decoder.decode([Track].self, from: data)
+                print("Loaded queue from UserDefaults, count: \(queue.count)")
+            } catch {
+                print("Error loading queue from UserDefaults: \(error)")
+                queue = []
+            }
+        } else {
+            print("No queue found in UserDefaults")
+            queue = []
+        }
+    }
+}
+
+// Notification name for queue updates
+extension Notification.Name {
+    static let queueUpdated = Notification.Name("QueueUpdated")
 }
