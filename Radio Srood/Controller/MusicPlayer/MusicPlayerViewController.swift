@@ -978,16 +978,27 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             return cell
         } else if indexPath.row == 1 {
             // Options cell
-            let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as! RecentPlayerOptionCell
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as? RecentPlayerOptionCell else {
+                print("Error: Failed to dequeue RecentPlayerOptionCell")
+                let fallbackCell = UITableViewCell()
+                fallbackCell.textLabel?.text = "Options Unavailable"
+                fallbackCell.textLabel?.textColor = .white
+                fallbackCell.backgroundColor = .clear
+                fallbackCell.selectionStyle = .none
+                return fallbackCell
+            }
             cell.selectionStyle = .none
             cell.btnLyrics.addTarget(self, action: #selector(lyricsBtnClicked), for: .touchUpInside)
             cell.btnMoreInfo.addTarget(self, action: #selector(moreInfoBtnClicked), for: .touchUpInside)
             cell.btnOption.addTarget(self, action: #selector(optionMenuBtnClicked), for: .touchUpInside)
             cell.btnAddtoCollection.addTarget(self, action: #selector(addToCollection), for: .touchUpInside)
+            
+            // Safely access track and savedTracks
             let item = track?[selectedIndex].convertToSongModel()
-            var savedTracks = UserDefaultsManager.shared.localTracksData
+            let savedTracks = UserDefaultsManager.shared.localTracksData
             let trackIndex = savedTracks.firstIndex(where: { $0.trackid == item?.trackid })
-            let imageName = savedTracks[trackIndex ?? 0].isBookMarked ?? false ? "ic_bookmark_fill" : "ic_bookmark"
+            let isBookmarked = trackIndex.flatMap { savedTracks[$0].isBookMarked } ?? false
+            let imageName = isBookmarked ? "ic_bookmark_fill" : "ic_bookmark"
             cell.btnAddtoCollection.setImage(UIImage(named: imageName), for: .normal)
             return cell
         } else if indexPath.row == 2 && queueRows > 0 {

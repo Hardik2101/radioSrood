@@ -437,6 +437,22 @@ class PlaybackQueueManager {
         NotificationCenter.default.post(name: .queueUpdated, object: nil)
     }
     
+    // New method to get the next track to play
+    func getNextTrack(currentIndex: Int, tracks: [Track]?) -> (track: Track, isFromQueue: Bool, index: Int)? {
+        // Check queue first
+        if !queue.isEmpty {
+            let nextTrack = queue[0]
+            return (nextTrack, true, 0)
+        }
+        // If queue is empty, check tracks array
+        if let tracks = tracks, currentIndex < tracks.count - 1 {
+            let nextIndex = currentIndex + 1
+            return (tracks[nextIndex], false, nextIndex)
+        }
+        // No next track available
+        return nil
+    }
+    
     private func saveQueue() {
         do {
             let encoder = JSONEncoder()
