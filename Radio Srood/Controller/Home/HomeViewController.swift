@@ -44,6 +44,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     var recenltyAdded: [RecentlyAdded]? = nil
     var isTodayTopPicLoaded = false
     var isRecentlyAddedLoaded = false
+    
+    private var featurdTrak:[Track]?
 
 
     override func viewDidLoad() {
@@ -62,12 +64,12 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
 //            self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.changeImage), userInfo: nil, repeats: true)
 //        }
         self.loadFeaturedArtistData()
-        
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
             longPressGesture.minimumPressDuration = 0.3 // Duration in seconds
             radiosroodTableView.addGestureRecognizer(longPressGesture)
     }
     
+
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
             let touchPoint = gesture.location(in: radiosroodTableView)
@@ -165,14 +167,21 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         
         switch section {
         case "Featured":
-            if index >= 0, index < featuredTop?.count ?? 0,
-               let featuredItem = featuredTop?[index].featuredItem {
-                print("Using featuredItem for Featured section, track: \(featuredItem.track ?? "nil")")
-                selectedTrack = featuredItem
-                presentOptionsVC(optionsVC, track: selectedTrack)
-            } else {
-                print("Error: Invalid index \(index) or featuredItem nil for Featured section, featuredTop count: \(featuredTop?.count ?? 0)")
-//                showErrorAlert(message: "Invalid track selection in Featured section")
+            if index >= 0, index < self.featuredTop?.count ?? 0,
+               let groupID = featuredTop?[index].featuredSongID {
+
+                loadRecentlyAddedDetailedData(groupID: groupID) { [weak self] tracks in
+                    guard let self = self else { return }
+
+                    if let tracks = tracks, !tracks.isEmpty {
+                        self.presentOptionsVC(optionsVC, track: tracks[0])
+                    } else {
+                        print("❌ No track found for groupID \(groupID)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+
+                return
             }
 
         case "Hot Tracks":
@@ -399,6 +408,17 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         }
     }
     
+    
+    func loadRecentlyAddedDetailedData(groupID: Int, completion: @escaping ([Track]?) -> Void) {
+        dataHelper.getFeaturedArtistSponserdDetailsData { resp in
+            if let tracks = resp?.featuredData.first(where: { $0.fDid == groupID })?.featuredItem {
+                completion(tracks)
+            } else {
+                completion(nil)
+            }
+        }
+    }
+
     private func handleTableView() {
         playList = UserDefaultsManager.shared.playListsData
         fetchRecentlyPlayed()

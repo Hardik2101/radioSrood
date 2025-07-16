@@ -130,7 +130,9 @@ class OptionsViewController: UIViewController {
         }
         
         PlaybackQueueManager.shared.addToQueue(track!)
-        print("add to tququewu")
+        showToast(message: "Added to queue", font: .systemFont(ofSize: 12.0))
+
+        print("Added to queue")
 
         // Add track to MusicPlayerViewController's track list
 //        if let musicVC = AppPlayer.miniPlayerInfo.musicVC {
@@ -144,7 +146,10 @@ class OptionsViewController: UIViewController {
 //        }
 //        
         delegate?.didUpdateTrackMetadata()
-        dismiss(animated: true, completion: nil)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+            self.dismiss(animated: true, completion: nil)
+        })
     }
     
     @IBAction func clickOn_btnAddToCollection(_ sender: UIButton) {
