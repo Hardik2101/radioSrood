@@ -152,6 +152,21 @@ class OptionsViewController: UIViewController {
         })
     }
     
+    
+    @IBAction func clickOn_AddToPlayList(_ sender: UIButton) {
+        guard let currentTrack = track else {
+            showToast(message: "No track selected", font: .systemFont(ofSize: 12.0))
+            return
+        }
+        
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayListViewController") as! PlayListViewController
+        vc.songToSave = currentTrack.convertToSongModel()
+        vc.modalPresentationStyle = .fullScreen
+        self.present(vc, animated: true)
+        
+    }
+    
+    
     @IBAction func clickOn_btnAddToCollection(_ sender: UIButton) {
         guard let currentTrack = track else {
             showToast(message: "No track selected", font: .systemFont(ofSize: 12.0))

@@ -1211,7 +1211,7 @@
                                         </connections>
                                     </button>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="GfG-T9-QI7">
-                                        <rect key="frame" x="0.0" y="418" width="393" height="360"/>
+                                        <rect key="frame" x="0.0" y="356" width="393" height="422"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xam-vT-XNH">
                                                 <rect key="frame" x="0.0" y="0.0" width="393" height="50"/>
@@ -1260,8 +1260,55 @@
                                                     <constraint firstAttribute="height" constant="50" id="pmy-8W-nEM"/>
                                                 </constraints>
                                             </view>
-                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PMA-JZ-uFh">
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="g72-82-mOl">
                                                 <rect key="frame" x="0.0" y="62" width="393" height="50"/>
+                                                <subviews>
+                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_addPlaylist" translatesAutoresizingMaskIntoConstraints="NO" id="cVC-2m-4Lw">
+                                                        <rect key="frame" x="20" y="10" width="30" height="30"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="width" constant="30" id="J5B-Kv-JRI"/>
+                                                            <constraint firstAttribute="height" constant="30" id="bHz-tG-ZWX"/>
+                                                        </constraints>
+                                                    </imageView>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Add to Playlist" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kKR-vf-m3b">
+                                                        <rect key="frame" x="61.999999999999993" y="12.333333333333313" width="120.33333333333331" height="25.333333333333329"/>
+                                                        <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="18"/>
+                                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j4a-WQ-Gwz">
+                                                        <rect key="frame" x="0.0" y="47" width="393" height="1"/>
+                                                        <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="height" constant="1" id="mH0-Jq-0h9"/>
+                                                        </constraints>
+                                                    </view>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iJg-wg-UFb">
+                                                        <rect key="frame" x="0.0" y="0.0" width="393" height="47"/>
+                                                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                        <connections>
+                                                            <action selector="clickOn_AddToPlayList:" destination="pNp-dh-7n6" eventType="touchUpInside" id="Ddo-xc-sW1"/>
+                                                        </connections>
+                                                    </button>
+                                                </subviews>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="bottom" secondItem="j4a-WQ-Gwz" secondAttribute="bottom" constant="2" id="1Cu-GS-jba"/>
+                                                    <constraint firstItem="cVC-2m-4Lw" firstAttribute="leading" secondItem="g72-82-mOl" secondAttribute="leading" constant="20" symbolic="YES" id="98J-JA-1sQ"/>
+                                                    <constraint firstItem="kKR-vf-m3b" firstAttribute="centerY" secondItem="cVC-2m-4Lw" secondAttribute="centerY" id="9R4-2M-Zvs"/>
+                                                    <constraint firstAttribute="height" constant="50" id="BIm-JX-9Kj"/>
+                                                    <constraint firstItem="iJg-wg-UFb" firstAttribute="top" secondItem="g72-82-mOl" secondAttribute="top" id="BJd-Xw-uiE"/>
+                                                    <constraint firstItem="j4a-WQ-Gwz" firstAttribute="top" secondItem="iJg-wg-UFb" secondAttribute="bottom" id="UYB-oh-uTJ"/>
+                                                    <constraint firstAttribute="trailing" secondItem="j4a-WQ-Gwz" secondAttribute="trailing" id="WdZ-0S-Pvr"/>
+                                                    <constraint firstItem="cVC-2m-4Lw" firstAttribute="centerY" secondItem="g72-82-mOl" secondAttribute="centerY" id="WjQ-wh-kIH"/>
+                                                    <constraint firstItem="j4a-WQ-Gwz" firstAttribute="leading" secondItem="g72-82-mOl" secondAttribute="leading" id="cvw-O5-ufC"/>
+                                                    <constraint firstAttribute="trailing" secondItem="iJg-wg-UFb" secondAttribute="trailing" id="gWP-vE-rYT"/>
+                                                    <constraint firstItem="kKR-vf-m3b" firstAttribute="leading" secondItem="cVC-2m-4Lw" secondAttribute="trailing" constant="12" id="sWg-0V-IQG"/>
+                                                    <constraint firstItem="iJg-wg-UFb" firstAttribute="leading" secondItem="g72-82-mOl" secondAttribute="leading" id="wM7-Ab-9Tf"/>
+                                                </constraints>
+                                            </view>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PMA-JZ-uFh">
+                                                <rect key="frame" x="0.0" y="124" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_bookmark" translatesAutoresizingMaskIntoConstraints="NO" id="CTd-cq-j7S">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1308,7 +1355,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OB3-mm-5Ob">
-                                                <rect key="frame" x="0.0" y="124" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="186" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_download" translatesAutoresizingMaskIntoConstraints="NO" id="9bs-wk-KZw">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1376,7 +1423,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rA5-am-5G8">
-                                                <rect key="frame" x="0.0" y="186" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="248" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_more_info" translatesAutoresizingMaskIntoConstraints="NO" id="P6P-TR-S3u">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1423,7 +1470,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FYF-eW-dIc">
-                                                <rect key="frame" x="0.0" y="248" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="310" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_lyrics" translatesAutoresizingMaskIntoConstraints="NO" id="qiE-y9-eSy">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1470,7 +1517,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Hty-Tu-lI8">
-                                                <rect key="frame" x="0.0" y="310" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="372" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_share" translatesAutoresizingMaskIntoConstraints="NO" id="QR5-h5-Ytu">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
