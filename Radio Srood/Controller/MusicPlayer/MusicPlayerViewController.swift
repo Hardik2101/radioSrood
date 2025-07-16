@@ -800,10 +800,10 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let mainCount = 2 // Banner + Options
-        let trackCount = tempTrack?.count ?? 0 // Include all tracks
+        let trackCount = (tempTrack?.count ?? 0) > 0 ? (tempTrack!.count - 1) : 0 // Skip first track
         let queueCount = PlaybackQueueManager.shared.getQueue().count
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
-        let totalRows = mainCount + queueRows + (trackCount > 0 ? 1 : 0) + trackCount // Banner, Options, Queue, "Up Next" (if tracks), Tracks
+        let totalRows = mainCount + queueRows + (trackCount > 0 ? 1 : 0) + trackCount // Banner, Options, Queue, "Up Next" header (if tracks), Tracks (excluding first)
         print("Row count: mainCount=\(mainCount), queueRows=\(queueRows), trackCount=\(trackCount), total=\(totalRows), queue: \(PlaybackQueueManager.shared.getQueue().map { $0.track ?? "Unknown" })")
         return totalRows
     }
@@ -866,7 +866,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         } else if indexPath.row == 2 && queueRows > 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderCell", for: indexPath) as! HeaderCell
             cell.headerLabel.text = "Up Next from Queue"
-            print("Total queues=========",(queueCount))
+            print("Total queues=========\(queueCount)")
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
             cell.contentView.isUserInteractionEnabled = false
@@ -902,9 +902,9 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
                 cell.contentView.isUserInteractionEnabled = false
                 return cell
             } else {
-                let trackIndex = adjustedRow - 3 // Start from index 0
+                let trackIndex = adjustedRow - 3 + 1 // Start from index 1 to skip first track
                 print("Up Next trackIndex: \(trackIndex), tempTrack.count: \(tempTrack?.count ?? 0)")
-                if trackIndex >= 0 && trackIndex < tempTrack?.count ?? 0 {
+                if trackIndex >= 1 && trackIndex < tempTrack?.count ?? 0 {
                     let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
                     cell.selectionStyle = .none
                     cell.artCoverImage.layer.cornerRadius = 3
@@ -916,14 +916,6 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
                             cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                             cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                         }
-                        // Highlight the currently playing track
-//                        if !isPlayingQueueTrack && trackIndex == selectedIndex {
-//                            cell.contentView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.2)
-//                            cell.trackTitle.textColor = .systemBlue
-//                        } else {
-//                            cell.contentView.backgroundColor = .clear
-//                            cell.trackTitle.textColor = .white
-//                        }
                         print("Displaying Up Next track: \(item.track ?? "Unknown") at trackIndex: \(trackIndex), isPlaying: \(trackIndex == selectedIndex && !isPlayingQueueTrack)")
                     } else {
                         print("Error: No track at index \(trackIndex)")
@@ -941,7 +933,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
         print("Selected row: \(indexPath.row), queueCount: \(queueCount), queueRows: \(queueRows), isPlayerListTap: \(isPlayerListTap), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(PlaybackQueueManager.shared.getQueue().map { $0.track ?? "Unknown" })")
         if indexPath.row >= 2 && indexPath.row < 2 + queueRows && indexPath.row != 2 {
-            // Queue item selection
+            // Queue item selection (unchanged)
             let queueIndex = indexPath.row - 3
             if queueIndex >= 0 && queueIndex < PlaybackQueueManager.shared.getQueue().count {
                 let queue = PlaybackQueueManager.shared.getQueue()
@@ -962,8 +954,8 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         } else if indexPath.row >= 2 + queueRows {
             // "Up Next" item selection
             let adjustedRow = indexPath.row - queueRows
-            let trackIndex = adjustedRow - 3 // Start from index 0
-            if trackIndex >= 0 && trackIndex < tempTrack?.count ?? 0 {
+            let trackIndex = adjustedRow - 3 + 1 // Start from index 1
+            if trackIndex >= 1 && trackIndex < tempTrack?.count ?? 0 {
                 if let selectedTrack = tempTrack?[safe: trackIndex] {
                     print("Selected Up Next track: \(selectedTrack.track ?? "Unknown") at trackIndex: \(trackIndex)")
                     isPlayerListTap = true
