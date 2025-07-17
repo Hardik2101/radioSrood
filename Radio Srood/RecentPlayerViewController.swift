@@ -203,11 +203,43 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func lyricsBtnClicked() {
-        let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricsViewController") as! LyricsViewController
-        vc.recentLyricData = self.recentListData
-        self.navigationController?.present(vc, animated: true, completion: nil)
+        guard let recentItem = recentListData else {
+            print("No recent track data available")
+            return
+        }
+        
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
+        
+        // Convert recentListData to SongModel
+        guard let songModel = SongModel(recentItem: recentItem) else {
+            print("Failed to create SongModel from recentListData: \(recentItem)")
+            return
+        }
+        vc.currentSong = songModel
+        
+        // Set image URL
+        if let artCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: artCover) {
+            vc.imageURl = url // Use updatedArtcoverURL if needed, e.g., updatedArtcoverURL(from: artCover) ?? url
+        } else {
+            vc.imageURl = URL(string: "")
+        }
+        
+        DataHelper.getLyricsData(artist: songModel.artist, track: songModel.track) { lyricItem in
+            if let lyricItem = lyricItem {
+                print("✅ Artist: \(lyricItem.artistName)")
+                print("✅ Track: \(lyricItem.trackName)")
+                print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
+                vc.lyricnew = lyricItem.syncedLyrics
+                self.navigationController?.present(vc, animated: true, completion: nil)
+            } else {
+                print("⚠️ No lyrics found.")
+                vc.lyricnew = ""
+                self.navigationController?.present(vc, animated: true, completion: nil)
+            }
+        }
+        
     }
-
+    
     @objc func moreInfoBtnClicked() {
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MoreInfoViewController") as! MoreInfoViewController
         vc.currentLyricData = self.recentListData

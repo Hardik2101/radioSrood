@@ -3887,9 +3887,14 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XYM-1x-eRh" customClass="LyricsView" customModule="SpotlightLyrics">
+                                <rect key="frame" x="16" y="109" width="361" height="709"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="XYM-1x-eRh" firstAttribute="top" secondItem="6Xj-IO-5yG" secondAttribute="bottom" id="1dx-i8-RNv"/>
                             <constraint firstAttribute="trailing" secondItem="6Xj-IO-5yG" secondAttribute="trailing" id="4wo-ho-XIz"/>
                             <constraint firstItem="zrf-bR-bIH" firstAttribute="top" secondItem="6Xj-IO-5yG" secondAttribute="bottom" constant="10" id="98H-CJ-Xxi"/>
                             <constraint firstAttribute="trailing" secondItem="zrf-bR-bIH" secondAttribute="trailing" constant="10" id="DJ8-c1-Pa4"/>
@@ -3897,9 +3902,12 @@
                             <constraint firstAttribute="bottom" secondItem="xz9-XU-Aen" secondAttribute="bottom" id="KcZ-4N-MeR"/>
                             <constraint firstItem="zrf-bR-bIH" firstAttribute="leading" secondItem="6Uo-WD-j6O" secondAttribute="leading" constant="10" id="N17-Vw-qv1"/>
                             <constraint firstItem="6Xj-IO-5yG" firstAttribute="leading" secondItem="6Uo-WD-j6O" secondAttribute="leading" id="PXP-Ky-nMi"/>
+                            <constraint firstItem="XYM-1x-eRh" firstAttribute="leading" secondItem="6Uo-WD-j6O" secondAttribute="leadingMargin" id="QxO-ox-hbF"/>
                             <constraint firstAttribute="trailing" secondItem="glC-zL-UkD" secondAttribute="trailing" id="SMC-S3-RTd"/>
+                            <constraint firstItem="pvq-Fp-C9Z" firstAttribute="top" secondItem="XYM-1x-eRh" secondAttribute="bottom" id="SlP-aw-GkH"/>
                             <constraint firstItem="pvq-Fp-C9Z" firstAttribute="top" secondItem="zrf-bR-bIH" secondAttribute="bottom" constant="10" id="VEU-71-kZT"/>
                             <constraint firstItem="pvq-Fp-C9Z" firstAttribute="top" secondItem="glC-zL-UkD" secondAttribute="bottom" id="Wlh-iH-4C7"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="XYM-1x-eRh" secondAttribute="trailing" id="aKS-fO-57k"/>
                             <constraint firstItem="glC-zL-UkD" firstAttribute="leading" secondItem="6Uo-WD-j6O" secondAttribute="leading" id="c7h-Ri-FAN"/>
                             <constraint firstAttribute="trailing" secondItem="xz9-XU-Aen" secondAttribute="trailing" id="nu4-vV-3oG"/>
                             <constraint firstItem="xz9-XU-Aen" firstAttribute="leading" secondItem="6Uo-WD-j6O" secondAttribute="leading" id="tZO-WA-Ood"/>
@@ -3913,6 +3921,7 @@
                         <outlet property="lblNoSongLyric" destination="zrf-bR-bIH" id="VsC-De-BpM"/>
                         <outlet property="lblSongLyric" destination="W9c-Ls-n7G" id="M3X-D4-gYQ"/>
                         <outlet property="lblSongTitle" destination="jZc-6l-bBU" id="3wI-E7-PuD"/>
+                        <outlet property="lyricsView" destination="XYM-1x-eRh" id="AY5-i5-4S7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="D9f-ex-iGa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

@@ -165,9 +165,38 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     }
 
     @objc func lyricsBtnClicked() {
-        let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricsViewController") as! LyricsViewController
-        vc.currentLyricData = self.currentLyricData
-        self.navigationController?.present(vc, animated: true, completion: nil)
+        guard let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary else { return }
+        
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
+        
+        // Convert currentSong to SongModel
+        guard let songModel = SongModel(currentTrack: currentSong) else {
+            print("Failed to create SongModel from currentTrack: \(currentSong)")
+            return
+        }
+        vc.currentSong = songModel
+        
+        // Set image URL
+        if let artCover = currentSong.value(forKey: "currentArtCover") as? String, let url = URL(string: artCover) {
+            vc.imageURl = updatedArtcoverURL(from: artCover) ?? url
+        } else {
+            vc.imageURl = URL(string: "")
+        }
+        
+        DataHelper.getLyricsData(artist: songModel.artist, track: songModel.track) { lyricItem in
+            if let lyricItem = lyricItem {
+                print("✅ Artist: \(lyricItem.artistName)")
+                print("✅ Track: \(lyricItem.trackName)")
+                print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
+                vc.lyricnew = lyricItem.syncedLyrics
+                self.navigationController?.present(vc, animated: true, completion: nil)
+            } else {
+                print("⚠️ No lyrics found.")
+                vc.lyricnew = ""
+                self.navigationController?.present(vc, animated: true, completion: nil)
+            }
+        }
+        
     }
 
     @objc func shareBtnClicked() {

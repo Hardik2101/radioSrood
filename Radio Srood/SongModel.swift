@@ -23,7 +23,7 @@ class SongModel: NSObject, NSCoding {
     var isFav: Bool = false
     var isDownload: Bool = false
     var isBookMarked: Bool = false
-    var isRecentlyPlayed = false
+    var isRecentlyPlayed: Bool = false
     var lyric_synced: String = ""
 
     override init() {
@@ -121,10 +121,25 @@ class SongModel: NSObject, NSCoding {
         self.track = recentItem["recentTrack"] as? String ?? ""
         self.artist = recentItem["recentArtist"] as? String ?? ""
         self.artcover = recentItem["recentArtCover"] as? String ?? ""
-        self.mediaPath = recentItem["mediaPathInfo"] as? String ?? "" // ✅ Fix here
+        self.mediaPath = recentItem["mediaPathInfo"] as? String ?? ""
         self.lyric = recentItem["recentLyric"] as? String ?? ""
         self.allowDownload = (recentItem["allow_download"] as? Int == 1)
         self.isRecentlyPlayed = true
+    }
+
+    convenience init?(currentTrack: NSDictionary) {
+        self.init()
+        self.trackid = currentTrack["currentTrackID"] as? Int ?? 0
+        self.track = currentTrack["currentTrack"] as? String ?? ""
+        self.artist = currentTrack["currentArtist"] as? String ?? ""
+        self.artcover = currentTrack["currentArtCover"] as? String ?? ""
+        self.mediaPath = currentTrack["mediaPathInfo"] as? String ?? ""
+        self.lyric = currentTrack["currentLyricInfo"] as? String ?? ""
+        self.playcounts = currentTrack["currentPlayCounts"] as? String ?? ""
+        self.likes = currentTrack["currentSongLikes"] as? String ?? ""
+        self.dateAdded = currentTrack["DateTrackAddedInfo"] as? String ?? ""
+        self.allowDownload = (currentTrack["allow_download"] as? Int == 1)
+        self.lyric_synced = currentTrack["lyric_synced"] as? String ?? ""
     }
 
     // MARK: - Convert to Podcast
