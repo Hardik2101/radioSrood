@@ -437,7 +437,9 @@ class IAPVC: UI_VC {
     
     
     @IBAction func clickOn_btnManageSubscription(_ sender: Any) {
-        UIApplication.shared.openURL(URL(string: "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/manageSubscriptions")!)
+        if let url = URL(string: "https://apps.apple.com/account/subscriptions"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
     
 }

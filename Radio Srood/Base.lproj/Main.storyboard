@@ -1211,14 +1211,14 @@
                                         </connections>
                                     </button>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bto-io-WNx">
-                                        <rect key="frame" x="0.0" y="355" width="393" height="1"/>
+                                        <rect key="frame" x="0.0" y="427" width="393" height="1"/>
                                         <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="1" id="fNi-eM-ssV"/>
                                         </constraints>
                                     </view>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="GfG-T9-QI7">
-                                        <rect key="frame" x="0.0" y="356" width="393" height="422"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="GfG-T9-QI7">
+                                        <rect key="frame" x="0.0" y="428" width="393" height="350"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xam-vT-XNH">
                                                 <rect key="frame" x="0.0" y="0.0" width="393" height="50"/>
@@ -1269,7 +1269,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="g72-82-mOl">
-                                                <rect key="frame" x="0.0" y="62" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="50" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_addPlaylist" translatesAutoresizingMaskIntoConstraints="NO" id="cVC-2m-4Lw">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1317,7 +1317,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PMA-JZ-uFh">
-                                                <rect key="frame" x="0.0" y="124" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="100" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_bookmark" translatesAutoresizingMaskIntoConstraints="NO" id="CTd-cq-j7S">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1327,7 +1327,7 @@
                                                         </constraints>
                                                     </imageView>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Add to Collection" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aDt-F5-wnF">
-                                                        <rect key="frame" x="62.000000000000014" y="12.333333333333313" width="142.33333333333337" height="25.333333333333329"/>
+                                                        <rect key="frame" x="62.000000000000014" y="12.333333333333369" width="142.33333333333337" height="25.333333333333329"/>
                                                         <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="18"/>
                                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         <nil key="highlightedColor"/>
@@ -1365,7 +1365,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OB3-mm-5Ob">
-                                                <rect key="frame" x="0.0" y="186" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="150" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_download" translatesAutoresizingMaskIntoConstraints="NO" id="9bs-wk-KZw">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1431,7 +1431,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rA5-am-5G8">
-                                                <rect key="frame" x="0.0" y="248" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="200" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_more_info" translatesAutoresizingMaskIntoConstraints="NO" id="P6P-TR-S3u">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1479,7 +1479,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FYF-eW-dIc">
-                                                <rect key="frame" x="0.0" y="310" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="250" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_lyrics" translatesAutoresizingMaskIntoConstraints="NO" id="qiE-y9-eSy">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1527,7 +1527,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Hty-Tu-lI8">
-                                                <rect key="frame" x="0.0" y="372" width="393" height="50"/>
+                                                <rect key="frame" x="0.0" y="300" width="393" height="50"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ic_share" translatesAutoresizingMaskIntoConstraints="NO" id="QR5-h5-Ytu">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
@@ -1577,20 +1577,20 @@
                                         </subviews>
                                     </stackView>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="6CO-1R-TeF">
-                                        <rect key="frame" x="16" y="299" width="40" height="40"/>
+                                        <rect key="frame" x="16" y="375" width="40" height="40"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="40" id="CCN-ow-udK"/>
                                             <constraint firstAttribute="width" constant="40" id="cx2-uw-0bj"/>
                                         </constraints>
                                     </imageView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TU2-nt-Em8">
-                                        <rect key="frame" x="64" y="301" width="309" height="19.666666666666686"/>
+                                        <rect key="frame" x="64" y="377" width="309" height="19.666666666666686"/>
                                         <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="14"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="59v-Yj-gsw">
-                                        <rect key="frame" x="63.999999999999993" y="322" width="29.666666666666664" height="17"/>
+                                        <rect key="frame" x="63.999999999999993" y="398" width="29.666666666666664" height="17"/>
                                         <fontDescription key="fontDescription" name="KohinoorTelugu-Medium" family="Kohinoor Telugu" pointSize="12"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
@@ -1613,7 +1613,7 @@
                                     <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="59v-Yj-gsw" secondAttribute="trailing" constant="20" symbolic="YES" id="o6z-fE-pHE"/>
                                     <constraint firstItem="TU2-nt-Em8" firstAttribute="top" secondItem="6CO-1R-TeF" secondAttribute="top" constant="2" id="omL-ZQ-bD6"/>
                                     <constraint firstItem="TU2-nt-Em8" firstAttribute="leading" secondItem="6CO-1R-TeF" secondAttribute="trailing" constant="8" id="sc2-Bv-DIo"/>
-                                    <constraint firstItem="bto-io-WNx" firstAttribute="top" secondItem="6CO-1R-TeF" secondAttribute="bottom" constant="16" id="ska-Ni-kNy"/>
+                                    <constraint firstItem="bto-io-WNx" firstAttribute="top" secondItem="6CO-1R-TeF" secondAttribute="bottom" constant="12" id="ska-Ni-kNy"/>
                                     <constraint firstAttribute="trailing" secondItem="GfG-T9-QI7" secondAttribute="trailing" id="tJ3-HW-ov4"/>
                                 </constraints>
                             </view>

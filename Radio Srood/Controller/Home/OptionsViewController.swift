@@ -405,21 +405,22 @@ class OptionsViewController: UIViewController {
     }
     
     @IBAction func clickOn_btnShare(_ sender: UIButton) {
-        guard let currentTrack = track,
-              let urlString = currentTrack.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: songPath + urlString) else {
-            showToast(message: "No track selected", font: .systemFont(ofSize: 12.0))
-            return
-        }
         
-        let shareText = "Check out \(currentTrack.track ?? "this track") by \(currentTrack.artist ?? "unknown artist") on Radio Srood!"
-        let activityVC = UIActivityViewController(activityItems: [shareText, url], applicationActivities: nil)
-        activityVC.modalPresentationStyle = .popover
-        if let ppc = activityVC.popoverPresentationController {
-            ppc.sourceView = sender
-            ppc.sourceRect = sender.bounds
+        if let songTitle = track?.track, let artistName = track?.artist {
+            let shareText = "Check out this awesome song: \(songTitle) by \(artistName) on Radio Srood"
+            track
+            var items: [Any] = [shareText]
+
+            if let image = imgArtist.image {
+                items.append(image)
+            }
+
+            let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+            activityViewController.excludedActivityTypes = [UIActivity.ActivityType.addToReadingList, UIActivity.ActivityType.assignToContact]
+            self.present(activityViewController, animated: true, completion: nil)
+
         }
-        present(activityVC, animated: true, completion: nil)
+
     }
     
     @IBAction func clickOn_btnCancel(_ sender: UIButton) {
