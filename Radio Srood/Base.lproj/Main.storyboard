@@ -1378,16 +1378,13 @@
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     </view>
-                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jwi-bK-qWG">
+                                                    <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jwi-bK-qWG">
                                                         <rect key="frame" x="20" y="10" width="30" height="30"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="30" id="KgY-wb-cgp"/>
                                                             <constraint firstAttribute="width" constant="30" id="sEt-8o-rHq"/>
                                                         </constraints>
                                                         <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                        <connections>
-                                                            <action selector="clickOn_btnDownload:" destination="pNp-dh-7n6" eventType="touchUpInside" id="VOE-Wv-5lB"/>
-                                                        </connections>
                                                     </button>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Download" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u0Z-qK-4l0">
                                                         <rect key="frame" x="62" y="12.333333333333369" width="82" height="25.333333333333329"/>
@@ -1406,7 +1403,7 @@
                                                         <rect key="frame" x="0.0" y="0.0" width="393" height="47"/>
                                                         <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                         <connections>
-                                                            <action selector="clickOn_btnDownload:" destination="pNp-dh-7n6" eventType="touchUpInside" id="nq0-MP-1Ga"/>
+                                                            <action selector="clickOn_btnDownload:" destination="pNp-dh-7n6" eventType="touchUpInside" id="vv2-Ss-NMo"/>
                                                         </connections>
                                                     </button>
                                                 </subviews>
@@ -1632,6 +1629,7 @@
                     <connections>
                         <outlet property="addTocoolectionImage" destination="CTd-cq-j7S" id="vaI-ga-YnK"/>
                         <outlet property="btnDownload" destination="jwi-bK-qWG" id="5lS-Gz-FcN"/>
+                        <outlet property="btnDownloadFull" destination="5TE-Ha-msl" id="nEd-5K-dOv"/>
                         <outlet property="imgAddToCollection" destination="CTd-cq-j7S" id="OVW-ef-8c3"/>
                         <outlet property="imgArtist" destination="6CO-1R-TeF" id="Eqz-RE-jkN"/>
                         <outlet property="imgDownload" destination="9bs-wk-KZw" id="nlA-i1-Key"/>

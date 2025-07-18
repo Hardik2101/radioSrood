@@ -38,6 +38,7 @@ class OptionsViewController: UIViewController {
     
     @IBOutlet var lblArtistSong: UILabel!
     
+    @IBOutlet var btnDownloadFull: UIButton!
     weak var delegate: OptionsViewControllerDelegate? // Delegate to notify parent VC
     var circularProgressView: CircularProgressView!
     
@@ -50,7 +51,8 @@ class OptionsViewController: UIViewController {
         addBlurBackground()
         updateButtonStates()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(updateButtonStates))
-        imgDownload.isUserInteractionEnabled = true
+//        btnDownloadFull.isUserInteractionEnabled = true
+        btnDownload.isUserInteractionEnabled = false
         imgDownload.addGestureRecognizer(tapGesture)
         setupCircularProgressView()
         self.lblArtistName.text = track?.track
@@ -88,14 +90,14 @@ class OptionsViewController: UIViewController {
             btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
             btnDownload.layer.borderWidth = 2
             btnDownload.clipsToBounds = true
-            btnDownload.isUserInteractionEnabled = false
+            btnDownloadFull.isUserInteractionEnabled = false
         } else {
             btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
             btnDownload.layer.cornerRadius = 0
             btnDownload.layer.borderWidth = 0
             btnDownload.layer.borderColor = nil
             btnDownload.clipsToBounds = false
-            btnDownload.isUserInteractionEnabled = true
+            btnDownloadFull.isUserInteractionEnabled = true
 
         }
     }
@@ -345,7 +347,7 @@ class OptionsViewController: UIViewController {
                         self.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
                         self.btnDownload.layer.borderWidth = 2
                         self.btnDownload.clipsToBounds = true
-                        self.btnDownload.isUserInteractionEnabled = false
+                        self.btnDownloadFull.isUserInteractionEnabled = false
                     }
 
                     // Update UserDefaults
