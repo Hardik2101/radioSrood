@@ -31,6 +31,13 @@ class OptionsViewController: UIViewController {
     
     @IBOutlet var lblAddTocolletction: UILabel!
     
+    
+    @IBOutlet var imgArtist: UIImageView!
+    
+    @IBOutlet var lblArtistName: UILabel!
+    
+    @IBOutlet var lblArtistSong: UILabel!
+    
     weak var delegate: OptionsViewControllerDelegate? // Delegate to notify parent VC
     var circularProgressView: CircularProgressView!
     
@@ -46,6 +53,10 @@ class OptionsViewController: UIViewController {
         imgDownload.isUserInteractionEnabled = true
         imgDownload.addGestureRecognizer(tapGesture)
         setupCircularProgressView()
+        self.lblArtistName.text = track?.track
+        self.lblArtistSong.text = track?.artist
+        imgArtist.af_setImage(withURL: URL(string: track?.artcover ?? "") ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+
 
     }
     override func viewWillAppear(_ animated: Bool) {
