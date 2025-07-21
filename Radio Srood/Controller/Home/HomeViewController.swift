@@ -73,84 +73,123 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
             let touchPoint = gesture.location(in: radiosroodTableView)
-            if let indexPath = radiosroodTableView.indexPathForRow(at: touchPoint),
-               let cell = radiosroodTableView.cellForRow(at: indexPath) {
-                let sectionTitle = homeHeaderArray[indexPath.section]
-
-                // Handle long press based on section or cell type
-                switch sectionTitle {
-                    
-                case "Featured":
-                    if let featuredCell = cell as? NewFeaturedCell,
-                       let collectionView = featuredCell.newFeaturedsCollectionView {
-                        let collectionViewPoint = radiosroodTableView.convert(touchPoint, to: collectionView)
-                        if let index = collectionView.indexPathForItem(at: collectionViewPoint)?.row {
-                            print("Selected item at index \(index) in Featured section")
-                            showLongPressAlert(for: index, section: sectionTitle)
-                        } else {
-                            print("Error: No item found at point \(collectionViewPoint) in newFeaturedsCollectionView")
-                        }
-                    } else {
-                        print("Error: Cell is not NewFeaturedCell or newFeaturedsCollectionView is nil")
-                    }
-                    
-
-                case "My Playlist":
-                    if let myPlaylistCell = cell as? MyPlaylistCell,
-                       let collectionView = myPlaylistCell.myPlaylistCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        // Handle long press on My Playlist cell
-                        handleMyPlayListItemEvent(index)
-                    }
-                case "Recently Played":
-                    if let recentlyPlayedCell = cell as? RecentlyPlayedCell,
-                       let collectionView = recentlyPlayedCell.recentlyPlayedCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        // Handle long press on Recently Played cell
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                case "Playlists":
-                    if let playlistCell = cell as? PlaylistCell,
-                       let collectionView = playlistCell.playlistCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                    
-                    case "Hot Tracks" :
-                    if let releasesCell = cell as? NewReleasesCell,
-                       let collectionView = releasesCell.newReleasesCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-
-                case "Trending", "Popular Tracks":
-                    if let trackCell = cell as? TrackCell,
-                       let collectionView = trackCell.trackCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                case "Featured Artist":
-                    if let artistCell = cell as? ArtistCell,
-                       let collectionView = artistCell.artistCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                case "Today Top Picks":
-                    if let browseCell = cell as? BrowsePopularTableCell,
-                       let collectionView = browseCell.trackCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                case "Recently Added":
-                    if let releasesCell = cell as? NewReleasesCell,
-                       let collectionView = releasesCell.newReleasesCollectionView,
-                       let index = collectionView.indexPathForItem(at: gesture.location(in: collectionView))?.row {
-                        showLongPressAlert(for: index, section: sectionTitle)
-                    }
-                default:
-                    // Handle other sections if needed
-                    print("Long press on section: \(sectionTitle)")
+            guard let indexPath = radiosroodTableView.indexPathForRow(at: touchPoint),
+                  let tableCell = radiosroodTableView.cellForRow(at: indexPath) else {
+                print("No table view cell found at point \(touchPoint)")
+                return
+            }
+            
+            let sectionTitle = homeHeaderArray[indexPath.section]
+            
+            // Helper function to apply scale animation to a collection view cell
+            func animateScaleEffect(for collectionView: UICollectionView, at collectionIndexPath: IndexPath) {
+                guard let cell = collectionView.cellForItem(at: collectionIndexPath) else {
+                    print("No collection view cell found at \(collectionIndexPath)")
+                    return
                 }
+                
+                // Trigger haptic feedback
+                let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+                feedbackGenerator.prepare()
+                feedbackGenerator.impactOccurred()
+                
+                // Add subtle shadow for visual feedback
+                cell.layer.shadowOpacity = 0.3
+                cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+                cell.layer.shadowRadius = 4
+                
+                // Scale down animation (to 94%)
+                cell.isUserInteractionEnabled = false
+                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                        cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+                    }) { _ in
+                        // Scale back to original size with shadow removal and extended duration
+                        UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                            cell.transform = .identity
+                            cell.layer.shadowOpacity = 0
+                            cell.isUserInteractionEnabled = true
+                        }) { _ in
+                        }
+                    }
+            }
+            
+            // Handle long press based on section
+            switch sectionTitle {
+            case "Featured":
+                if let featuredCell = tableCell as? NewFeaturedCell,
+                   let collectionView = featuredCell.newFeaturedsCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    print("Selected item at index \(collectionIndexPath.row) in Featured section")
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "My Playlist":
+                if let myPlaylistCell = tableCell as? MyPlaylistCell,
+                   let collectionView = myPlaylistCell.myPlaylistCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    handleMyPlayListItemEvent(collectionIndexPath.row)
+                }
+                
+            case "Recently Played":
+                if let recentlyPlayedCell = tableCell as? RecentlyPlayedCell,
+                   let collectionView = recentlyPlayedCell.recentlyPlayedCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Playlists":
+                if let playlistCell = tableCell as? PlaylistCell,
+                   let collectionView = playlistCell.playlistCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Hot Tracks":
+                if let releasesCell = tableCell as? NewReleasesCell,
+                   let collectionView = releasesCell.newReleasesCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Trending", "Popular Tracks":
+                if let trackCell = tableCell as? TrackCell,
+                   let collectionView = trackCell.trackCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Featured Artist":
+                if let artistCell = tableCell as? ArtistCell,
+                   let collectionView = artistCell.artistCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Today Top Picks":
+                if let browseCell = tableCell as? BrowsePopularTableCell,
+                   let collectionView = browseCell.trackCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case "Recently Added":
+                if let releasesCell = tableCell as? NewReleasesCell,
+                   let collectionView = releasesCell.newReleasesCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            default:
+                print("Long press on unhandled section: \(sectionTitle)")
             }
         }
     }
@@ -325,13 +364,13 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             optionsVC.track = track
             optionsVC.delegate = self
             // Fetch lyrics for the track
-            DataHelper.getLyricsData(artist: track.artist ?? "", track: track.track ?? "") { lyricItem in
-                optionsVC.lyricsNew = lyricItem?.syncedLyrics ?? ""
-                optionsVC.modalPresentationStyle = .overFullScreen
-                DispatchQueue.main.async {
-                    self.present(optionsVC, animated: true, completion: nil)
-                }
+            //            DataHelper.getLyricsData(artist: track.artist ?? "", track: track.track ?? "") { lyricItem in
+            //                optionsVC.lyricsNew = lyricItem?.syncedLyrics ?? ""
+            optionsVC.modalPresentationStyle = .overFullScreen
+            DispatchQueue.main.async {
+                self.present(optionsVC, animated: true, completion: nil)
             }
+            //            }
         } else {
             print("No track found for index in section")
             // Optionally, show an alert to the user

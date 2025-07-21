@@ -66,6 +66,13 @@ class OptionsViewController: UIViewController {
             print("Initial queue: \(queue.map { $0.track ?? "unknown" })")
         
         print("ququeye count=====", queue.count)
+        fetchLyrics()
+    }
+    
+    private func fetchLyrics() {
+        DataHelper.getLyricsData(artist: track?.artist ?? "", track: track?.track ?? "") { lyricItem in
+            self.lyricsNew = lyricItem?.syncedLyrics ?? ""
+        }
     }
     
     private func setupCircularProgressView() {
