@@ -4071,7 +4071,11 @@
                                                     <action selector="progressSliderValueChanged" destination="B4h-vk-CIj" eventType="valueChanged" id="bDx-4a-sxm"/>
                                                 </connections>
                                             </slider>
-                                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Yyw-th-NbU">
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fmN-3y-blP">
+                                                <rect key="frame" x="348" y="545" width="30" height="30"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Yyw-th-NbU">
                                                 <rect key="frame" x="348" y="545" width="30" height="30"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="30" id="GSY-Vy-CCQ"/>
@@ -4079,6 +4083,9 @@
                                                 </constraints>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" image="ic_download"/>
+                                                <connections>
+                                                    <action selector="clickOn_btnDownload:" destination="B4h-vk-CIj" eventType="touchUpInside" id="nWl-3A-Fqc"/>
+                                                </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="shT-FC-ZfP">
                                                 <rect key="frame" x="14.999999999999996" y="512.66666666666663" width="39.666666666666657" height="21.666666666666629"/>
@@ -4172,13 +4179,16 @@
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstItem="Tmr-gZ-ghw" firstAttribute="centerY" secondItem="tFT-Tb-XDY" secondAttribute="centerY" id="0PD-ja-l5I"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="trailing" secondItem="Yyw-th-NbU" secondAttribute="trailing" id="5Fi-PC-ERF"/>
                                             <constraint firstItem="tFT-Tb-XDY" firstAttribute="centerX" secondItem="1k1-QY-yb6" secondAttribute="centerX" id="5Zg-MA-i6H"/>
                                             <constraint firstAttribute="trailing" secondItem="C6h-jG-qUb" secondAttribute="trailing" constant="15" id="6Hz-ka-Btc"/>
                                             <constraint firstItem="2Oy-Na-MvM" firstAttribute="top" secondItem="C6h-jG-qUb" secondAttribute="bottom" constant="20" id="6Im-jD-I1O"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="leading" secondItem="Yyw-th-NbU" secondAttribute="leading" id="9qZ-iz-CSL"/>
                                             <constraint firstAttribute="trailing" secondItem="McE-i2-OHu" secondAttribute="trailing" constant="15" id="A1X-Dm-EED"/>
                                             <constraint firstItem="d02-o0-wh0" firstAttribute="centerY" secondItem="tFT-Tb-XDY" secondAttribute="centerY" id="AEN-q1-8gb"/>
                                             <constraint firstItem="tFT-Tb-XDY" firstAttribute="leading" secondItem="d02-o0-wh0" secondAttribute="trailing" constant="10" id="BVQ-tH-F75"/>
                                             <constraint firstAttribute="bottom" secondItem="tFT-Tb-XDY" secondAttribute="bottom" constant="10" id="C6p-wE-7aC"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="bottom" secondItem="Yyw-th-NbU" secondAttribute="bottom" id="FDe-k7-shA"/>
                                             <constraint firstAttribute="trailing" secondItem="Yyw-th-NbU" secondAttribute="trailing" constant="15" id="IQs-zI-WPR"/>
                                             <constraint firstAttribute="trailing" secondItem="JZb-ZT-C9c" secondAttribute="trailing" constant="15" id="KOt-nY-rYE"/>
                                             <constraint firstItem="Yyw-th-NbU" firstAttribute="leading" secondItem="yGt-FX-QoT" secondAttribute="trailing" constant="10" id="NEm-a4-Qd3"/>
@@ -4197,9 +4207,12 @@
                                             <constraint firstItem="yGt-FX-QoT" firstAttribute="leading" secondItem="tFT-Tb-XDY" secondAttribute="trailing" constant="10" id="kkm-SW-8V6"/>
                                             <constraint firstItem="Tmr-gZ-ghw" firstAttribute="leading" secondItem="1k1-QY-yb6" secondAttribute="leading" constant="15" id="l9l-U1-ttB"/>
                                             <constraint firstItem="C6h-jG-qUb" firstAttribute="centerY" secondItem="p1c-ct-vtt" secondAttribute="centerY" id="ltx-8j-XqD"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="top" secondItem="Yyw-th-NbU" secondAttribute="top" id="nhP-nK-c8E"/>
                                             <constraint firstItem="G9l-1u-4AR" firstAttribute="leading" secondItem="1k1-QY-yb6" secondAttribute="leading" constant="15" id="nvU-IJ-bwJ"/>
                                             <constraint firstItem="McE-i2-OHu" firstAttribute="top" secondItem="1k1-QY-yb6" secondAttribute="top" constant="10" id="pbm-M5-a8f"/>
                                             <constraint firstItem="tFT-Tb-XDY" firstAttribute="top" secondItem="G9l-1u-4AR" secondAttribute="bottom" constant="30" id="pm2-Uj-94f"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="height" secondItem="Yyw-th-NbU" secondAttribute="height" id="qAB-UT-8V8"/>
+                                            <constraint firstItem="fmN-3y-blP" firstAttribute="width" secondItem="Yyw-th-NbU" secondAttribute="width" id="ryf-NS-ku9"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MbE-Sl-TlF">
@@ -4535,11 +4548,12 @@
                         <outlet property="tableBgHeightConstraints" destination="Suu-xa-Uvp" id="1nd-Kv-1lg"/>
                         <outlet property="trackTitle" destination="EuG-z5-K0M" id="Ljc-eJ-y3J"/>
                         <outlet property="vwLyrics" destination="2Oy-Na-MvM" id="X6b-OZ-0H0"/>
+                        <outlet property="vwProgress" destination="fmN-3y-blP" id="a4u-hg-4L3"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="d1X-1X-JBe" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2938.1679389312976" y="3302.1126760563384"/>
+            <point key="canvasLocation" x="11102" y="482"/>
         </scene>
         <!--Recent Player View Controller-->
         <scene sceneID="7GM-Xh-qwH">
@@ -6119,7 +6133,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="QPF-Ag-sEY" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3688" y="3303"/>
+            <point key="canvasLocation" x="7879" y="1764"/>
         </scene>
         <!--All Music View Controller-->
         <scene sceneID="DkE-53-MuN">

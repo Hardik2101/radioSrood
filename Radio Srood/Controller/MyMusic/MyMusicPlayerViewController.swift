@@ -26,6 +26,9 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet var vwLyrics: UIView!
     @IBOutlet weak var heightView: NSLayoutConstraint!
 
+    @IBOutlet var vwProgress: UIView!
+
+
     var track: [PodcastObject]?
     var tempTrack: [PodcastObject]?
     var firstTrackList: [PodcastObject]?
@@ -43,6 +46,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var timeObserver: Any?
     private var lyricSynced: String = ""
     var imageURl: URL?
+    var circularProgressView: CircularProgressView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,6 +84,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(lyricsBtnClicked))
         vwLyrics.isUserInteractionEnabled = true
         vwLyrics.addGestureRecognizer(tapGesture)
+        setupCircularProgressView()
 
     }
     
@@ -272,6 +277,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
     }
 
+    private func setupCircularProgressView() {
+        circularProgressView = CircularProgressView(frame: vwProgress.bounds)
+        circularProgressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        circularProgressView.isHidden = true
+        vwProgress.addSubview(circularProgressView)
+    }
+
     func shareBtnClicked(url: URL) {
         let vc = UIActivityViewController(activityItems: [url], applicationActivities: [])
         vc.modalPresentationStyle = .popover
@@ -286,6 +298,10 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         self.dismiss(animated: true)
     }
 
+    @IBAction func clickOn_btnDownload(_ sender: UIButton) {
+    }
+    
+    
     @objc func lyricsBtnClicked() {
         guard let trackItem = track?[selectedIndex] else {
             print("No track selected for lyrics")
