@@ -25,3 +25,33 @@ class PodcastObject: NSObject {
     }
 
 }
+
+extension PodcastObject {
+    func convertToSongModel() -> SongModel {
+        let song = SongModel()
+        song.trackid = 0 // Default, as PodcastObject doesn't have trackid
+        song.artist = self.artistName ?? ""
+        song.track = self.trackName ?? ""
+        song.playcounts = "0" // Default
+        song.likes = "0" // Default
+        song.dislikes = "0" // Default
+        song.composer = "" // Default
+        song.lyricWriter = "" // Default
+        song.music = "" // Default
+        song.dateAdded = "" // Default
+        song.lyric = "" // Default
+        song.explicit = false // Default
+        song.allowDownload = false // Default
+        song.lyric_synced = "" // Default
+        song.mediaPath = self.file?.absoluteString ?? ""
+        song.artcover = self.imageURL?.absoluteString ?? ""
+        song.ytLink = "" // Default
+        song.fbLink = "" // Default
+        song.igLink = "" // Default
+        song.playlistid = 0 // Default
+        song.isFav = false
+        song.isBookMarked = false
+        song.isRecentlyPlayed = false
+        return song
+    }
+}
