@@ -13,7 +13,7 @@ class TrackCollectionCell: UICollectionViewCell {
     var trendingTrack: TrendingTrack? {
         didSet {
             if let trendingTrack = trendingTrack {
-                if let url = URL(string: trendingTrack.trendingCover + "?s=200") {
+                if let url = URL(string: trendingTrack.trendingCover) {
                     trackImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -27,7 +27,7 @@ class TrackCollectionCell: UICollectionViewCell {
     var popularTrack: PopularTrack? {
         didSet {
             if let popularTrack = popularTrack {
-                if let url = URL(string: popularTrack.popularCover + "?s=200") {
+                if let url = URL(string: popularTrack.popularCover) {
                     trackImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
