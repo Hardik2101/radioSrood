@@ -16,7 +16,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     var playlist: Playlist? {
         didSet {
             if let playlist = playlist {
-                if let url = URL(string: playlist.playlistCover + "?s=200") {
+                if let url = URL(string: playlist.playlistCover ) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = playlist.playlistName ?? playlist.playlist
@@ -28,7 +28,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     var newRelease: NewRelease? {
         didSet {
             if let newRelease = newRelease {
-                if let url = URL(string: newRelease.newReleasesCover + "?s=200")  {
+                if let url = URL(string: newRelease.newReleasesCover)  {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = newRelease.newReleasesTrack
@@ -40,7 +40,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     var popularTrack: PopularTrack? {
         didSet {
             if let popularTrack = popularTrack {
-                if let url = URL(string: popularTrack.popularCover + "?s=200") {
+                if let url = URL(string: popularTrack.popularCover) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     //bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -54,7 +54,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     var radioData: RadioModelData? {
         didSet {
             if let newRelease = radioData {
-                if let url = URL(string: newRelease.radioImage + "?s=200") {
+                if let url = URL(string: newRelease.radioImage) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = newRelease.radioTitle
@@ -66,7 +66,7 @@ class BrowseShowAllTableCell: UITableViewCell {
     var recenltPlayed: SongModel? {
         didSet {
             if let recent = recenltPlayed {
-                if let url = URL(string: recent.artcover + "?s=200") {
+                if let url = URL(string: recent.artcover) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 //artworkImage.image = podcastObject.image
