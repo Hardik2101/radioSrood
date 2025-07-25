@@ -4348,53 +4348,104 @@
                                                             <rect key="frame" x="0.0" y="0.0" width="393" height="40"/>
                                                             <autoresizingMask key="autoresizingMask"/>
                                                             <subviews>
-                                                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="GlI-1p-vvq">
-                                                                    <rect key="frame" x="156.66666666666666" y="5" width="80" height="30"/>
+                                                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="IEq-ww-idx">
+                                                                    <rect key="frame" x="30" y="5" width="333" height="30"/>
                                                                     <subviews>
-                                                                        <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Olf-qv-bp8">
-                                                                            <rect key="frame" x="0.0" y="0.0" width="0.0" height="30"/>
+                                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="85K-lI-j9M">
+                                                                            <rect key="frame" x="0.0" y="0.0" width="66.666666666666671" height="30"/>
                                                                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                                             <state key="normal" image="ic_lyrics">
                                                                                 <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                             </state>
                                                                         </button>
-                                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="l8W-4g-z1s">
-                                                                            <rect key="frame" x="0.0" y="0.0" width="80" height="30"/>
+                                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FqM-NU-SIb">
+                                                                            <rect key="frame" x="66.666666666666657" y="0.0" width="66.666666666666657" height="30"/>
                                                                             <subviews>
-                                                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5Ek-zJ-xEa">
-                                                                                    <rect key="frame" x="25" y="0.0" width="30" height="30"/>
+                                                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4uq-SU-OQ0">
+                                                                                    <rect key="frame" x="18.333333333333329" y="0.0" width="30" height="30"/>
                                                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                                     <constraints>
-                                                                                        <constraint firstAttribute="width" secondItem="5Ek-zJ-xEa" secondAttribute="height" id="eIH-z3-iO4"/>
-                                                                                        <constraint firstAttribute="height" constant="30" id="nsF-D6-TL7"/>
+                                                                                        <constraint firstAttribute="height" constant="30" id="qMH-WS-DCF"/>
+                                                                                        <constraint firstAttribute="width" secondItem="4uq-SU-OQ0" secondAttribute="height" id="xeq-Ax-BcP"/>
                                                                                     </constraints>
                                                                                 </view>
                                                                             </subviews>
                                                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                             <constraints>
-                                                                                <constraint firstItem="5Ek-zJ-xEa" firstAttribute="centerX" secondItem="l8W-4g-z1s" secondAttribute="centerX" id="WAF-LP-ub1"/>
-                                                                                <constraint firstItem="5Ek-zJ-xEa" firstAttribute="centerY" secondItem="l8W-4g-z1s" secondAttribute="centerY" id="rVP-zk-GxO"/>
+                                                                                <constraint firstItem="4uq-SU-OQ0" firstAttribute="centerY" secondItem="FqM-NU-SIb" secondAttribute="centerY" id="I6R-BW-KwA"/>
+                                                                                <constraint firstItem="4uq-SU-OQ0" firstAttribute="centerX" secondItem="FqM-NU-SIb" secondAttribute="centerX" id="rww-s1-hzY"/>
+                                                                            </constraints>
+                                                                        </view>
+                                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" reversesTitleShadowWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HEX-Ey-Nk9">
+                                                                            <rect key="frame" x="133.33333333333334" y="0.0" width="66.333333333333343" height="30"/>
+                                                                            <constraints>
+                                                                                <constraint firstAttribute="height" constant="37" id="tWz-gO-Drk"/>
+                                                                                <constraint firstAttribute="width" constant="72.5" id="xYT-zl-uGj"/>
+                                                                            </constraints>
+                                                                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                            <state key="normal" image="ic_addPlaylist">
+                                                                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                            </state>
+                                                                        </button>
+                                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ff2-E5-IdA">
+                                                                            <rect key="frame" x="199.66666666666666" y="0.0" width="66.666666666666657" height="30"/>
+                                                                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                            <state key="normal" image="ic_bookmark">
+                                                                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                            </state>
+                                                                        </button>
+                                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lx0-xr-D4j">
+                                                                            <rect key="frame" x="266.33333333333331" y="0.0" width="66.666666666666686" height="30"/>
+                                                                            <subviews>
+                                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3Rt-qC-Fbd">
+                                                                                    <rect key="frame" x="28.333333333333371" y="2" width="10" height="28"/>
+                                                                                    <constraints>
+                                                                                        <constraint firstAttribute="height" constant="28" id="42A-qk-Bym"/>
+                                                                                        <constraint firstAttribute="width" constant="10" id="yao-rA-bVg"/>
+                                                                                    </constraints>
+                                                                                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                                    <state key="normal" image="menu">
+                                                                                        <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                                    </state>
+                                                                                </button>
+                                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6eX-FA-3WQ">
+                                                                                    <rect key="frame" x="0.0" y="0.0" width="66.666666666666671" height="30"/>
+                                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                                </button>
+                                                                            </subviews>
+                                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                            <constraints>
+                                                                                <constraint firstItem="3Rt-qC-Fbd" firstAttribute="centerX" secondItem="lx0-xr-D4j" secondAttribute="centerX" id="aeH-VM-fJo"/>
+                                                                                <constraint firstAttribute="bottom" secondItem="6eX-FA-3WQ" secondAttribute="bottom" id="d17-7x-1cT"/>
+                                                                                <constraint firstItem="3Rt-qC-Fbd" firstAttribute="centerY" secondItem="lx0-xr-D4j" secondAttribute="centerY" constant="1" id="eBU-tz-pgg"/>
+                                                                                <constraint firstItem="6eX-FA-3WQ" firstAttribute="leading" secondItem="lx0-xr-D4j" secondAttribute="leading" id="igw-R5-wQz"/>
+                                                                                <constraint firstAttribute="trailing" secondItem="6eX-FA-3WQ" secondAttribute="trailing" id="ii4-ok-tSb"/>
+                                                                                <constraint firstItem="6eX-FA-3WQ" firstAttribute="top" secondItem="lx0-xr-D4j" secondAttribute="top" id="jIa-rH-FOa"/>
                                                                             </constraints>
                                                                         </view>
                                                                     </subviews>
                                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                    <constraints>
-                                                                        <constraint firstAttribute="width" constant="80" id="f2y-sN-OAu"/>
-                                                                    </constraints>
                                                                 </stackView>
                                                             </subviews>
                                                             <constraints>
-                                                                <constraint firstAttribute="bottom" secondItem="GlI-1p-vvq" secondAttribute="bottom" constant="5" id="4ir-w0-TAi"/>
-                                                                <constraint firstItem="GlI-1p-vvq" firstAttribute="centerX" secondItem="158-8O-jzz" secondAttribute="centerX" id="AdH-Ov-zEL"/>
-                                                                <constraint firstItem="GlI-1p-vvq" firstAttribute="top" secondItem="158-8O-jzz" secondAttribute="top" constant="5" id="Zgt-MR-AyS"/>
+                                                                <constraint firstAttribute="bottom" secondItem="IEq-ww-idx" secondAttribute="bottom" constant="5" id="31A-Vf-dja"/>
+                                                                <constraint firstItem="IEq-ww-idx" firstAttribute="leading" secondItem="158-8O-jzz" secondAttribute="leading" constant="30" id="7ob-eP-wHs"/>
+                                                                <constraint firstItem="IEq-ww-idx" firstAttribute="top" secondItem="158-8O-jzz" secondAttribute="top" constant="5" id="H1t-ho-OPr"/>
+                                                                <constraint firstAttribute="trailing" secondItem="IEq-ww-idx" secondAttribute="trailing" constant="30" id="MEH-1f-wAs"/>
                                                             </constraints>
                                                         </tableViewCellContentView>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         <connections>
-                                                            <outlet property="airPlayBloke" destination="5Ek-zJ-xEa" id="Nz6-dk-yTI"/>
-                                                            <outlet property="airPlayView" destination="l8W-4g-z1s" id="gPU-cb-DRs"/>
-                                                            <outlet property="btnLyrics" destination="Olf-qv-bp8" id="xAc-qQ-VGi"/>
+                                                            <outlet property="airPlayBloke" destination="4uq-SU-OQ0" id="Zdk-Sh-TVZ"/>
+                                                            <outlet property="airPlayView" destination="FqM-NU-SIb" id="9rD-Ti-Dkc"/>
+                                                            <outlet property="btnAddtoCollection" destination="Ff2-E5-IdA" id="2lS-f6-tSZ"/>
+                                                            <outlet property="btnLyrics" destination="85K-lI-j9M" id="Laz-vf-Cbi"/>
+                                                            <outlet property="btnMoreInfo" destination="HEX-Ey-Nk9" id="SeF-jr-KZo"/>
+                                                            <outlet property="btnOption" destination="6eX-FA-3WQ" id="aMJ-ww-0fa"/>
                                                         </connections>
                                                     </tableViewCell>
                                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicListCell" rowHeight="90" id="4FQ-c6-ql0" customClass="MusicListCell" customModule="Radio_Srood" customModuleProvider="target">
