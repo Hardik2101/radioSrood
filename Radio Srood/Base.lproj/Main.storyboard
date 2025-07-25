@@ -4047,7 +4047,7 @@
                                                     <constraint firstAttribute="trailing" secondItem="EuG-z5-K0M" secondAttribute="trailing" id="wTI-oC-FWA"/>
                                                 </constraints>
                                             </view>
-                                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C6h-jG-qUb">
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C6h-jG-qUb">
                                                 <rect key="frame" x="350" y="398.66666666666669" width="28" height="28"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="28" id="AbL-Af-pX9"/>

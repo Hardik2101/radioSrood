@@ -203,6 +203,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         self.trackTitle.text = track.trackName
         self.artistName.text = track.artistName
         isAlreadyDownloaded(track: track) // Check download status
+        isAlreadyLiked(track: track)
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             if let lyricItem = lyricItem {
                 print("✅ Artist: \(lyricItem.artistName)")
@@ -305,6 +306,19 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         self.dismiss(animated: true)
     }
 
+    @IBAction func likeBtnPressed(_ sender: Any) {
+        if isLike {
+                btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
+                isLike = false
+                showToast(message: "Removed from favorites", font: .systemFont(ofSize: 12.0))
+            } else {
+                btnLike.setImage(UIImage(named: "ic_like_filled"), for: .normal)
+                isLike = true
+                showToast(message: "Added to favorites", font: .systemFont(ofSize: 12.0))
+            }
+            configureLike(index: selectedIndex)
+    }
+    
     @IBAction func clickOn_btnDownload(_ sender: UIButton) {
         let purchase = IAPHandler.shared.isGetPurchase() || isPurchaseSuccess
         guard let item = track?[safe: selectedIndex] else {
@@ -433,6 +447,35 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         UserDefaultsManager.shared.localTracksData = savedTracks
         print("Configured download for track: \(item.trackName ?? "Unknown"), isDownload: \(isDownload)")
     }
+    
+    func isAlreadyLiked(track: PodcastObject) {
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let songModel = track.convertToSongModel()
+        let isInFav = savedTracks.first { $0.isFav && $0.trackid == songModel.trackid }
+        isLike = isInFav != nil
+        btnLike.setImage(UIImage(named: isLike ? "ic_like_filled" : "ic_like"), for: .normal)
+        print("Checked like status for track: \(track.trackName ?? "Unknown"), isLike: \(isLike)")
+    }
+
+    // Configure like status in UserDefaults
+    func configureLike(index: Int) {
+        guard let item = track?[safe: index] else {
+            print("Error: No track to configure like at index \(index)")
+            return
+        }
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        let songModel = item.convertToSongModel()
+        if let trackIndex = savedTracks.firstIndex(where: { $0.trackid == songModel.trackid }) {
+            savedTracks[trackIndex].isFav = isLike
+        } else {
+            var newItem = songModel
+            newItem.isFav = isLike
+            savedTracks.append(newItem)
+        }
+        UserDefaultsManager.shared.localTracksData = savedTracks
+        print("Configured like for track: \(item.trackName ?? "Unknown"), isLike: \(isLike)")
+    }
+
 }
 
 extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
@@ -585,8 +628,8 @@ extension MyMusicPlayerViewController {
             self.updateNowPlaying(isPause: false)
             player?.play()
         }
-        self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
-        self.isLike = false
+//        self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
+//        self.isLike = false
         self.setupNowPlaying()
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
@@ -637,15 +680,7 @@ extension MyMusicPlayerViewController {
         }
     }
 
-    @IBAction func likeBtnPressed(_ sender: Any) {
-        if isLike {
-            btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
-            isLike = false
-        } else {
-            btnLike.setImage(UIImage(named: "ic_like_filled"), for: .normal)
-            isLike = true
-        }
-    }
+    
 
     @IBAction func repeatBtnPressed(_ sender: Any) {
         let image = UIImage(named: "ic_repeat")?.withRenderingMode(.alwaysTemplate)
