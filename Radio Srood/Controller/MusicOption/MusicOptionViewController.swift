@@ -78,8 +78,8 @@ class MusicOptionViewController: UIViewController, PlayListViewControllerDelegat
         var trackName = "Radio Srood"
         var artistName = "Radio Srood"
         if let trackData = trackData {
-            trackName = trackData.trackName
-            artistName = trackData.artistName
+            trackName = trackData.trackName ?? ""
+            artistName = trackData.artistName ?? ""
         }
         let shareText = String (format: "%@ - %@ on Radio Srood app! Download the app @ https://radiosrood.com/app", artistName, trackName)
         var imageArtShare: UIImage!
@@ -100,8 +100,8 @@ class MusicOptionViewController: UIViewController, PlayListViewControllerDelegat
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayListViewController") as! PlayListViewController
         let currentSong = SongModel()
         if let trackData = trackData {
-            currentSong.track = trackData.trackName
-            currentSong.artist = trackData.artistName
+            currentSong.track = trackData.trackName ?? ""
+            currentSong.artist = trackData.artistName ?? ""
             currentSong.artcover = trackData.imageURL?.absoluteString ?? ""
             currentSong.mediaPath = trackData.imageURL?.absoluteString ?? ""
         }

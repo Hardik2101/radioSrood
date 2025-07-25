@@ -37,7 +37,8 @@ extension SearchModel {
                 file: fullURL,
                 trackName: track,
                 artistName: artist,
-                imageURL: coverURL
+                imageURL: coverURL,
+                trackid: trackid
             )
         }
         // Fallback if songPath is not needed
@@ -46,7 +47,8 @@ extension SearchModel {
                 file: fallbackURL,
                 trackName: track,
                 artistName: artist,
-                imageURL: coverURL
+                imageURL: coverURL,
+                trackid: trackid
             )
         } else {
             // Last fallback
@@ -54,7 +56,8 @@ extension SearchModel {
                 file: URL(string: "https://defaultaudio.com/placeholder.mp3")!,
                 trackName: track,
                 artistName: artist,
-                imageURL: coverURL
+                imageURL: coverURL,
+                trackid: trackid
             )
         }
     }

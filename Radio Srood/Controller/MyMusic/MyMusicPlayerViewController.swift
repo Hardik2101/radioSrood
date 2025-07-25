@@ -42,11 +42,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isPlay: Bool = true
     var isSetMusic = true
     var isLike = false
+    var isDownload = false // Added for download status
     var isRepeat = false
     var timeObserver: Any?
     private var lyricSynced: String = ""
     var imageURl: URL?
     var circularProgressView: CircularProgressView!
+    private var isPurchaseSuccess: Bool = false // Added for IAP handling
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,15 +79,16 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             self, selector: #selector(playerInterruption(notification:)),
             name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil
         )
-        
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(handleIAPPurchase),
+            name: .PurchaseSuccess, object: nil
+        )
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
-        
         self.radioTableView.isScrollEnabled = false
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(lyricsBtnClicked))
         vwLyrics.isUserInteractionEnabled = true
         vwLyrics.addGestureRecognizer(tapGesture)
         setupCircularProgressView()
-
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -199,7 +202,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         self.trackTitle.text = track.trackName
         self.artistName.text = track.artistName
-        
+        isAlreadyDownloaded(track: track) // Check download status
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             if let lyricItem = lyricItem {
                 print("✅ Artist: \(lyricItem.artistName)")
@@ -222,13 +225,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         if isSetMusic {
             isSetMusic = false
-            self.play(url: track.file, isPlay: self.isPlay)
+            self.play(url: track.file ?? URL(string: "")!, isPlay: self.isPlay)
         }
         
         AppPlayer.miniPlayerInfo = BasicDetail(
             songImage: track.imageURL?.absoluteString ?? "",
-            songNameTitle: track.trackName,
-            artistSubtitle: track.artistName,
+            songNameTitle: track.trackName ?? "",
+            artistSubtitle: track.artistName ?? "",
             musicVC: self
         )
         if isSetupRemoteTransport {
@@ -284,24 +287,90 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         vwProgress.addSubview(circularProgressView)
     }
 
-    func shareBtnClicked(url: URL) {
-        let vc = UIActivityViewController(activityItems: [url], applicationActivities: [])
+    func shareBtnClicked(url: URL?) {
+        guard let url = url else {
+            print("Error: No URL provided for sharing")
+            return
+        }
+        let vc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
         vc.modalPresentationStyle = .popover
         if let wPPC = vc.popoverPresentationController {
             wPPC.sourceView = self.view
         }
-        self.present(vc, animated: true, completion: nil)
+        self.present(vc, animated: true)
     }
-    
+
     @IBAction func clickOn_btnBack(_ sender: Any) {
         self.popToBack()
         self.dismiss(animated: true)
     }
 
     @IBAction func clickOn_btnDownload(_ sender: UIButton) {
+        let purchase = IAPHandler.shared.isGetPurchase() || isPurchaseSuccess
+        guard let item = track?[safe: selectedIndex] else {
+            print("Error: No track selected for download")
+            return
+        }
+        guard let url = item.file else {
+            print("Error: Invalid media URL for track: \(item.trackName ?? "Unknown")")
+            return
+        }
+        
+        if purchase {
+            let name = url.lastPathComponent
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let destinationURL = documentsURL.appendingPathComponent(name)
+            btnDownload.isHidden = true
+            vwProgress.isHidden = false
+            circularProgressView.setProgress(0)
+            circularProgressView.isHidden = false
+            AF.download(url, to: { _, _ in
+                return (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
+            })
+            .downloadProgress { [weak self] progress in
+                DispatchQueue.main.async {
+                    self?.circularProgressView.setProgress(Float(CGFloat(Float(progress.fractionCompleted))))
+                }
+                if progress.fractionCompleted == 1.0 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self?.circularProgressView.setProgress(1.0)
+                        self?.circularProgressView?.lineWidth = 8
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            self?.vwProgress.isHidden = true
+                            self?.btnDownload.isHidden = false
+                            self?.isDownload = true
+                            self?.circularProgressView.resetProgress()
+                            let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+                            self?.btnDownload.setImage(image, for: .normal)
+                            self?.btnDownload.tintColor = .systemGreen
+                            self?.btnDownload.layer.cornerRadius = 15
+                            self?.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+                            self?.btnDownload.layer.borderWidth = 2
+                            self?.btnDownload.clipsToBounds = true
+                            self?.btnDownload.isUserInteractionEnabled = false
+                            self?.configureDownload(index: self?.selectedIndex ?? 0)
+                        }
+                    }
+                }
+            }
+            .response { response in
+                if let destinationURL = response.fileURL {
+                    print("File downloaded to: \(destinationURL)")
+                    UserDefaults.standard.set(item.imageURL?.absoluteString, forKey: "\(url.deletingPathExtension().lastPathComponent)")
+                } else if let error = response.error {
+                    print("Download error: \(error.localizedDescription)")
+                }
+            }
+        } else {
+            let vc = storyboard?.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
+            vc.isshowbackButton = true
+            let navVC = UINavigationController(rootViewController: vc)
+            navVC.navigationBar.isHidden = true
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+        }
     }
-    
-    
+
     @objc func lyricsBtnClicked() {
         guard let trackItem = track?[selectedIndex] else {
             print("No track selected for lyrics")
@@ -313,6 +382,57 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         vc.lyricnew = self.lyricSynced
         self.present(vc, animated: true)
     }
+
+    @objc private func handleIAPPurchase() {
+        isPurchaseSuccess = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            self.isPurchaseSuccess = false
+        }
+    }
+    
+    // Check if track is already downloaded
+    func isAlreadyDownloaded(track: PodcastObject) {
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let isInDownloads = savedTracks.first { $0.isDownload && $0.trackid == track.convertToSongModel().trackid }
+        isDownload = isInDownloads != nil
+        if isDownload {
+            let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+            btnDownload.setImage(image, for: .normal)
+            btnDownload.tintColor = .systemGreen
+            btnDownload.layer.cornerRadius = 15
+            btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+            btnDownload.layer.borderWidth = 2
+            btnDownload.clipsToBounds = true
+            btnDownload.isUserInteractionEnabled = false
+        } else {
+            btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+            btnDownload.layer.cornerRadius = 0
+            btnDownload.layer.borderWidth = 0
+            btnDownload.layer.borderColor = nil
+            btnDownload.clipsToBounds = false
+            btnDownload.isUserInteractionEnabled = true
+        }
+        print("Checked download status for track: \(track.trackName ?? "Unknown"), isDownload: \(isDownload)")
+    }
+
+    // Configure download status in UserDefaults
+    func configureDownload(index: Int) {
+        guard let item = track?[safe: index] else {
+            print("Error: No track to configure download at index \(index)")
+            return
+        }
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        let songModel = item.convertToSongModel()
+        if let trackIndex = savedTracks.firstIndex(where: { $0.trackid == songModel.trackid }) {
+            savedTracks[trackIndex].isDownload = isDownload
+        } else {
+            var newItem = songModel
+            newItem.isDownload = isDownload
+            savedTracks.append(newItem)
+        }
+        UserDefaultsManager.shared.localTracksData = savedTracks
+        print("Configured download for track: \(item.trackName ?? "Unknown"), isDownload: \(isDownload)")
+    }
 }
 
 extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
@@ -322,7 +442,8 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let mainCount = 2
-        return mainCount + ((tempTrack?.count ?? 0) - 1)
+        let trackCount = (tempTrack?.count ?? 0) > 1 ? (tempTrack!.count - 1) : 0
+        return mainCount + trackCount
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -596,8 +717,8 @@ extension MyMusicPlayerViewController {
     }
     
     func createMediaArtwork(from image: UIImage) -> MPMediaItemArtwork? {
-        guard let cgImage = image.cgImage else {
-            print("Error: Failed to create CGImage from UIImage")
+        guard #available(iOS 10.0, *), let cgImage = image.cgImage else {
+            print("Error: Failed to create CGImage from UIImage or iOS version < 10.0")
             return nil
         }
         return MPMediaItemArtwork(boundsSize: image.size) { _ in
@@ -652,13 +773,17 @@ extension MyMusicPlayerViewController {
     }
 
     func pausePlayer() {
-        player?.pause()
+        if let player = player, let timeObserver = timeObserver {
+            player.pause()
+            player.removeTimeObserver(timeObserver)
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+            self.timeObserver = nil
+        }
         self.playerSlider.setValue(0, animated: true)
         self.populateLabelWithTime(self.lblStartTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
-        if let timeObserver = timeObserver, let player = player {
-            player.removeTimeObserver(timeObserver)
-        }
+        self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+        updateNowPlaying(isPause: true)
     }
 }
 

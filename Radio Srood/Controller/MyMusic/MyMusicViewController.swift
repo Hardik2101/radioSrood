@@ -83,7 +83,7 @@ class MyMusicViewController: UIViewController {
     
     private func mapArtCoverURL() {
         for songData in trackData {
-            if let url = getArtCover(track: songData.trackName, artist: songData.artistName) {
+            if let url = getArtCover(track: songData.trackName ?? "", artist: songData.artistName ?? "") {
                     songData.imageURL = url
             }
         }
@@ -147,7 +147,7 @@ class MyMusicViewController: UIViewController {
             if let selectedIndex = selectedIndex {
                 do {
                     if let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                        try FileManager.default.removeItem(atPath: documentsUrl.path + "/" + self.trackData[selectedIndex].file.lastPathComponent)
+                        try FileManager.default.removeItem(atPath: documentsUrl.path + "/" + (self.trackData[selectedIndex].file?.lastPathComponent ?? ""))
                         self.trackData.remove(at: selectedIndex)
                         myMusicCollectionView.reloadData()
                     }

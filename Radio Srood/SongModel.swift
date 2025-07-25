@@ -147,11 +147,11 @@ class SongModel: NSObject, NSCoding {
         let coverURL = URL(string: artcover) ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
         if let urlString = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let fullURL = URL(string: songPath + urlString) {
-            return PodcastObject(file: fullURL, trackName: track, artistName: artist, imageURL: coverURL)
+            return PodcastObject(file: fullURL, trackName: track, artistName: artist, imageURL: coverURL, trackid: trackid)
         } else if let fallbackURL = URL(string: mediaPath) {
-            return PodcastObject(file: fallbackURL, trackName: track, artistName: artist, imageURL: coverURL)
+            return PodcastObject(file: fallbackURL, trackName: track, artistName: artist, imageURL: coverURL, trackid: trackid)
         } else {
-            return PodcastObject(file: URL(string: "https://defaultaudio.com/placeholder.mp3")!, trackName: track, artistName: artist, imageURL: coverURL)
+            return PodcastObject(file: URL(string: "https://defaultaudio.com/placeholder.mp3")!, trackName: track, artistName: artist, imageURL: coverURL,trackid: trackid)
         }
     }
 
