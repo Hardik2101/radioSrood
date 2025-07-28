@@ -25,9 +25,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet weak var btnLike: UIButton!
     @IBOutlet var vwLyrics: UIView!
     @IBOutlet weak var heightView: NSLayoutConstraint!
-
     @IBOutlet var vwProgress: UIView!
-
 
     var track: [PodcastObject]?
     var tempTrack: [PodcastObject]?
@@ -42,13 +40,14 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isPlay: Bool = true
     var isSetMusic = true
     var isLike = false
-    var isDownload = false // Added for download status
+    var isDownload = false
     var isRepeat = false
     var timeObserver: Any?
     private var lyricSynced: String = ""
     var imageURl: URL?
     var circularProgressView: CircularProgressView!
-    private var isPurchaseSuccess: Bool = false // Added for IAP handling
+    private var isPurchaseSuccess: Bool = false
+    private var isBookMarked: Bool = false // Replaced isMyMusic with isBookMarked for consistency
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -202,8 +201,9 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         self.trackTitle.text = track.trackName
         self.artistName.text = track.artistName
-        isAlreadyDownloaded(track: track) // Check download status
+        isAlreadyDownloaded(track: track)
         isAlreadyLiked(track: track)
+        isAlreadyBookmarked(track: track)
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             if let lyricItem = lyricItem {
                 print("✅ Artist: \(lyricItem.artistName)")
@@ -226,7 +226,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         if isSetMusic {
             isSetMusic = false
-            self.play(url: track.file ?? URL(string: "")!, isPlay: self.isPlay)
+            self.play(url: track.file ?? URL(string: "https://defaultaudio.com/placeholder.mp3")!, isPlay: self.isPlay)
         }
         
         AppPlayer.miniPlayerInfo = BasicDetail(
@@ -251,12 +251,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
             if indexToScroll >= 0 && indexToScroll < radioTableView.numberOfRows(inSection: 0) {
                 let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
-                radioTableView.scrollToRow(at: indexPathToScroll, at: .top, animated: true)
+                radioTableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
             } else {
                 print("Invalid index for scrolling: \(indexToScroll)")
+                radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
             }
         } else {
-            player?.pause()
+            pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
         }
     }
@@ -271,12 +272,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
             if indexToScroll >= 0 && indexToScroll < radioTableView.numberOfRows(inSection: 0) {
                 let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
-                radioTableView.scrollToRow(at: indexPathToScroll, at: .top, animated: true)
+                radioTableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
             } else {
                 print("Invalid index for scrolling: \(indexToScroll)")
+                radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
             }
         } else {
-            player?.pause()
+            pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
         }
     }
@@ -308,15 +310,15 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
 
     @IBAction func likeBtnPressed(_ sender: Any) {
         if isLike {
-                btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
-                isLike = false
-                showToast(message: "Removed from favorites", font: .systemFont(ofSize: 12.0))
-            } else {
-                btnLike.setImage(UIImage(named: "ic_like_filled"), for: .normal)
-                isLike = true
-                showToast(message: "Added to favorites", font: .systemFont(ofSize: 12.0))
-            }
-            configureLike(index: selectedIndex)
+            btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
+            isLike = false
+            showToast(message: "Removed from favorites", font: .systemFont(ofSize: 12.0))
+        } else {
+            btnLike.setImage(UIImage(named: "ic_like_filled"), for: .normal)
+            isLike = true
+            showToast(message: "Added to favorites", font: .systemFont(ofSize: 12.0))
+        }
+        configureLike(index: selectedIndex)
     }
     
     @IBAction func clickOn_btnDownload(_ sender: UIButton) {
@@ -343,12 +345,12 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             })
             .downloadProgress { [weak self] progress in
                 DispatchQueue.main.async {
-                    self?.circularProgressView.setProgress(Float(CGFloat(Float(progress.fractionCompleted))))
+                    self?.circularProgressView.setProgress(Float(progress.fractionCompleted))
                 }
                 if progress.fractionCompleted == 1.0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self?.circularProgressView.setProgress(1.0)
-                        self?.circularProgressView?.lineWidth = 8
+                        self?.circularProgressView.lineWidth = 8
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             self?.vwProgress.isHidden = true
                             self?.btnDownload.isHidden = false
@@ -386,7 +388,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func lyricsBtnClicked() {
-        guard let trackItem = track?[selectedIndex] else {
+        guard let trackItem = track?[safe: selectedIndex] else {
             print("No track selected for lyrics")
             return
         }
@@ -397,39 +399,89 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         self.present(vc, animated: true)
     }
 
+    @objc func moreInfoBtnClicked() {
+        guard let trackItem = track?[safe: selectedIndex] else {
+            print("Error: No track for more info")
+            return
+        }
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayListViewController") as! PlayListViewController
+        vc.songToSave = trackItem.convertToSongModel()
+        vc.modalPresentationStyle = .fullScreen
+        self.present(vc, animated: true)
+    }
+    
+    @objc func optionMenuBtnClicked() {
+        guard let trackItem = track?[safe: selectedIndex] else {
+            print("Error: No track for options")
+            return
+        }
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayerOptionViewController") as! PlayerOptionViewController
+        vc.currentSong = trackItem.convertToSongModel()
+        vc.lyricsNew = self.lyricSynced
+        vc.modalPresentationStyle = .fullScreen
+        self.present(vc, animated: true)
+    }
+    
+    @objc func addToCollection() {
+        guard let trackItem = track?[safe: selectedIndex] else {
+            print("Error: No track to add to collection")
+            return
+        }
+        isBookMarked.toggle()
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        let songModel = trackItem.convertToSongModel()
+        if let trackIndex = savedTracks.firstIndex(where: { $0.trackid == songModel.trackid }) {
+            savedTracks[trackIndex].isBookMarked = isBookMarked
+        } else {
+            var newItem = songModel
+            newItem.isBookMarked = isBookMarked
+            savedTracks.append(newItem)
+        }
+        UserDefaultsManager.shared.localTracksData = savedTracks
+        let message = isBookMarked ? "Successfully added to My Collection" : "Removed from My Collection"
+        showToast(message: message, font: .systemFont(ofSize: 12.0))
+        print("Bookmark updated for track: \(trackItem.trackName ?? "Unknown"), trackid: \(songModel.trackid), isBookMarked: \(isBookMarked)")
+        // Reload only the options cell
+        DispatchQueue.main.async {
+            self.radioTableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .none)
+        }
+    }
+    
     @objc private func handleIAPPurchase() {
         isPurchaseSuccess = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             self.isPurchaseSuccess = false
         }
+        manageTableViewScroll() // Update table height if ads are removed
     }
     
-    // Check if track is already downloaded
     func isAlreadyDownloaded(track: PodcastObject) {
         let savedTracks = UserDefaultsManager.shared.localTracksData
-        let isInDownloads = savedTracks.first { $0.isDownload && $0.trackid == track.convertToSongModel().trackid }
+        let songModel = track.convertToSongModel()
+        let isInDownloads = savedTracks.first { $0.isDownload && $0.trackid == songModel.trackid }
         isDownload = isInDownloads != nil
-        if isDownload {
-            let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
-            btnDownload.setImage(image, for: .normal)
-            btnDownload.tintColor = .systemGreen
-            btnDownload.layer.cornerRadius = 15
-            btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
-            btnDownload.layer.borderWidth = 2
-            btnDownload.clipsToBounds = true
-            btnDownload.isUserInteractionEnabled = false
-        } else {
-            btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
-            btnDownload.layer.cornerRadius = 0
-            btnDownload.layer.borderWidth = 0
-            btnDownload.layer.borderColor = nil
-            btnDownload.clipsToBounds = false
-            btnDownload.isUserInteractionEnabled = true
+        DispatchQueue.main.async {
+            if self.isDownload {
+                let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
+                self.btnDownload.setImage(image, for: .normal)
+                self.btnDownload.tintColor = .systemGreen
+                self.btnDownload.layer.cornerRadius = 15
+                self.btnDownload.layer.borderColor = UIColor.systemGreen.cgColor
+                self.btnDownload.layer.borderWidth = 2
+                self.btnDownload.clipsToBounds = true
+                self.btnDownload.isUserInteractionEnabled = false
+            } else {
+                self.btnDownload.setImage(UIImage(named: "ic_download"), for: .normal)
+                self.btnDownload.layer.cornerRadius = 0
+                self.btnDownload.layer.borderWidth = 0
+                self.btnDownload.layer.borderColor = nil
+                self.btnDownload.clipsToBounds = false
+                self.btnDownload.isUserInteractionEnabled = true
+            }
         }
-        print("Checked download status for track: \(track.trackName ?? "Unknown"), isDownload: \(isDownload)")
+        print("Checked download status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isDownload: \(isDownload)")
     }
 
-    // Configure download status in UserDefaults
     func configureDownload(index: Int) {
         guard let item = track?[safe: index] else {
             print("Error: No track to configure download at index \(index)")
@@ -445,7 +497,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             savedTracks.append(newItem)
         }
         UserDefaultsManager.shared.localTracksData = savedTracks
-        print("Configured download for track: \(item.trackName ?? "Unknown"), isDownload: \(isDownload)")
+        print("Configured download for track: \(item.trackName ?? "Unknown"), trackid: \(songModel.trackid), isDownload: \(isDownload)")
     }
     
     func isAlreadyLiked(track: PodcastObject) {
@@ -453,11 +505,12 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         let songModel = track.convertToSongModel()
         let isInFav = savedTracks.first { $0.isFav && $0.trackid == songModel.trackid }
         isLike = isInFav != nil
-        btnLike.setImage(UIImage(named: isLike ? "ic_like_filled" : "ic_like"), for: .normal)
-        print("Checked like status for track: \(track.trackName ?? "Unknown"), isLike: \(isLike)")
+        DispatchQueue.main.async {
+            self.btnLike.setImage(UIImage(named: self.isLike ? "ic_like_filled" : "ic_like"), for: .normal)
+        }
+        print("Checked like status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isLike: \(isLike)")
     }
 
-    // Configure like status in UserDefaults
     func configureLike(index: Int) {
         guard let item = track?[safe: index] else {
             print("Error: No track to configure like at index \(index)")
@@ -473,9 +526,16 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             savedTracks.append(newItem)
         }
         UserDefaultsManager.shared.localTracksData = savedTracks
-        print("Configured like for track: \(item.trackName ?? "Unknown"), isLike: \(isLike)")
+        print("Configured like for track: \(item.trackName ?? "Unknown"), trackid: \(songModel.trackid), isLike: \(isLike)")
     }
 
+    func isAlreadyBookmarked(track: PodcastObject) {
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        let songModel = track.convertToSongModel()
+        let isInCollection = savedTracks.first { $0.isBookMarked && $0.trackid == songModel.trackid }
+        isBookMarked = isInCollection != nil
+        print("Checked bookmark status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isBookMarked: \(isBookMarked)")
+    }
 }
 
 extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
@@ -484,9 +544,11 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let mainCount = 2
+        let mainCount = 2 // Banner + Options
         let trackCount = (tempTrack?.count ?? 0) > 1 ? (tempTrack!.count - 1) : 0
-        return mainCount + trackCount
+        let totalRows = mainCount + trackCount
+        print("Row count: mainCount=\(mainCount), trackCount=\(trackCount), totalRows=\(totalRows)")
+        return totalRows
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -514,8 +576,25 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
             cell.backgroundColor = .clear
             return cell
         case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as! RecentPlayerOptionCell
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as? RecentPlayerOptionCell else {
+                print("Error: Failed to dequeue RecentPlayerOptionCell")
+                let fallbackCell = UITableViewCell()
+                fallbackCell.textLabel?.text = "Options Unavailable"
+                fallbackCell.textLabel?.textColor = .white
+                fallbackCell.backgroundColor = .clear
+                return fallbackCell
+            }
+            cell.btnLyrics.addTarget(self, action: #selector(lyricsBtnClicked), for: .touchUpInside)
+            cell.btnMoreInfo.addTarget(self, action: #selector(moreInfoBtnClicked), for: .touchUpInside)
+            cell.btnOption.addTarget(self, action: #selector(optionMenuBtnClicked), for: .touchUpInside)
+            cell.btnAddtoCollection.addTarget(self, action: #selector(addToCollection), for: .touchUpInside)
+            // Set bookmark button image
+            let item = track?[safe: selectedIndex]
+            let savedTracks = UserDefaultsManager.shared.localTracksData
+            let isBookmarked = savedTracks.first { $0.isBookMarked && $0.trackid == item?.convertToSongModel().trackid } != nil
+            cell.btnAddtoCollection.setImage(UIImage(named: isBookmarked ? "ic_bookmark_fill" : "ic_bookmark"), for: .normal)
             cell.selectionStyle = .none
+            cell.backgroundColor = .clear
             return cell
         default:
             let cell = tableView.dequeueReusableCell(withIdentifier: "MusicListCell", for: indexPath) as! MusicListCell
@@ -530,6 +609,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 cell.trackTitle.text = item.trackName
                 cell.artistName.text = item.artistName
             }
+            cell.backgroundColor = .clear
             return cell
         }
     }
@@ -567,11 +647,12 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                         self.handleRecentInView(index: self.selectedIndex)
                         self.manageTableViewScroll()
                         let totalRowsInSection = tableView.numberOfRows(inSection: 0)
-                        if selectedTrackIndex < totalRowsInSection {
-                            let indexPathToScroll = IndexPath(row: selectedTrackIndex, section: 0)
-                            tableView.scrollToRow(at: indexPathToScroll, at: .top, animated: true)
+                        let indexToScroll = 2 + self.selectedIndex - (self.firstTrackList?.count ?? 0)
+                        if indexToScroll >= 2 && indexToScroll < totalRowsInSection {
+                            let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
+                            tableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
                         } else {
-                            tableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                            tableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
                         }
                     } else {
                         print("Invalid selected index: \(selectedTrackIndex)")
@@ -579,6 +660,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 }
             }
         }
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 

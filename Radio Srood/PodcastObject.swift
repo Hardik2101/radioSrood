@@ -14,8 +14,23 @@ class PodcastObject: NSObject, NSCoding {
     var dateAdded: String?
     var artcover: String?
     var artcover200: URL?
+    var isBookMarked: Bool?
 
-    init(file: URL? = nil, mediaPath: String? = nil, trackName: String? = nil, artistName: String? = nil, image: UIImage? = nil, imageURL: URL? = nil, trackid: Int? = nil, likes: String? = nil, playcounts: Double? = nil, dateAdded: String? = nil, artcover: String? = nil, artcover200: URL? = nil) {
+    init(
+        file: URL? = nil,
+        mediaPath: String? = nil,
+        trackName: String? = nil,
+        artistName: String? = nil,
+        image: UIImage? = nil,
+        imageURL: URL? = nil,
+        trackid: Int? = nil,
+        likes: String? = nil,
+        playcounts: Double? = nil,
+        dateAdded: String? = nil,
+        artcover: String? = nil,
+        artcover200: URL? = nil,
+        isBookMarked: Bool
+     = false) {
         self.file = file
         self.mediaPath = mediaPath
         self.trackName = trackName
@@ -28,6 +43,7 @@ class PodcastObject: NSObject, NSCoding {
         self.dateAdded = dateAdded
         self.artcover = artcover
         self.artcover200 = artcover200
+         self.isBookMarked = isBookMarked
     }
 
     // MARK: - NSCoding
@@ -44,6 +60,7 @@ class PodcastObject: NSObject, NSCoding {
         coder.encode(dateAdded, forKey: "dateAdded")
         coder.encode(artcover, forKey: "artcover")
         coder.encode(artcover200, forKey: "artcover200")
+        coder.encode(isBookMarked, forKey: "isBookMarked")
     }
 
     required init?(coder: NSCoder) {
@@ -59,6 +76,7 @@ class PodcastObject: NSObject, NSCoding {
         self.dateAdded = coder.decodeObject(forKey: "dateAdded") as? String
         self.artcover = coder.decodeObject(forKey: "artcover") as? String
         self.artcover200 = coder.decodeObject(forKey: "artcover200") as? URL
+        self.isBookMarked = coder.decodeObject(forKey: "isBookMarked") as? Bool
     }
 }
 
