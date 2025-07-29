@@ -24,6 +24,8 @@ class PlayerOptionViewController: UIViewController , PlayListViewControllerDeleg
     @IBOutlet weak var imgPlayedSong: UIImageView!
     @IBOutlet weak var viewLyrics: UIView!
     @IBOutlet weak var lblMyMusic: UILabel!
+    @IBOutlet var vwInfo: UIView!
+
     var currentSong = SongModel()
     var isMyMusic = false
     
@@ -42,6 +44,10 @@ class PlayerOptionViewController: UIViewController , PlayListViewControllerDeleg
         lblPlayedSongName.text = currentSong.track
         if let url = URL(string: currentSong.artcover) {
             imgPlayedSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+        }
+        vwInfo.isHidden = true
+        if track != nil {
+            vwInfo.isHidden = false
         }
         // Do any additional setup after loading the view.
     }
