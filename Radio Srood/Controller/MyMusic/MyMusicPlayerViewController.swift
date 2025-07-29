@@ -49,6 +49,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     private var isPurchaseSuccess: Bool = false
     private var isBookMarked: Bool = false // Replaced isMyMusic with isBookMarked for consistency
 
+    var isShowOptionList: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -201,9 +203,19 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         self.trackTitle.text = track.trackName
         self.artistName.text = track.artistName
+        
+        if isShowOptionList {
+            btnDownload.isHidden = false
+            btnLike.isHidden = false
+        } else {
+            btnDownload.isHidden = true
+            btnLike.isHidden = true
+
+        }
         isAlreadyDownloaded(track: track)
         isAlreadyLiked(track: track)
         isAlreadyBookmarked(track: track)
+
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             if let lyricItem = lyricItem {
                 print("✅ Artist: \(lyricItem.artistName)")

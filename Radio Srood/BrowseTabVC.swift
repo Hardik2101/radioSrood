@@ -780,6 +780,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
             vc.selectedIndex = indexPath.row
             vc.tempTrack = recentTracks
             vc.track = recentTracks
+            vc.isShowOptionList = true
             self.navigationController?.pushViewController(vc, animated: true)
 
         } else {
