@@ -208,6 +208,21 @@ class BrowseTabVC: UI_VC {
         tfSearchBar.rightView = containerView
         tfSearchBar.rightViewMode = .whileEditing
         tfSearchBar.rightViewMode = .always
+        tfSearchBar.placeholder = "Search,Artist and song"
+
+        if let image = UIImage(systemName: "magnifyingglass") {
+            let imageView = UIImageView(image: image)
+            imageView.tintColor = .gray // Optional: Set tint if using SF Symbols
+            imageView.contentMode = .scaleAspectFit
+            imageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+
+            let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 36, height: 24))
+            paddingView.addSubview(imageView)
+            imageView.center = paddingView.center
+
+            tfSearchBar.leftView = paddingView
+            tfSearchBar.leftViewMode = .always
+        }
 
 //        vwAds.isHidden = true
 //        imgAdClose.isHidden = true
