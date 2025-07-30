@@ -187,7 +187,20 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             print("TableView content height: \(contentHeight)")
         }
     }
-    
+    func sanitizeStreamURL(_ urlString: String?) -> URL? {
+        guard let urlString = urlString else { return nil }
+
+        // Decode percent encoding
+        var decoded = urlString.removingPercentEncoding ?? urlString
+        
+        // If it accidentally includes full https:// inside, extract the last one
+        if let range = decoded.range(of: "https://", options: .backwards) {
+            decoded = String(decoded[range.lowerBound...])
+        }
+        
+        return URL(string: decoded)
+    }
+
     func handleRecentInView(index: Int) {
         guard index >= 0, let tracks = track, index < tracks.count else {
             print("Invalid track index: \(index)")
@@ -238,9 +251,17 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         if isSetMusic {
             isSetMusic = false
-            self.play(url: track.file ?? URL(string: "https://defaultaudio.com/placeholder.mp3")!, isPlay: self.isPlay)
+            if let fileURL = track.file {
+                let safeURL: URL
+                if fileURL.isFileURL {
+                    safeURL = fileURL
+                } else {
+                    safeURL = sanitizeStreamURL(fileURL.absoluteString) ?? URL(string: "https://defaultaudio.com/placeholder.mp3")!
+                }
+                self.play(url: safeURL, isPlay: self.isPlay)
+            }
         }
-        
+
         AppPlayer.miniPlayerInfo = BasicDetail(
             songImage: track.imageURL?.absoluteString ?? "",
             songNameTitle: track.trackName ?? "",
