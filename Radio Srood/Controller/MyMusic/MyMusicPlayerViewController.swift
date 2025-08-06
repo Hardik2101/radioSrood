@@ -6,6 +6,10 @@ import GoogleMobileAds
 import StoreKit
 import MediaPlayer
 import AVKit
+import SpotlightLyrics
+import AVKit
+import AVPlayerViewControllerSubtitles
+
 
 class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet weak var radioTableView: UITableView!
@@ -27,6 +31,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet weak var heightView: NSLayoutConstraint!
     @IBOutlet var vwProgress: UIView!
 
+    @IBOutlet weak var lblLyricsText: UILabel!
     var track: [PodcastObject]?
     var tempTrack: [PodcastObject]?
     var firstTrackList: [PodcastObject]?
@@ -50,6 +55,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     private var isBookMarked: Bool = false // Replaced isMyMusic with isBookMarked for consistency
 
     var isShowOptionList: Bool = false
+    private var parsedLyrics: [LyricLine] = []
+    private var lastIndex: Int? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,6 +75,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         if let reveal = self.revealViewController() {
             self.view!.addGestureRecognizer(reveal.panGestureRecognizer())
         }
+        self.lblLyricsText.text = ""
         handleRecentInView(index: self.selectedIndex)
         self.manageTableViewScroll()
         loadNativeAd()
@@ -128,6 +136,48 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
+    }
+    
+    func showLyric(toTime time: TimeInterval) {
+        guard !parsedLyrics.isEmpty else { return }
+        guard let index = parsedLyrics.firstIndex(where: { $0.time >= time }) else {
+            return
+        }
+        guard lastIndex == nil || index - 1 != lastIndex else {
+            return
+        }
+        if index > 0 {
+            let line = parsedLyrics[index - 1]
+            lastIndex = index - 1
+            print("🎵 Lyric: \(line.text)")
+            
+            if vwLyrics.isHidden {
+                self.lblLyricsText.text = ""
+            }else {
+                self.lblLyricsText.text = line.text
+            }
+        }
+    }
+    
+    private func parseLyricSynced() {
+        parsedLyrics.removeAll()
+        let lines = lyricSynced.components(separatedBy: .newlines)
+        let regex = try? NSRegularExpression(pattern: #"\[(\d{2}):(\d{2})\.(\d{2})\](.*)"#)
+        for line in lines {
+            guard let match = regex?.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
+                  match.numberOfRanges == 5,
+                  let minRange = Range(match.range(at: 1), in: line),
+                  let secRange = Range(match.range(at: 2), in: line),
+                  let msecRange = Range(match.range(at: 3), in: line),
+                  let textRange = Range(match.range(at: 4), in: line)
+            else { continue }
+            let minutes = Double(line[minRange]) ?? 0
+            let seconds = Double(line[secRange]) ?? 0
+            let millis = Double(line[msecRange]) ?? 0
+            let time = minutes * 60 + seconds + millis / 100
+            let text = String(line[textRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            parsedLyrics.append(LyricLine(time: time, text: text))
+        }
     }
     
     @objc func didBecomeActiveNotificationReceived() {
@@ -228,13 +278,14 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         isAlreadyDownloaded(track: track)
         isAlreadyLiked(track: track)
         isAlreadyBookmarked(track: track)
-
+        lastIndex = nil
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             if let lyricItem = lyricItem {
                 print("✅ Artist: \(lyricItem.artistName)")
                 print("✅ Track: \(lyricItem.trackName)")
                 print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
                 self.lyricSynced = lyricItem.syncedLyrics
+                self.parseLyricSynced()
             } else {
                 print("⚠️ No lyrics found.")
                 self.lyricSynced = ""
@@ -243,9 +294,12 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                 if self.lyricSynced.isEmpty {
                     self.heightView.constant = 0
                     self.vwLyrics.isHidden = true
+                    self.lblLyricsText.text = ""
                 } else {
                     self.heightView.constant = 20
                     self.vwLyrics.isHidden = false
+                    self.lblLyricsText.text = ""
+
                 }
             }
         }
@@ -725,8 +779,18 @@ extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLo
 
 extension MyMusicPlayerViewController {
     func play(url: URL, isPlay: Bool = false) {
+        print("Playing URL: \(url)")
+        // Ensure previous player is fully cleared
+        if let player = player, let timeObserver = timeObserver {
+            player.pause()
+            player.removeTimeObserver(timeObserver)
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+            self.timeObserver = nil
+//            self.currentPlayer = nil
+        }
         let playerItem = AVPlayerItem(url: url)
         player = PlayObserver(playerItem: playerItem)
+//        currentPlayer = player
         self.playerSlider.minimumValue = 0.0
         self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
@@ -741,12 +805,20 @@ extension MyMusicPlayerViewController {
         } else {
             self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
             self.updateNowPlaying(isPause: false)
+            let subtitleURL = URL(string: "https://lyric.srood.stream/jostojo?artist=Fardin%20Faryad&track=Aziz%20Jan&api_key=arman")
+            let parser = try? Subtitles(file: subtitleURL!, encoding: .utf8)
+            player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: .main) { [weak self] time in
+                guard let self = self else { return }
+                if player?.currentItem?.status == .readyToPlay {
+                    let currentSeconds = CMTimeGetSeconds(player?.currentTime() ?? .zero)
+                    self.showLyric(toTime: currentSeconds)
+                }
+            }
             player?.play()
+            print("Player started for URL: \(url)")
         }
-//        self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
-//        self.isLike = false
         self.setupNowPlaying()
-        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
             guard let self = self else { return }
             DispatchQueue.main.async {

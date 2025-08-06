@@ -13,7 +13,7 @@ protocol MusicPlayerViewControllerDelegate: AnyObject {
     func dismissMusicPlayer()
 }
 
-private struct LyricLine {
+ struct LyricLine {
     let time: TimeInterval
     let text: String
 }
