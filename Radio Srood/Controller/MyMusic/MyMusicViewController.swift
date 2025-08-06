@@ -24,6 +24,7 @@ class MyMusicViewController: UIViewController {
     var isDownload = false
     var selectedIndex: Int?
     
+    var isShuffle = false
     let activityIndicator = UIActivityIndicatorView(style: .white)
     
     //Controller Lifecycle methods
@@ -180,12 +181,14 @@ class MyMusicViewController: UIViewController {
     
     @IBAction func clickOn_btnPlay(_ sender: Any) {
         guard !trackData.isEmpty else { return }
+        self.isShuffle = false
         playMusic(at: 0)
     }
 
     @IBAction func clickOn_btnShuffle(_ sender: Any) {
         guard !trackData.isEmpty else { return }
         let randomIndex = Int.random(in: 0..<trackData.count)
+        self.isShuffle = true
         playMusic(at: randomIndex)
     }
 
@@ -194,6 +197,7 @@ class MyMusicViewController: UIViewController {
         vc.selectedIndex = index
         vc.tempTrack = trackData
         vc.track = trackData
+        vc.isShuffle = self.isShuffle
         self.navigationController?.pushViewController(vc, animated: true)
     }
 

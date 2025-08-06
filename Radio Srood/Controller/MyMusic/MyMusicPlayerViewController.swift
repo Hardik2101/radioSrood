@@ -47,6 +47,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isLike = false
     var isDownload = false
     var isRepeat = false
+    var isShuffle: Bool = false
     var timeObserver: Any?
     private var lyricSynced: String = ""
     var imageURl: URL?
@@ -57,6 +58,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isShowOptionList: Bool = false
     private var parsedLyrics: [LyricLine] = []
     private var lastIndex: Int? = nil
+    
+    var shuffleQueue: [Int] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -251,14 +254,27 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         return URL(string: decoded)
     }
 
+    func resetShuffleQueue() {
+        guard let track = track else { return }
+        shuffleQueue = Array(0..<track.count).shuffled()
+    }
+
     func handleRecentInView(index: Int) {
-        guard index >= 0, let tracks = track, index < tracks.count else {
-            print("Invalid track index: \(index)")
+        var idx = index
+        if isShuffle, let tracks = track {
+            if shuffleQueue.isEmpty {
+                resetShuffleQueue()
+            }
+            idx = shuffleQueue.removeFirst()
+            selectedIndex = idx
+        }
+        guard idx >= 0, let tracks = track, idx < tracks.count else {
+            print("Invalid track index: \(idx)")
             return
         }
         self.artCoverImage.layer.cornerRadius = 3
         self.artCoverImage.layer.masksToBounds = true
-        let track = tracks[index]
+        let track = tracks[idx]
         if let imageURL = track.imageURL {
             artCoverImage.af_setImage(withURL: imageURL, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             bgImageView.af_setImage(withURL: imageURL, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
@@ -329,8 +345,20 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func backwardBtnPressed() {
-        if let track = track, selectedIndex > 0 {
-            selectedIndex -= 1
+        if let track = track {
+            if isShuffle {
+                // For backward, you may want to keep a history stack if you want true back navigation
+                if shuffleQueue.isEmpty {
+                    resetShuffleQueue()
+                }
+                selectedIndex = shuffleQueue.removeFirst()
+            } else if selectedIndex > 0 {
+                selectedIndex -= 1
+            } else {
+                pausePlayer()
+                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+                return
+            }
             isSetMusic = true
             isPlay = true
             handleRecentInView(index: selectedIndex)
@@ -350,8 +378,19 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func forwardBtnPressed() {
-        if let track = track, selectedIndex < track.count - 1 {
-            selectedIndex += 1
+        if let track = track {
+            if isShuffle {
+                if shuffleQueue.isEmpty {
+                    resetShuffleQueue()
+                }
+                selectedIndex = shuffleQueue.removeFirst()
+            } else if selectedIndex < track.count - 1 {
+                selectedIndex += 1
+            } else {
+                pausePlayer()
+                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+                return
+            }
             isSetMusic = true
             isPlay = true
             handleRecentInView(index: selectedIndex)
@@ -882,6 +921,9 @@ extension MyMusicPlayerViewController {
     }
 
     func isLastTrack() -> Bool {
+        if isShuffle {
+            return shuffleQueue.isEmpty
+        }
         guard let track = track else {
             return false
         }
@@ -1008,4 +1050,3 @@ extension MyMusicPlayerViewController {
         updateNowPlaying(isPause: true)
     }
 }
-
