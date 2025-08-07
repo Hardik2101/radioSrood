@@ -136,8 +136,17 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
             self.navigationController?.navigationBar.isTranslucent = true
         }
         TabbarVC.available?.miniPlayer.miniplayer(hide: true)
+        navigationItem.hidesBackButton = true
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Restore navigation bar
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        self.popToBack()
+    }
+    
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         TabbarVC.available?.miniPlayer.miniplayer(hide: false)
@@ -691,6 +700,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     
     @IBAction func actionClose(_ sender: Any) {
         self.dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
     
     @objc private func handleIAPPurchase() {

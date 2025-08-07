@@ -556,8 +556,8 @@ class BrowseTabVC: UI_VC {
         vc.groupID = groupID
         groupID = nil
         vc.homeHeader = browseheader.toHomeHeader!
-        vc.modalPresentationStyle = .overCurrentContext
-        self.present(vc, animated: true)
+        vc.modalPresentationStyle = .fullScreen // Changed from .overCurrentContext
+        navigationController?.pushViewController(vc, animated: true) // Alternative: push instead of present//        AppPlayer.miniPlayerInfo = BasicDetail(
     }
 
     func openMyMusicPlayerViewController(index: Int) {

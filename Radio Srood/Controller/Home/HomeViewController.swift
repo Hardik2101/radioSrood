@@ -863,10 +863,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         vc.groupID = groupID
         groupID = nil
         vc.homeHeader = homeHeader
-        vc.modalPresentationStyle = .overCurrentContext
-        
-        self.present(vc, animated: true)//navigationController?.pushViewController(vc, animated: true)
-//        AppPlayer.miniPlayerInfo = BasicDetail(
+        vc.modalPresentationStyle = .fullScreen // Changed from .overCurrentContext
+            navigationController?.pushViewController(vc, animated: true) // Alternative: push instead of present//        AppPlayer.miniPlayerInfo = BasicDetail(
 //            musicVC: vc
 //        )
 //        vc.prepareView()

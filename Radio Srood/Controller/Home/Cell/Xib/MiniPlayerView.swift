@@ -115,43 +115,67 @@ class MiniPlayerView: UIView {
     
     @IBAction func actionOpenSong(_ sender: Any) {
         //UIApplication.shared.keyWindow?.rootViewController ??
-        guard let root = TabbarVC.available?.selectedViewController else {
-            print("Root is nil")
-            return
-        }
-        if let vc = AppPlayer.miniPlayerInfo.musicVC {
-            if root.presentedViewController == nil { // Ensure no other view controller is being presented
-                if vc.presentingViewController == nil, vc.parent == nil { // Ensure `musicVC` is not already presented or embedded
-                    root.present(vc, animated: true)
+//        guard let root = TabbarVC.available?.selectedViewController else {
+//            print("Root is nil")
+//            return
+//        }
+//        if let vc = AppPlayer.miniPlayerInfo.musicVC {
+//            if root.presentedViewController == nil { // Ensure no other view controller is being presented
+//                if vc.presentingViewController == nil, vc.parent == nil { // Ensure `musicVC` is not already presented or embedded
+//                    root.present(vc, animated: true)
+//                } else {
+//                    print("musicVC is already part of a view hierarchy")
+//                }
+//            } else {
+//                print("A view controller is already being presented")
+//            }
+//        } else {
+//            print("miniPlayerInfo.musicVC is nil")
+//        }
+//
+//        if let vc = AppPlayer.miniPlayerInfo.radioVC as? RadioViewController {
+//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//            let radioVC = vc//storyboard.vc(RadioViewController.self)
+//            if root.presentedViewController == nil {
+//                root.present(radioVC, animated: true)
+//            } else {
+//                print("A view controller is already being presented or musicVC is already presented")
+//            }
+//        } else if let vc = AppPlayer.miniPlayerInfo.radioVC {
+//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//            let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
+//            if root.presentedViewController == nil {
+//                root.present(radioViewController, animated: true)
+//            } else {
+//                print("A view controller is already being presented or musicVC is already presented")
+//            }
+//        } else {
+//            print("miniPlayerInfo.radioVC is nil")
+//        }
+        
+        guard let root = TabbarVC.available?.selectedViewController as? UINavigationController else {
+                print("actionOpenSong: Root navigation controller is nil")
+                return
+            }
+            
+            if let topVC = root.topViewController, topVC is MusicPlayerViewController {
+                print("actionOpenSong: Top view controller is already MusicPlayerViewController, skipping push")
+                return
+            }
+            
+            print("actionOpenSong: musicVC = \(AppPlayer.miniPlayerInfo.musicVC)")
+            if let musicVC = AppPlayer.miniPlayerInfo.musicVC {
+                if musicVC.parent == nil && musicVC.presentingViewController == nil && !root.viewControllers.contains(musicVC) {
+                    print("actionOpenSong: Pushing MusicPlayerViewController")
+                    musicVC.navigationItem.hidesBackButton = true
+                    root.pushViewController(musicVC, animated: true)
+                    AppPlayer.miniPlayerInfo.musicVC = nil
                 } else {
-                    print("musicVC is already part of a view hierarchy")
+                    print("actionOpenSong: musicVC is already in the view hierarchy or navigation stack")
                 }
             } else {
-                print("A view controller is already being presented")
+                print("actionOpenSong: miniPlayerInfo.musicVC is nil")
             }
-        } else {
-            print("miniPlayerInfo.musicVC is nil")
-        }
-
-        if let vc = AppPlayer.miniPlayerInfo.radioVC as? RadioViewController {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let radioVC = vc//storyboard.vc(RadioViewController.self)
-            if root.presentedViewController == nil {
-                root.present(radioVC, animated: true)
-            } else {
-                print("A view controller is already being presented or musicVC is already presented")
-            }
-        } else if let vc = AppPlayer.miniPlayerInfo.radioVC {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
-            if root.presentedViewController == nil {
-                root.present(radioViewController, animated: true)
-            } else {
-                print("A view controller is already being presented or musicVC is already presented")
-            }
-        } else {
-            print("miniPlayerInfo.radioVC is nil")
-        }
     }
 }
 

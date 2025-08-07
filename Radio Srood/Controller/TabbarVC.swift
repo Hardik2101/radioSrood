@@ -1,7 +1,7 @@
 import UIKit
 
 
-class TabbarVC: UITabBarController {
+class TabbarVC: UITabBarController, UITabBarControllerDelegate {
     static var cacheVC: TabbarVC?
     static var available: TabbarVC? {
         CustomAlertController().topMostController() as? TabbarVC ?? cacheVC
@@ -16,7 +16,7 @@ class TabbarVC: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         TabbarVC.cacheVC = self
-
+        self.delegate = self
         setVCs()
         setupTabbar()
         addMiniPlayer()
