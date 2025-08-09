@@ -127,12 +127,6 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     deinit {
         UIApplication.shared.endReceivingRemoteControlEvents()
         MPNowPlayingInfoCenter.default().nowPlayingInfo = [:]
-        NotificationCenter.default.removeObserver(
-            self, name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"), object: nil
-        )
-        NotificationCenter.default.removeObserver(
-            self, name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil
-        )
         NotificationCenter.default.removeObserver(self)
         print("Remove screen")
     }
@@ -823,9 +817,7 @@ extension MyMusicPlayerViewController {
         if let player = player, let timeObserver = timeObserver {
             player.pause()
             player.removeTimeObserver(timeObserver)
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
             self.timeObserver = nil
-//            self.currentPlayer = nil
         }
         let playerItem = AVPlayerItem(url: url)
         player = PlayObserver(playerItem: playerItem)
@@ -878,6 +870,7 @@ extension MyMusicPlayerViewController {
             if let track = track, selectedIndex < track.count - 1 {
                 if let timeObserver = timeObserver, let player = player {
                     player.removeTimeObserver(timeObserver)
+                    self.timeObserver = nil
                 }
                 self.forwardBtnPressed()
             }
@@ -1040,7 +1033,6 @@ extension MyMusicPlayerViewController {
         if let player = player, let timeObserver = timeObserver {
             player.pause()
             player.removeTimeObserver(timeObserver)
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
             self.timeObserver = nil
         }
         self.playerSlider.setValue(0, animated: true)
