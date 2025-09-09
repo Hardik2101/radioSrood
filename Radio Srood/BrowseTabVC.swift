@@ -74,7 +74,7 @@ class BrowseTabVC: UI_VC {
         tblBrowse.register(UINib(nibName: "RJTVTableViewCell", bundle: nil), forCellReuseIdentifier: "RJTVTableViewCell")
         tblSearch.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
 //        loadBannerAds()
-//        
+//
 //        pageView.numberOfPages = featuredTop?.count ?? 0
 //        pageView.currentPage = 0
 ////////////////        DispatchQueue.main.async {
@@ -208,7 +208,7 @@ class BrowseTabVC: UI_VC {
         tfSearchBar.rightView = containerView
         tfSearchBar.rightViewMode = .whileEditing
         tfSearchBar.rightViewMode = .always
-        tfSearchBar.placeholder = "Search,Artist and song"
+        tfSearchBar.placeholder = "Search, Artist, Song or Album..."
 
         if let image = UIImage(systemName: "magnifyingglass") {
             let imageView = UIImageView(image: image)

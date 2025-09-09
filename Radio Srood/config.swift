@@ -1,42 +1,36 @@
 
 import UIKit
 
-//let BASE_BACKEND_URL =  "http://pamirtech.com/backend/srood/" // your  backend
-let BASE_BACKEND_URL =  "https://api.radiosrood.com/static/app/api/rSroodMainRadioData.json" // your  backend
+let BASE_BACKEND_URL =  "https://api.app.scdn.stream/rSroodMainRadioData.json" // your  backend
 let baseURL = "https://radiosrood.com/api/"
 let recentListURL = baseURL + "currentsongappv2.json"
 let currentLyricURL = baseURL + "currentlyric.json"
 let songPath = "https://mediahost.srood.stream/media/mp3/"
-let musicBaseUrl = "https://api.srood.stream/static/app/api/"
+let musicBaseUrl = "https://api.app.scdn.stream/"
 let redioHomeURL = musicBaseUrl + "rSroodMusicPageData.json"
 let newReleaseURL = musicBaseUrl + "newRelease.json"
 let trendingPlaylistURL = musicBaseUrl + "trendingTracks.json"
 let popularPlaylistURL = musicBaseUrl + "popularTracks.json"
 let playlistURL = musicBaseUrl + "rSroodPlaylistData.json"
 let featuredArtistURL = musicBaseUrl + "rSroodFeaturedArtistData.json"
-let lyricsURL = "https://api.srood.stream/static/app/lyrics/"
-let homeSponserURL = "https://api.srood.stream/static/app/api/rSroodMusicPageData.json"
-let homeSponserURL1 = "https://api.srood.stream/static/app/api/FeaturedData.json"
+let lyricsURL = "https://api.app.scdn.stream/lyrics/"
+let homeSponserURL = "https://api.app.scdn.stream/rSroodMusicPageData.json"
+let homeSponserURL1 = "https://api.app.scdn.stream/FeaturedData.json"
 
 let todayPickURLDetailed = "https://api.app.srood.stream/jostojo?v=today_top_pick&api_key=3bXcLWToFQkTDBqyknaediavkmTwW"
-let todayPickURL = "https://radiosrood.com/api/TodayTopPicksData.json"
+let todayPickURL = "https://api.app.srood.stream/TodayTopPicksData.json"
 
-
-let recentlyAdded = "https://radiosrood.com/api/RecentlyAddedData.json"
-let recentlyAddedDetailed = "https://api.app.srood.stream/jostojo?v=recently_added&api_key=3bXcLWToFQkTDBqyknaediavkmTwW"
+let recentlyAdded = "https://api.app.scdn.stream/RecentlyAddedData.json"
+let recentlyAddedDetailed = "https://api.app.scdn.stream/SroodRecentlyAdded-2jPol5W34knjMkdi3.json"
 
 let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 
 
 let lyricsBaseURL = "https://lyric.srood.stream/jostojo"
-let searchBaseURL = "https://srood.stream/search/jostojo"
-
-
-
-
+let searchBaseURL = "https://search.srood.stream/jostojo"
 
 let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"
-let GOOGLE_ADMOB_INTER               =    IAPHandler.shared.isGetPurchase() ? "" : "ca-app-pub-7049872613588191/5635919690"
+let GOOGLE_ADMOB_INTER               =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/5635919690"
 let GOOGLE_ADMOB_NATIVE              =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/7385126578"
 let GOOGLE_ADMOB_ForMiniPlayer       =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/5977355028"
 let GOOGLE_ADMOB_ForMusicPlayer      =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/7260832328"
