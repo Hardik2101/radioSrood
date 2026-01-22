@@ -244,6 +244,11 @@ class UI_VC: UIViewController {
     // Constraint to adjust, link it from storyboard in inherited view controllers
     @IBOutlet weak var bottomConstraint: NSLayoutConstraint?
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.view.backgroundColor = UIColor(hex: "1E1E1E")
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         fixMiniplayerSpace()

@@ -15,12 +15,18 @@ class TabbarVC: UITabBarController, UITabBarControllerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        view.backgroundColor = UIColor.black
+        tabBar.backgroundColor = .clear
+
         TabbarVC.cacheVC = self
-        self.delegate = self
+        delegate = self
+
         setVCs()
         setupTabbar()
         addMiniPlayer()
     }
+
     
     func setVCs() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -49,32 +55,42 @@ class TabbarVC: UITabBarController, UITabBarControllerDelegate {
     }
     
     func setupTabbar() {
-        if #available(iOS 13.0, *) {
-            let tabBarAppearance = UITabBarAppearance()
-            tabBarAppearance.backgroundColor = UIColor.black
-            
-            tabBarAppearance.stackedLayoutAppearance.normal.iconColor = UIColor.gray
-            tabBarAppearance.stackedLayoutAppearance.normal.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.gray]
-            
-            tabBarAppearance.stackedLayoutAppearance.selected.iconColor = UIColor.white
-            tabBarAppearance.stackedLayoutAppearance.selected.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-            
-            tabBar.standardAppearance = tabBarAppearance
-            
-            if #available(iOS 15.0, *) {
-                tabBar.scrollEdgeAppearance = tabBarAppearance
-            }
-        } else {
-            tabBar.barTintColor = UIColor.black
-            tabBar.tintColor = UIColor.white
-            tabBar.unselectedItemTintColor = UIColor.gray
+        if #available(iOS 15.0, *) {
+            let appearance = UITabBarAppearance()
+            appearance.configureWithTransparentBackground()
+
+            // ✅ REAL liquid glass
+            appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+
+            // ❌ DO NOT use white or default colors
+            appearance.backgroundColor = UIColor.clear
+
+            // Icons & text
+            appearance.stackedLayoutAppearance.normal.iconColor =
+                UIColor.white.withAlphaComponent(0.55)
+
+            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+                .foregroundColor: UIColor.white.withAlphaComponent(0.55)
+            ]
+
+            appearance.stackedLayoutAppearance.selected.iconColor = .white
+            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+                .foregroundColor: UIColor.white
+            ]
+
+            // ❌ Remove shadow line (causes white edge sometimes)
+            appearance.shadowColor = nil
+            appearance.shadowImage = nil
+
+            tabBar.standardAppearance = appearance
+            tabBar.scrollEdgeAppearance = appearance
+
+            tabBar.isTranslucent = true
+            tabBar.backgroundImage = UIImage()
         }
-        
-        tabBar.layer.shadowOffset = CGSize(width: 0, height: -2)
-        tabBar.layer.shadowRadius = 4
-        tabBar.layer.shadowColor = UIColor.black.cgColor
-        tabBar.layer.shadowOpacity = 0.25
     }
+
+
     
     func addMiniPlayer() {
         miniPlayer = MiniPlayerView()
