@@ -154,28 +154,29 @@ class MiniPlayerView: UIView {
 //        }
         
         guard let root = TabbarVC.available?.selectedViewController as? UINavigationController else {
-                print("actionOpenSong: Root navigation controller is nil")
-                return
-            }
-            
-            if let topVC = root.topViewController, topVC is MusicPlayerViewController {
-                print("actionOpenSong: Top view controller is already MusicPlayerViewController, skipping push")
-                return
-            }
-            
-            print("actionOpenSong: musicVC = \(AppPlayer.miniPlayerInfo.musicVC)")
-            if let musicVC = AppPlayer.miniPlayerInfo.musicVC {
-                if musicVC.parent == nil && musicVC.presentingViewController == nil && !root.viewControllers.contains(musicVC) {
-                    print("actionOpenSong: Pushing MusicPlayerViewController")
-                    musicVC.navigationItem.hidesBackButton = true
-                    root.pushViewController(musicVC, animated: true)
-                    AppPlayer.miniPlayerInfo.musicVC = nil
-                } else {
-                    print("actionOpenSong: musicVC is already in the view hierarchy or navigation stack")
-                }
+            print("actionOpenSong: Root navigation controller is nil")
+            return
+        }
+        
+        if let topVC = root.topViewController, topVC is MusicPlayerViewController {
+            print("actionOpenSong: Top view controller is already MusicPlayerViewController, skipping push")
+            return
+        }
+        
+        print("actionOpenSong: musicVC = \(AppPlayer.miniPlayerInfo.musicVC)")
+        if let musicVC = AppPlayer.miniPlayerInfo.musicVC {
+            if musicVC.parent == nil && musicVC.presentingViewController == nil && !root.viewControllers.contains(musicVC) {
+                print("actionOpenSong: Pushing MusicPlayerViewController")
+                musicVC.navigationItem.hidesBackButton = true
+                root.pushViewController(musicVC, animated: true)
+                // ❌ DON'T set this to nil - keep the reference
+                // AppPlayer.miniPlayerInfo.musicVC = nil
             } else {
-                print("actionOpenSong: miniPlayerInfo.musicVC is nil")
+                print("actionOpenSong: musicVC is already in the view hierarchy or navigation stack")
             }
+        } else {
+            print("actionOpenSong: miniPlayerInfo.musicVC is nil")
+        }
     }
 }
 

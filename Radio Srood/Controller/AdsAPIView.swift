@@ -131,12 +131,14 @@ class AdsAPIView: UIViewController {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
+    // In AdsAPIView.swift - make sure delegate is set
     @objc private func playerDidFinishPlaying() {
-        print("Song was ended.")
-        self.dismiss(animated: true)
-        delegate?.adsPlaybackDidFinish()
+        print("🎬 Ad playback finished")
+        self.dismiss(animated: true) { [weak self] in
+            print("🎬 Ad dismissed, calling delegate")
+            self?.delegate?.adsPlaybackDidFinish()
+        }
     }
-
     @IBAction func clickon_btnFollowUS(_ sender: Any) {
         guard let randomIndex = self.randomIndex,
               randomIndex >= 0 && randomIndex < adsCampaign.count else {

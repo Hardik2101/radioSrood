@@ -76,6 +76,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     private var parsedLyrics: [LyricLine] = []
     var isPlayerListTap = false
     var songCounter = 0
+    var pendingTrackAfterAd: (index: Int, fromQueue: Bool)?
+    var isWaitingForAd = false
+
     private var lyricSynced: String = ""
         var currentQueueTrack: Track? = nil // New: Stores the current queue track before removal
     override func viewDidLoad() {
@@ -677,61 +680,82 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         forwardButtonTapCount += 1
         let queue = PlaybackQueueManager.shared.getQueue()
         print("Forward pressed, queue count: \(queue.count), selectedIndex: \(selectedIndex), track count: \(track?.count ?? 0), forwardButtonTapCount: \(forwardButtonTapCount), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(queue.map { $0.track ?? "Unknown" })")
+        
+        // Determine next track
+        let nextTrackInfo: (index: Int, fromQueue: Bool)?
         if !queue.isEmpty {
-            // Play the first track from the queue
-            if let firstQueueTrack = queue.first {
-                print("Playing queue track: \(firstQueueTrack.track ?? "Unknown")")
-                playTrackAtIndex(0, fromQueue: true)
-            } else {
-                print("Error: Queue not empty but first track is nil")
-                pausePlayer()
-            }
+            nextTrackInfo = (0, true)
+            print("Next track will be from queue at index 0")
         } else if let track = track, selectedIndex < track.count - 1 {
-            // Play the next track from "Up Next"
-            print("Playing Up Next track at index: \(selectedIndex + 1)")
-            playTrackAtIndex(selectedIndex + 1, fromQueue: false)
+            nextTrackInfo = (selectedIndex + 1, false)
+            print("Next track will be from Up Next at index \(selectedIndex + 1)")
         } else {
-            // No more tracks
-            print("No more tracks to play")
-            pausePlayer()
+            nextTrackInfo = nil
+            print("No next track available")
         }
+        
         // Check ad condition
         if shouldPlayAdForwardBtnPressed() && !IAPHandler.shared.isGetPurchase() {
             print("Showing ad due to forwardButtonTapCount: \(forwardButtonTapCount)")
             player?.pause()
+            
+            // Store the next track info to play after ad
+            pendingTrackAfterAd = nextTrackInfo
+            isWaitingForAd = true
+            
             let vc = storyboard?.instantiateViewController(withIdentifier: "AdsAPIView") as! AdsAPIView
+            vc.delegate = self
             vc.modalPresentationStyle = .fullScreen
             self.present(vc, animated: true)
             forwardButtonTapCount = 0
+        } else {
+            // Play immediately if no ad
+            if let nextTrack = nextTrackInfo {
+                print("Playing next track immediately at index: \(nextTrack.index), fromQueue: \(nextTrack.fromQueue)")
+                playTrackAtIndex(nextTrack.index, fromQueue: nextTrack.fromQueue)
+            } else {
+                print("No more tracks to play")
+                pausePlayer()
+            }
         }
     }
+
 
     private func shouldPlayAdForwardBtnPressed() -> Bool {
         return forwardButtonTapCount >= 6
     }
     
     func adsPlaybackDidFinish() {
-        dismiss(animated: true) {
-            // Resume the current track or next queue track after ad
-            let queue = PlaybackQueueManager.shared.getQueue()
-            print("Ad finished, queue count: \(queue.count), selectedIndex: \(self.selectedIndex), isPlayerListTap: \(self.isPlayerListTap), isPlayingQueueTrack: \(self.isPlayingQueueTrack), queue: \(queue.map { $0.track ?? "Unknown" })")
-            if !queue.isEmpty {
-                if let firstQueueTrack = queue.first {
-                    print("Resuming with queue track: \(firstQueueTrack.track ?? "Unknown")")
+        print("🎬 Ad finished, isWaitingForAd: \(isWaitingForAd), pendingTrackAfterAd: \(String(describing: pendingTrackAfterAd))")
+        
+        dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
+            
+            self.isWaitingForAd = false
+            
+            // Play the pending track stored before showing the ad
+            if let pending = self.pendingTrackAfterAd {
+                print("▶️ Playing pending track at index: \(pending.index), fromQueue: \(pending.fromQueue)")
+                self.playTrackAtIndex(pending.index, fromQueue: pending.fromQueue)
+                self.pendingTrackAfterAd = nil
+            } else {
+                print("⚠️ No pending track after ad, attempting fallback")
+                // Fallback logic if no pending track
+                let queue = PlaybackQueueManager.shared.getQueue()
+                if !queue.isEmpty {
+                    print("▶️ Fallback: Playing first queue track")
                     self.playTrackAtIndex(0, fromQueue: true)
+                } else if let track = self.track, self.selectedIndex < track.count {
+                    print("▶️ Fallback: Playing current Up Next track at \(self.selectedIndex)")
+                    self.playTrackAtIndex(self.selectedIndex, fromQueue: false)
                 } else {
-                    print("Error: Queue not empty but first track is nil")
+                    print("❌ No tracks to resume after ad")
                     self.pausePlayer()
                 }
-            } else if let track = self.track, self.selectedIndex < track.count {
-                print("Resuming with Up Next track at index: \(self.selectedIndex)")
-                self.playTrackAtIndex(self.selectedIndex, fromQueue: false)
-            } else {
-                print("No tracks to resume after ad")
-                self.pausePlayer()
             }
         }
     }
+
     
     private func playNextSong() {
         if let track = track, selectedIndex < track.count - 1 {
@@ -998,8 +1022,9 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         let queueCount = PlaybackQueueManager.shared.getQueue().count
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
         print("Selected row: \(indexPath.row), queueCount: \(queueCount), queueRows: \(queueRows), isPlayerListTap: \(isPlayerListTap), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(PlaybackQueueManager.shared.getQueue().map { $0.track ?? "Unknown" })")
+        
         if indexPath.row >= 2 && indexPath.row < 2 + queueRows && indexPath.row != 2 {
-            // Queue item selection (unchanged)
+            // Queue item selection
             let queueIndex = indexPath.row - 3
             if queueIndex >= 0 && queueIndex < PlaybackQueueManager.shared.getQueue().count {
                 let queue = PlaybackQueueManager.shared.getQueue()
@@ -1020,22 +1045,30 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         } else if indexPath.row >= 2 + queueRows {
             // "Up Next" item selection
             let adjustedRow = indexPath.row - queueRows
-            let trackIndex = adjustedRow - 3 + 1 // Start from index 1
+            let trackIndex = adjustedRow - 3 + 1
             if trackIndex >= 1 && trackIndex < tempTrack?.count ?? 0 {
                 if let selectedTrack = tempTrack?[safe: trackIndex] {
                     print("Selected Up Next track: \(selectedTrack.track ?? "Unknown") at trackIndex: \(trackIndex)")
                     isPlayerListTap = true
                     playTrackAtIndex(trackIndex, fromQueue: false)
                     playerListTapCount += 1
+                    
                     if shouldPlayerListPressed() && !IAPHandler.shared.isGetPurchase() {
-                        print("Showing ad due to playerListTapCount: \(playerListTapCount)")
+                        print("📺 Showing ad due to playerListTapCount: \(playerListTapCount)")
                         isPlayerListTap = true
                         playerListTapCount = 0
                         player?.pause()
+                        
+                        // Store pending track before showing ad
+                        pendingTrackAfterAd = (trackIndex, false)
+                        isWaitingForAd = true
+                        
                         let vc = storyboard?.instantiateViewController(withIdentifier: "AdsAPIView") as! AdsAPIView
+                        vc.delegate = self
                         vc.modalPresentationStyle = .fullScreen
                         self.present(vc, animated: true)
                     }
+                    
                     DispatchQueue.main.async {
                         self.radioTableView.reloadData()
                         self.manageTableViewScroll()
@@ -1049,6 +1082,7 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
+
 }
 
 extension MusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
@@ -1234,65 +1268,101 @@ extension MusicPlayerViewController {
     }
 
     @objc func playerDidFinishPlaying(sender: Notification) {
-        print("Player finished, songCounter: \(songCounter), isRepeat: \(isRepeat), isPlayerListTap: \(isPlayerListTap), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(PlaybackQueueManager.shared.getQueue().map { $0.track ?? "Unknown" })")
+        print("🎵 Player finished, songCounter: \(songCounter), isRepeat: \(isRepeat), isPlayerListTap: \(isPlayerListTap), isPlayingQueueTrack: \(isPlayingQueueTrack), isWaitingForAd: \(isWaitingForAd), queue: \(PlaybackQueueManager.shared.getQueue().map { $0.track ?? "Unknown" })")
+        
         playerSlider.setValue(0, animated: true)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
+        
         if let timeObserver = timeObserver, let player = currentPlayer {
             player.removeTimeObserver(timeObserver)
             self.timeObserver = nil
             self.currentPlayer = nil
         }
+        
+        // Don't continue if we're waiting for an ad to finish
+        if isWaitingForAd {
+            print("⏸️ Waiting for ad to finish, not continuing playback")
+            return
+        }
+        
         songCounter += 1
         if songCounter % 5 == 0 && !IAPHandler.shared.isGetPurchase() {
-            print("Showing ad due to songCounter: \(songCounter)")
+            print("📺 Showing ad due to songCounter: \(songCounter)")
             displayAdsView()
         } else {
             continuePlaying()
         }
     }
 
+
     func displayAdsView() {
         if !IAPHandler.shared.isGetPurchase() {
             player?.pause()
+            
+            // Determine next track to play after ad
+            let queue = PlaybackQueueManager.shared.getQueue()
+            if !queue.isEmpty {
+                pendingTrackAfterAd = (0, true)
+                print("📺 Ad from song finish: Next track will be from queue at index 0")
+            } else if let track = track, selectedIndex < track.count - 1 {
+                pendingTrackAfterAd = (selectedIndex + 1, false)
+                print("📺 Ad from song finish: Next track will be from Up Next at index \(selectedIndex + 1)")
+            } else {
+                pendingTrackAfterAd = nil
+                print("📺 Ad from song finish: No next track available")
+            }
+            
+            isWaitingForAd = true
+            
             let vc = self.storyboard?.instantiateViewController(withIdentifier: "AdsAPIView") as! AdsAPIView
+            vc.delegate = self
             vc.modalPresentationStyle = .fullScreen
             self.present(vc, animated: true)
         }
     }
 
+
     func continuePlaying() {
+        // Don't continue if we're waiting for an ad
+        if isWaitingForAd {
+            print("⏸️ Waiting for ad to finish in continuePlaying")
+            return
+        }
+        
         let queue = PlaybackQueueManager.shared.getQueue()
-        print("continuePlaying: isRepeat=\(isRepeat), isPlayerListTap=\(isPlayerListTap), queue count: \(queue.count), selectedIndex: \(selectedIndex), track count: \(track?.count ?? 0), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(queue.map { $0.track ?? "Unknown" })")
+        print("▶️ continuePlaying: isRepeat=\(isRepeat), isPlayerListTap=\(isPlayerListTap), queue count: \(queue.count), selectedIndex: \(selectedIndex), track count: \(track?.count ?? 0), isPlayingQueueTrack: \(isPlayingQueueTrack), queue: \(queue.map { $0.track ?? "Unknown" })")
+        
         if isRepeat {
             if isPlayingQueueTrack, let queueIndex = currentQueueIndex {
-                print("Repeating current queue track at index: \(queueIndex)")
+                print("🔁 Repeating current queue track at index: \(queueIndex)")
                 playTrackAtIndex(queueIndex, fromQueue: true)
             } else {
-                print("Repeating current Up Next track at selectedIndex: \(selectedIndex)")
+                print("🔁 Repeating current Up Next track at selectedIndex: \(selectedIndex)")
                 playTrackAtIndex(selectedIndex, fromQueue: false)
             }
         } else if isPlayerListTap {
-            print("Resuming Up Next track at selectedIndex: \(selectedIndex)")
+            print("▶️ Resuming Up Next track at selectedIndex: \(selectedIndex)")
             playTrackAtIndex(selectedIndex, fromQueue: false)
             isPlayerListTap = false
         } else if !queue.isEmpty {
             if let firstQueueTrack = queue.first {
-                print("Playing next queue track: \(firstQueueTrack.track ?? "Unknown")")
+                print("▶️ Playing next queue track: \(firstQueueTrack.track ?? "Unknown")")
                 playTrackAtIndex(0, fromQueue: true)
             } else {
-                print("Error: Queue not empty but first track is nil")
+                print("❌ Error: Queue not empty but first track is nil")
                 pausePlayer()
             }
         } else if let track = track, selectedIndex < track.count - 1 {
-            print("Playing next Up Next track at index: \(selectedIndex + 1)")
+            print("▶️ Playing next Up Next track at index: \(selectedIndex + 1)")
             playTrackAtIndex(selectedIndex + 1, fromQueue: false)
         } else {
-            print("No more tracks to play")
+            print("⏹️ No more tracks to play")
             pausePlayer()
         }
     }
+
 
     func populateLabelWithTime(_ label: UILabel, time: Double) {
         let minutes = Int(time / 60)
