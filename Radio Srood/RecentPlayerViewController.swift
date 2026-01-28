@@ -224,20 +224,42 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
             vc.imageURl = URL(string: "")
         }
         
-        DataHelper.getLyricsData(artist: songModel.artist, track: songModel.track) { lyricItem in
+        DataHelper.getLyricsData(
+            artist: songModel.artist,
+            track: songModel.track
+        ) { lyricItem in
+
+            var lyricsToSend = ""
+
             if let lyricItem = lyricItem {
+
                 print("✅ Artist: \(lyricItem.artistName)")
                 print("✅ Track: \(lyricItem.trackName)")
-                print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
-                vc.lyricnew = lyricItem.syncedLyrics
-                self.navigationController?.present(vc, animated: true, completion: nil)
+
+                if !lyricItem.syncedLyrics.isEmpty {
+                    // ✅ Prefer synced lyrics
+                    lyricsToSend = lyricItem.syncedLyrics
+                    print("✅ Using synced lyrics")
+
+                } else if !lyricItem.plainLyrics.isEmpty {
+                    // 🟡 Fallback to plain lyrics
+                    lyricsToSend = lyricItem.plainLyrics
+                    print("🟡 Using plain lyrics")
+
+                } else {
+                    print("⚠️ Lyrics exist but empty")
+                }
+
             } else {
                 print("⚠️ No lyrics found.")
-                vc.lyricnew = ""
+            }
+
+            DispatchQueue.main.async {
+                vc.lyricnew = lyricsToSend
                 self.navigationController?.present(vc, animated: true, completion: nil)
             }
         }
-        
+
     }
     
     @objc func moreInfoBtnClicked() {

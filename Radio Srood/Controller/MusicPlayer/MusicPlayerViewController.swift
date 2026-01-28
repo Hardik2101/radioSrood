@@ -437,26 +437,38 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         lastIndex = nil
         
         DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { lyricItem in
-            if let lyricItem = lyricItem {
-                print("✅ Artist: \(lyricItem.artistName)")
-                print("✅ Track: \(lyricItem.trackName)")
-                print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
-                self.lyricSynced = lyricItem.syncedLyrics
-                self.parseLyricSynced()
-            } else {
+
+            guard let lyricItem = lyricItem else {
                 print("⚠️ No lyrics found.")
-                self.lyricSynced = ""
+                DispatchQueue.main.async {
+                    self.hideLyrics()
+                }
+                return
             }
-            if self.lyricSynced.isEmpty {
-                self.heightView.constant = 0
-                self.viewLyrics.isHidden = true
-                self.parser = nil
-            } else {
-                self.heightView.constant = 40
-                self.viewLyrics.isHidden = false
-                self.lblLyrics.text = ""
+
+            let synced = lyricItem.syncedLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+            let plain  = lyricItem.plainLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            DispatchQueue.main.async {
+                if !synced.isEmpty {
+                    // ✅ Prefer synced lyrics
+                    self.lyricSynced = synced
+                    self.parseLyricSynced()
+                    self.showLyrics()
+                    self.lblLyrics.text = ""
+                } else if !plain.isEmpty {
+                    // ✅ Fallback to plain lyrics
+                    self.lyricSynced = plain   // safe for passing to other views
+                    self.parser = nil          // no parser for plain lyrics
+                    self.showLyrics()
+                    self.lblLyrics.text = plain
+                } else {
+                    // ❌ No lyrics at all
+                    self.hideLyrics()
+                }
             }
         }
+
         if let urlString = item.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
             if isSetMusic {
                 isSetMusic = false
@@ -478,6 +490,18 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         )
     }
     
+    private func showLyrics() {
+        self.heightView.constant = 40
+        self.viewLyrics.isHidden = false
+    }
+
+    private func hideLyrics() {
+        self.heightView.constant = 0
+        self.viewLyrics.isHidden = true
+        self.parser = nil
+        self.lblLyrics.text = ""
+    }
+
     func showLyric(toTime time: TimeInterval) {
         guard !parsedLyrics.isEmpty else { return }
         guard let index = parsedLyrics.firstIndex(where: { $0.time >= time }) else {

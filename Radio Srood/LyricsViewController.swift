@@ -49,13 +49,29 @@ class LyricsViewController: UIViewController {
                 lblNoSongLyric.text = ""
 
                 // Fetch lyrics from API
-                DataHelper.getLyricsData(artist: self.ArtistInfo, track: self.TrackInfo) { lyricItem in
+                DataHelper.getLyricsData(
+                    artist: self.ArtistInfo,
+                    track: self.TrackInfo
+                ) { lyricItem in
+
                     DispatchQueue.main.async {
-                        if let syncedLyrics = lyricItem?.syncedLyrics, !syncedLyrics.isEmpty {
-                            self.lyricsView.lyrics = syncedLyrics
+
+                        if let synced = lyricItem?.syncedLyrics, !synced.isEmpty {
+                            // ✅ Prefer synced lyrics
+                            self.lyricsView.lyrics = synced
+
+                        } else if let plain = lyricItem?.plainLyrics, !plain.isEmpty {
+                            // 🟡 Fallback to plain lyrics
+                            self.lyricsView.lyrics = plain
+
                         } else {
-                            // If lyric not available or API failed
-                            self.lyricsView.lyrics = "Lyric Not Available \n\nPlease send lyrics to lyric@radiosrood.com"
+                            // ❌ Nothing available
+                            self.lyricsView.lyrics =
+                            """
+                            Lyric Not Available
+
+                            Please send lyrics to lyric@radiosrood.com
+                            """
                         }
                     }
                 }
@@ -92,17 +108,33 @@ class LyricsViewController: UIViewController {
             lblNoSongLyric.text = ""
 
             // Fetch lyrics from API
-            DataHelper.getLyricsData(artist: self.ArtistInfo, track: self.TrackInfo) { lyricItem in
+            DataHelper.getLyricsData(
+                artist: self.ArtistInfo,
+                track: self.TrackInfo
+            ) { lyricItem in
+
                 DispatchQueue.main.async {
-                    if let syncedLyrics = lyricItem?.syncedLyrics, !syncedLyrics.isEmpty {
-                        self.lyricsView.lyrics = syncedLyrics
+
+                    if let synced = lyricItem?.syncedLyrics, !synced.isEmpty {
+                        // ✅ Synced lyrics
+                        self.lyricsView.lyrics = synced
+
+                    } else if let plain = lyricItem?.plainLyrics, !plain.isEmpty {
+                        // 🟡 Plain lyrics fallback
+                        self.lyricsView.lyrics = plain
+
                     } else {
-                        // If lyric not available or API failed
-                        self.lyricsView.lyrics = "Lyric Not Available \n\nPlease send lyrics to lyric@radiosrood.com"
+                        // ❌ No lyrics at all
+                        self.lyricsView.lyrics =
+                        """
+                        Lyric Not Available
+
+                        Please send lyrics to lyric@radiosrood.com
+                        """
                     }
                 }
             }
-            
+
 //            if let currentLyricInfo = recentLyricData.value(forKey: "recentLyric") as? String {
 //                if currentLyricInfo == "" {
 //                    lblNoSongLyric.text = "Lyric Not Available \n\n Please send lyric to lyric@radiosrood.com"
