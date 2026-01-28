@@ -1,4 +1,3 @@
-
 import UIKit
 //import SWRevealViewController
 import Alamofire
@@ -46,6 +45,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isDownload = false
     var isRepeat = false
     var timeObserver: Any?
+    // KVO observer for player item status (HLS failure detection)
+    private var playerItemStatusObserver: NSKeyValueObservation?
+    private var hasTriedFallbackForItem: Bool = false
     private var isPurchaseSuccess: Bool = false
     var circularProgressView: CircularProgressView!
 
@@ -184,15 +186,21 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
                 self.artistName.text = recentArtist
                 miniPlayerInfo.artistSubtitle = recentArtist
             }
-            if let mediaPathInfo = recentItem.value(forKey: "mediaPathInfo") as? String, let urlString = mediaPathInfo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
-                if isSetMusic {
-                    isSetMusic = false
-                    self.play(url: url, isPlay: self.isPlay)
+            // Build HLS (primary) and MP3 (fallback) URLs and prefer HLS
+            let urls = playbackURLs(from: recentItem)
+            if isSetMusic {
+                isSetMusic = false
+                if let primary = urls.primary {
+                    self.play(url: primary, isPlay: self.isPlay, fallbackURL: urls.fallback)
+                } else if let fallback = urls.fallback {
+                    self.play(url: fallback, isPlay: self.isPlay, fallbackURL: nil)
+                } else {
+                    print("Error: Invalid media URL in recentItem: \(recentItem)")
                 }
-                if isSetupRemoteTransport {
-                    isSetupRemoteTransport = false
-                    self.setupRemoteTransportControls()
-                }
+            }
+            if isSetupRemoteTransport {
+                isSetupRemoteTransport = false
+                self.setupRemoteTransportControls()
             }
             self.isAlreadyLiked()
             self.isAlreadyDownloaded()
@@ -519,8 +527,100 @@ extension RecentPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoa
 
 extension RecentPlayerViewController {
 
-    func play(url: URL, isPlay: Bool = false) {
+    // Build primary (HLS) and fallback (MP3) URLs from recentListData dictionary
+    private func playbackURLs(from recentItem: NSDictionary) -> (primary: URL?, fallback: URL?) {
+        var primaryURL: URL? = nil
+        var fallbackURL: URL? = nil
+
+        // Try explicit hls_mediaPath first
+        if let hlsRaw = recentItem.value(forKey: "hls_mediaPath") as? String {
+            let hls = hlsRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !hls.isEmpty {
+                if let url = URL(string: hls), url.scheme != nil {
+                    primaryURL = url
+                } else if let encoded = hls.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: hlsSongPath + encoded) {
+                    primaryURL = url
+                }
+            }
+        }
+
+        // Build MP3 fallback from mediaPathInfo
+        if let mediaPathInfo = recentItem.value(forKey: "mediaPathInfo") as? String {
+            let media = mediaPathInfo.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !media.isEmpty {
+                if let url = URL(string: media), url.scheme != nil {
+                    fallbackURL = url
+                } else if let encoded = media.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + encoded) {
+                    fallbackURL = url
+                }
+                // If no explicit primary, attempt to construct an HLS path from the MP3 filename
+                if primaryURL == nil, let fallback = fallbackURL {
+                    let baseName = fallback.deletingPathExtension().lastPathComponent
+                    if let hlsURL = URL(string: hlsSongPath + baseName + ".m3u8") {
+                        primaryURL = hlsURL
+                    }
+                }
+            }
+        }
+
+        return (primaryURL, fallbackURL)
+    }
+
+    // Main play function with optional fallback URL (HLS primary, MP3 fallback)
+    func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
+        print("Playing URL: \(url)")
+        // Ensure previous player is fully cleared
+        if let player = player, let timeObserver = timeObserver {
+            player.pause()
+            player.removeTimeObserver(timeObserver)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+            self.timeObserver = nil
+        }
+        hasTriedFallbackForItem = false
+        playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
+        // Observe item status to detect failure and switch to fallback if provided
+        if let fallback = fallbackURL {
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, change in
+                guard let self = self else { return }
+                if item.status == .failed {
+                    guard !self.hasTriedFallbackForItem else { return }
+                    self.hasTriedFallbackForItem = true
+                    print("Primary playback failed, attempting fallback: \(fallback)")
+                    DispatchQueue.main.async {
+                        let fallbackItem = AVPlayerItem(url: fallback)
+                        player?.replaceCurrentItem(with: fallbackItem)
+                        // Observe fallback readyToPlay to update UI
+                        self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
+                            guard let self = self else { return }
+                            if it.status == .readyToPlay {
+                                DispatchQueue.main.async {
+                                    self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                    self.populateLabelWithTime(self.lblEndTime, time: player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                }
+                            }
+                        }
+                        player?.play()
+                    }
+                } else if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        } else {
+            // If no fallback, still observe readyToPlay to set duration
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
+                guard let self = self else { return }
+                if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        }
         player = PlayObserver(playerItem: playerItem)
         self.playerSlider.minimumValue = 0.0
         self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
@@ -541,7 +641,7 @@ extension RecentPlayerViewController {
         self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
         self.isLike = false
         self.setupNowPlaying()
-        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
         //time observer to update slider.
         timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), // used to monitor the current play time and update slider
                                        queue: DispatchQueue.global(), using: { [weak self] (progressTime) in

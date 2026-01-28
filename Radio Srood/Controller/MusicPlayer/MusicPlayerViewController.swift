@@ -65,6 +65,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     private var parser: LyricsParser? = nil
     private var isPurchaseSuccess: Bool = false
     private var currentPlayer: AVPlayer? // Track the current player for timeObserver
+    // KVO observer for player item status, used to detect HLS failure and fallback
+    private var playerItemStatusObserver: NSKeyValueObservation?
+    private var hasTriedFallbackForItem: Bool = false
     var bannerAdViews: [GADBannerView] = []
     var imageURl: URL?
     var isMyMusic = false
@@ -277,7 +280,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     
     private func loadTodayTopPicData() {
         dataHelper = DataHelper()
-        print("🚨 loadTodayTopPicData() called with groupID =", self.groupID)
+        print("🚨 loadTodayTopPicData() called with groupID = \(String(describing: self.groupID))")
         dataHelper.getTodayTopPicDetailed { [weak self] resp in
             guard let self = self else { return }
             self.track = []
@@ -286,9 +289,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
                 print("📥 Received API response for TodayTopPic")
                 self.track = resp.todayTopPick.first(where: { $0.playlistID == self.groupID })?.tracks
                 self.tempTrack = self.track
-                print("🎵 Matched Tracks:", self.track ?? [])
-                print("📀 Matching Playlist Object:", resp.todayTopPick.first(where: { $0.playlistID == self.groupID }))
-                print("🎯 Current groupID:", self.groupID)
+                print("🎵 Matched Tracks: \(self.track ?? [])")
+                print("📀 Matching Playlist Object: \(String(describing: resp.todayTopPick.first(where: { $0.playlistID == self.groupID })))")
+                print("🎯 Current groupID: \(String(describing: self.groupID))")
                 print("📚 All playlistIDs from API:")
                 for playlist in resp.todayTopPick {
                     print("🆔 \(playlist.playlistID)")
@@ -469,14 +472,17 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
             }
         }
 
-        if let urlString = item.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + urlString) {
+        // Prefer HLS; fallback to MP3
+        let urls = self.playbackURLs(for: item)
+        if let primary = urls.primary {
             if isSetMusic {
                 isSetMusic = false
-                self.play(url: url, isPlay: self.isPlay)
+                self.play(url: primary, isPlay: self.isPlay, fallbackURL: urls.fallback)
             }
-            if isSetupRemoteTransport {
-                isSetupRemoteTransport = false
-                self.setupRemoteTransportControls()
+        } else if let fallback = urls.fallback {
+            if isSetMusic {
+                isSetMusic = false
+                self.play(url: fallback, isPlay: self.isPlay, fallbackURL: nil)
             }
         } else {
             print("Error: Invalid media URL for track \(item.track ?? "Unknown")")
@@ -488,6 +494,31 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
             artistSubtitle: item.artist ?? "",
             musicVC: self
         )
+    }
+    
+    // Build primary (HLS) and fallback (MP3) URLs for a Track
+    private func playbackURLs(for track: Track) -> (primary: URL?, fallback: URL?) {
+        var primaryURL: URL? = nil
+        var fallbackURL: URL? = nil
+
+        if let hls = track.hlsMediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !hls.isEmpty {
+            // hlsMediaPath may be full URL or a path component
+            if let url = URL(string: hls), url.scheme != nil {
+                primaryURL = url
+            } else if let encoded = hls.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: hlsSongPath + encoded) {
+                primaryURL = url
+            }
+        }
+
+        if let media = track.mediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !media.isEmpty {
+            if let url = URL(string: media), url.scheme != nil {
+                fallbackURL = url
+            } else if let encoded = media.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: songPath + encoded) {
+                fallbackURL = url
+            }
+        }
+
+        return (primaryURL, fallbackURL)
     }
     
     private func showLyrics() {
@@ -752,6 +783,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
                 return
             }
             guard let trackItem = item else { return }
+            // Downloads should still use the MP3 mediaPath
             let urlString = trackItem.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
             guard let mediaPathInfo = urlString,
                   let url = URL(string: songPath + mediaPathInfo) else {
@@ -1056,8 +1088,9 @@ extension MusicPlayerViewController {
             return
         }
         let item = track[index]
-        guard let urlString = item.mediaPath?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: songPath + urlString) else {
+        // Build playback URLs and prefer HLS
+        let urls = self.playbackURLs(for: item)
+        guard let primary = urls.primary ?? urls.fallback else {
             print("Error: Invalid media URL for track \(item.track ?? "Unknown")")
             pausePlayer()
             return
@@ -1079,7 +1112,8 @@ extension MusicPlayerViewController {
         player = nil
         isSetMusic = false
         isPlay = true
-        play(url: url, isPlay: true)
+        // pass fallback URL so we can switch if HLS fails
+        self.play(url: primary, isPlay: true, fallbackURL: urls.primary == nil ? nil : urls.fallback)
         // Update UI with the current track
         handleRecentInView(index: index, isQueueTrack: fromQueue)
         if fromQueue {
@@ -1101,7 +1135,8 @@ extension MusicPlayerViewController {
         }
     }
 
-    func play(url: URL, isPlay: Bool = false) {
+    // Main play function with optional fallback URL (HLS primary, MP3 fallback)
+    func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("Playing URL: \(url)")
         // Ensure previous player is fully cleared
         if let player = player, let timeObserver = timeObserver {
@@ -1111,7 +1146,54 @@ extension MusicPlayerViewController {
             self.timeObserver = nil
             self.currentPlayer = nil
         }
+        hasTriedFallbackForItem = false
+        // remove previous observer if any
+        playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
+        // Observe item status to detect failure and switch to fallback if provided
+        if let fallback = fallbackURL {
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, change in
+                guard let self = self else { return }
+                if item.status == .failed {
+                    guard !self.hasTriedFallbackForItem else { return }
+                    self.hasTriedFallbackForItem = true
+                    print("Primary playback failed, attempting fallback: \(fallback)")
+                    DispatchQueue.main.async {
+                        // replace current item with fallback
+                        let fallbackItem = AVPlayerItem(url: fallback)
+                        player?.replaceCurrentItem(with: fallbackItem)
+                        // remove observer for old item and observe fallback if needed
+                        self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
+                            guard let self = self else { return }
+                            if it.status == .readyToPlay {
+                                // update UI duration
+                                DispatchQueue.main.async {
+                                    self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                    self.populateLabelWithTime(self.lblEndTime, time: player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                }
+                            }
+                        }
+                        player?.play()
+                    }
+                } else if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        } else {
+            // If no fallback, still observe readyToPlay to set duration
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
+                guard let self = self else { return }
+                if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        }
         player = PlayObserver(playerItem: playerItem)
         currentPlayer = player
         self.playerSlider.minimumValue = 0.0

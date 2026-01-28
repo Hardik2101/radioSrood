@@ -49,6 +49,10 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isRepeat = false
     var isShuffle: Bool = false
     var timeObserver: Any?
+    // KVO observer for player item status (HLS failure detection)
+    private var playerItemStatusObserver: NSKeyValueObservation?
+    private var hasTriedFallbackForItem: Bool = false
+    
     private var lyricSynced: String = ""
     var imageURl: URL?
     var circularProgressView: CircularProgressView!
@@ -327,16 +331,18 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             }
         }
 
+        // Prefer HLS (m3u8) then fallback to MP3
         if isSetMusic {
             isSetMusic = false
-            if let fileURL = track.file {
-                let safeURL: URL
-                if fileURL.isFileURL {
-                    safeURL = fileURL
-                } else {
-                    safeURL = sanitizeStreamURL(fileURL.absoluteString) ?? URL(string: "https://defaultaudio.com/placeholder.mp3")!
-                }
-                self.play(url: safeURL, isPlay: self.isPlay)
+            // Build primary (HLS) and fallback (MP3) URLs from PodcastObject.file
+            let urls = playbackURLs(for: track)
+            if let primary = urls.primary {
+                self.play(url: primary, isPlay: self.isPlay, fallbackURL: urls.fallback)
+            } else if let fallback = urls.fallback {
+                self.play(url: fallback, isPlay: self.isPlay, fallbackURL: nil)
+            } else {
+                print("Error: Invalid media URL for podcast at index \(index)")
+                pausePlayer()
             }
         }
 
@@ -835,17 +841,96 @@ extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLo
 }
 
 extension MyMusicPlayerViewController {
-    func play(url: URL, isPlay: Bool = false) {
+    // Build primary (HLS) and fallback (MP3) URLs for a PodcastObject
+    private func playbackURLs(for podcast: PodcastObject?) -> (primary: URL?, fallback: URL?) {
+        guard let podcast = podcast else { return (nil, nil) }
+        var primaryURL: URL? = nil
+        var fallbackURL: URL? = nil
+
+        // If the file is local, use it as fallback only
+        if let file = podcast.file {
+            if file.isFileURL {
+                fallbackURL = file
+                return (nil, fallbackURL)
+            }
+
+            // If file itself already points to an HLS playlist
+            if file.pathExtension.lowercased() == "m3u8" {
+                primaryURL = file
+                return (primaryURL, nil)
+            }
+
+            // Otherwise assume it's an MP3 URL and construct HLS path using hlsSongPath
+            // Use lastPathComponent without extension and append .m3u8
+            let last = file.lastPathComponent
+            let baseName = (last as NSString).deletingPathExtension
+            if let hls = URL(string: hlsSongPath + baseName + ".m3u8") {
+                primaryURL = hls
+            }
+
+            // Fallback is the original file (MP3) or sanitized URL
+            fallbackURL = sanitizeStreamURL(file.absoluteString) ?? file
+        }
+        return (primaryURL, fallbackURL)
+    }
+    
+    // Main play function with optional fallback URL (HLS primary, MP3 fallback)
+    func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("Playing URL: \(url)")
         // Ensure previous player is fully cleared
         if let player = player, let timeObserver = timeObserver {
             player.pause()
             player.removeTimeObserver(timeObserver)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
             self.timeObserver = nil
         }
+        hasTriedFallbackForItem = false
+        // remove previous observer if any
+        playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
+        // Observe item status to detect failure and switch to fallback if provided
+        if let fallback = fallbackURL {
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, change in
+                guard let self = self else { return }
+                if item.status == .failed {
+                    guard !self.hasTriedFallbackForItem else { return }
+                    self.hasTriedFallbackForItem = true
+                    print("Primary playback failed, attempting fallback: \(fallback)")
+                    DispatchQueue.main.async {
+                        let fallbackItem = AVPlayerItem(url: fallback)
+                        player?.replaceCurrentItem(with: fallbackItem)
+                        // Observe fallback readyToPlay to update UI
+                        self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
+                            guard let self = self else { return }
+                            if it.status == .readyToPlay {
+                                DispatchQueue.main.async {
+                                    self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                    self.populateLabelWithTime(self.lblEndTime, time: player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                }
+                            }
+                        }
+                        player?.play()
+                    }
+                } else if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        } else {
+            // If no fallback, still observe readyToPlay to set duration
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
+                guard let self = self else { return }
+                if item.status == .readyToPlay {
+                    DispatchQueue.main.async {
+                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
+                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                    }
+                }
+            }
+        }
         player = PlayObserver(playerItem: playerItem)
-//        currentPlayer = player
         self.playerSlider.minimumValue = 0.0
         self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
