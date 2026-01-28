@@ -289,30 +289,44 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         isAlreadyLiked(track: track)
         isAlreadyBookmarked(track: track)
         lastIndex = nil
-        DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
-            if let lyricItem = lyricItem {
-                print("✅ Artist: \(lyricItem.artistName)")
-                print("✅ Track: \(lyricItem.trackName)")
-                print("✅ Synced Lyrics Path: \(lyricItem.syncedLyrics)")
-                self.lyricSynced = lyricItem.syncedLyrics
-                self.parseLyricSynced()
-            } else {
-                print("⚠️ No lyrics found.")
-                self.lyricSynced = ""
+        DataHelper.getLyricsData(
+            artist: track.artistName ?? "",
+            track: track.trackName ?? ""
+        ) { lyricItem in
+
+            guard let lyricItem = lyricItem else {
+                DispatchQueue.main.async {
+                    self.hideLyrics()
+                }
+                return
             }
+
+            let synced = lyricItem.syncedLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+            let plain  = lyricItem.plainLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+
             DispatchQueue.main.async {
-                if self.lyricSynced.isEmpty {
-                    self.heightView.constant = 0
-                    self.vwLyrics.isHidden = true
-                    self.lblLyricsText.text = ""
-                } else {
-                    self.heightView.constant = 20
-                    self.vwLyrics.isHidden = false
+
+                if !synced.isEmpty {
+                    // ✅ Prefer synced lyrics
+                    self.lyricSynced = synced
+                    self.parseLyricSynced()
+
+                    self.showLyrics()
                     self.lblLyricsText.text = ""
 
+                } else if !plain.isEmpty {
+                    // ✅ Fallback to plain lyrics
+                    self.lyricSynced = plain
+                    self.showLyrics()
+                    self.lblLyricsText.text = plain
+
+                } else {
+                    // ❌ No lyrics at all
+                    self.hideLyrics()
                 }
             }
         }
+
         if isSetMusic {
             isSetMusic = false
             if let fileURL = track.file {
@@ -336,6 +350,16 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isSetupRemoteTransport = false
             self.setupRemoteTransportControls()
         }
+    }
+    private func showLyrics() {
+        heightView.constant = 20
+        vwLyrics.isHidden = false
+    }
+
+    private func hideLyrics() {
+        heightView.constant = 0
+        vwLyrics.isHidden = true
+        lblLyricsText.text = ""
     }
 
     @objc func backwardBtnPressed() {

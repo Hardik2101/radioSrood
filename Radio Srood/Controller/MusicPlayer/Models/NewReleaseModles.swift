@@ -25,6 +25,7 @@ struct Track: Codable {
     let igLink: String?
     let playlistid: Int?
     let lyric_synced: String?
+    let hlsMediaPath: String?
 
     enum CodingKeys: String, CodingKey {
         case trackid, artist, track, playcounts, likes, dislikes, composer
@@ -39,6 +40,8 @@ struct Track: Codable {
         case igLink = "ig_link"
         case playlistid
         case lyric_synced
+        case hlsMediaPath = "hls_mediaPath"   // ✅ ADD THIS
+
     }
 
     // ✅ Robust Decoder: handles Int or String for `trackid`
@@ -73,6 +76,8 @@ struct Track: Codable {
         igLink = try? container.decode(String.self, forKey: .igLink)
         playlistid = try? container.decode(Int.self, forKey: .playlistid)
         lyric_synced = try? container.decode(String.self, forKey: .lyric_synced)
+        hlsMediaPath = try? container.decode(String.self, forKey: .hlsMediaPath)
+
     }
 
     // Convert to internal model

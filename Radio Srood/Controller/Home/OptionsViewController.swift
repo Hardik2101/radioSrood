@@ -70,11 +70,17 @@ class OptionsViewController: UIViewController {
     }
     
     private func fetchLyrics() {
-        DataHelper.getLyricsData(artist: track?.artist ?? "", track: track?.track ?? "") { lyricItem in
-            self.lyricsNew = lyricItem?.syncedLyrics ?? ""
+        DataHelper.getLyricsData(
+            artist: track?.artist ?? "",
+            track: track?.track ?? ""
+        ) { lyricItem in
+            self.lyricsNew =
+                !(lyricItem?.syncedLyrics.isEmpty ?? true)
+                ? lyricItem!.syncedLyrics
+                : (lyricItem?.plainLyrics ?? "")
         }
     }
-    
+
     private func setupCircularProgressView() {
         circularProgressView = CircularProgressView(frame: vwProgress.bounds)
         circularProgressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
