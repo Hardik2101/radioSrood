@@ -47,6 +47,10 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     private var featurdTrak:[Track]?
 
+    var isFeaturedLoaded = false
+    var isHotTracksLoaded = false
+    var isPopularTracksLoaded = false
+    var isTrendingLoaded = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,6 +72,61 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             longPressGesture.minimumPressDuration = 0.3 // Duration in seconds
             radiosroodTableView.addGestureRecognizer(longPressGesture)
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        radiosroodTableView.reloadData()
+    }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.configureCurrentPlayingSong()
+        loadCurrentLyricData()
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        let font = UIFont.systemFont(ofSize: 23)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white,
+            .font: font ]
+        navigationController?.navigationBar.titleTextAttributes = attributes
+        self.navigationController?.navigationBar.topItem?.title = "RADIO SROOD"
+        self.navigationController?.navigationBar.backItem?.title = "RADIO SROOD"
+        navigationController?.navigationBar.isTranslucent = true
+        if let interstitial = interstitial {
+            if !interstitial.isReady {
+                loadInterstitial()
+            }
+        }
+        handleTableView()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
+        
+        let purchase = IAPHandler.shared.isGetPurchase()
+        
+        if purchase || isPurchaseSuccess {
+            self.vwAds.isHidden = true
+            self.imgAdClose.isHidden = true
+            self.heightOfAdsView.constant = 0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
+            if purchase || self.isPurchaseSuccess {
+                self.vwAds.isHidden = true
+                self.imgAdClose.isHidden = true
+                self.heightOfAdsView.constant = 0
+            }
+        })
+        
+        // Refresh all data sections
+        getTodayTopPicData()
+        getRecentlyAddedData()
+        getFeaturedData()
+        getHotTracksData()
+        getPopularTracksData()
+        getTrendingData()
+    }
+
     
 
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -383,57 +442,6 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        radiosroodTableView.reloadData()
-    }
-    
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        self.configureCurrentPlayingSong()
-        loadCurrentLyricData()
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        let font = UIFont.systemFont(ofSize: 23) // Adjust the font size as needed
-        let attributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor.white,
-            .font: font ]
-        navigationController?.navigationBar.titleTextAttributes = attributes
-        self.navigationController?.navigationBar.topItem?.title = "RADIO SROOD"
-        self.navigationController?.navigationBar.backItem?.title = "RADIO SROOD"
-        navigationController?.navigationBar.isTranslucent = true
-        if let interstitial = interstitial {
-            if !interstitial.isReady {
-                loadInterstitial()
-            }
-        }
-        handleTableView()
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
-        
-        let purchase = IAPHandler.shared.isGetPurchase()
-        
-        if purchase || isPurchaseSuccess {
-            self.vwAds.isHidden = true
-            self.imgAdClose.isHidden = true
-            self.heightOfAdsView.constant = 0
-//            isPurchaseSuccess = false
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
-            if purchase || self.isPurchaseSuccess {
-                self.vwAds.isHidden = true
-                self.imgAdClose.isHidden = true
-                self.heightOfAdsView.constant = 0
-//            isPurchaseSuccess = false
-            }
-        })
-        getTodayTopPicData()
-        getRecentlyAddedData()
-
-
-    }
     private func loadFeaturedArtistData() {
         dataHelper.getFeaturedArtistSponserdData { [weak self] resp in
             guard let self = self else { return }
@@ -598,7 +606,62 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         }
     }
 
-    
+    private func getFeaturedData() {
+        dataHelper = DataHelper()
+        dataHelper.getFeaturedArtistSponserdData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.featuredTop = resp.featuredTop
+                self.isFeaturedLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
+
+    private func getHotTracksData() {
+        dataHelper = DataHelper()
+        dataHelper.getRedioHomeData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.homeMusic = resp
+                self.isHotTracksLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
+
+    private func getPopularTracksData() {
+        dataHelper = DataHelper()
+        dataHelper.getRedioHomeData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.homeMusic = resp
+                self.isPopularTracksLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
+
+    private func getTrendingData() {
+        dataHelper = DataHelper()
+        dataHelper.getRedioHomeData { [weak self] resp in
+            guard let self = self else { return }
+            if let resp = resp {
+                self.homeMusic = resp
+                self.isTrendingLoaded = true
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
+            }
+        }
+    }
+
     private func setHeaderData(headerTitle: String, isShowShowAll: Bool = false) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 20))
         let lblTitle = UILabel(frame: CGRect(x: 15, y: 3, width: screenSize.width - 30, height: 20))
@@ -676,17 +739,18 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func newFeaturedCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: NewFeaturedCell.self) {
+        if let cell = tableView.registerAndGet(cell: NewFeaturedCell.self),
+           let newReleases = featuredTop,
+           isFeaturedLoaded {
             cell.selectionStyle = .none
-            if let newReleases = featuredTop {
-                cell.presentView = self
-                cell.featuredTop = newReleases
-                cell.newFeaturedsCollectionView.reloadData()
-            }
+            cell.presentView = self
+            cell.featuredTop = newReleases
+            cell.newFeaturedsCollectionView.reloadData()
             return cell
         }
         return UITableViewCell()
     }
+
     
     
     func newRecentlyAddedCell(with tableView: UITableView) -> UITableViewCell {
@@ -702,13 +766,15 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
 
     func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: NewReleasesCell.self),
-           let newReleases = homeMusic?.newReleases {
+           let newReleases = homeMusic?.newReleases,
+           isHotTracksLoaded {
             cell.selectionStyle = .none
             cell.configureCell(withNewReleases: newReleases, presenter: self)
             return cell
         }
         return UITableViewCell()
     }
+
 
     func currentRadioCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: CurrentRadioCell.self) {
@@ -722,7 +788,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func trendingCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: TrackCell.self) {
+        if let cell = tableView.registerAndGet(cell: TrackCell.self),
+           isTrendingLoaded {
             cell.selectionStyle = .none
             if let trendingTracks = homeMusic?.trendingTracks {
                 cell.presentView = self
@@ -733,9 +800,11 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         }
         return UITableViewCell()
     }
+
     
     func popularTracksCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: TrackCell.self) {
+        if let cell = tableView.registerAndGet(cell: TrackCell.self),
+           isPopularTracksLoaded {
             cell.selectionStyle = .none
             if let popularTracks = homeMusic?.popularTracks {
                 cell.presentView = self
@@ -747,6 +816,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         }
         return UITableViewCell()
     }
+
     
     func playlistsCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: PlaylistCell.self) {
