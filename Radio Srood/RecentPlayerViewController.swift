@@ -575,13 +575,21 @@ extension RecentPlayerViewController {
     // Main play function with optional fallback URL (HLS primary, MP3 fallback)
     func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("Playing URL: \(url)")
-        // Ensure previous player is fully cleared
-        if let player = player, let timeObserver = timeObserver {
-            player.pause()
+        
+        // CRITICAL FIX: Remove time observer BEFORE reassigning player
+        // This prevents the crash: "An instance of AVPlayer cannot remove a time observer
+        // that was added by a different instance of AVPlayer"
+        if let timeObserver = timeObserver, let player = player {
             player.removeTimeObserver(timeObserver)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
             self.timeObserver = nil
         }
+        
+        // Now pause and clear notifications after observer is removed
+        if let player = player {
+            player.pause()
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+        }
+        
         hasTriedFallbackForItem = false
         playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
@@ -671,8 +679,10 @@ extension RecentPlayerViewController {
                                                       object: nil)
             if let recentListArray = recentListArray, let selectedIndex = selectedIndex {
                 if selectedIndex < recentListArray.count-1 {
-                    if let timeObserver = timeObserver {
-                        player?.removeTimeObserver(timeObserver)
+                    // Remove observer before moving to next track
+                    if let timeObserver = timeObserver, let player = player {
+                        player.removeTimeObserver(timeObserver)
+                        self.timeObserver = nil
                     }
                 }
             }
@@ -837,13 +847,16 @@ extension RecentPlayerViewController {
     }
 
     func pausePlayer() {
+        // Remove time observer before pausing
+        if let timeObserver = timeObserver, let player = player {
+            player.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
+        }
+        
         player?.pause()
         self.playerSlider.setValue(0, animated: true)
         self.populateLabelWithTime(self.lblStartTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
-        if let timeObserver = timeObserver {
-            player?.removeTimeObserver(timeObserver)
-        }
     }
 
 }
@@ -949,4 +962,3 @@ extension RecentPlayerViewController {
     }
 
 }
-
