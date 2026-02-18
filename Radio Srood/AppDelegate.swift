@@ -168,3 +168,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 }
+
+
+///Need to chnage the bundle id
+///Premium version
+///lyricsview pods
+///version
