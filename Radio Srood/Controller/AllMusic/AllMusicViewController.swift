@@ -22,6 +22,13 @@ class AllMusicViewController: UI_VC {
     
     @IBOutlet weak var heightOfAdsView: NSLayoutConstraint!
     
+    @IBOutlet var vwPlayList: UIView!
+    
+    @IBOutlet var vwCollectionPlayList: UIView!
+    
+    @IBOutlet weak var heightOfPlaylistView: NSLayoutConstraint!
+    
+    @IBOutlet var heighrOfPlayListLbl: NSLayoutConstraint!
     var recenltPlayed = [SongModel]()
     var playList = [PlayListModel]()
    // var playListsongsList = [SongModel]()
@@ -116,13 +123,21 @@ class AllMusicViewController: UI_VC {
     }
 
     func updateMyPlaylist() {
+
         self.playList = UserDefaultsManager.shared.playListsData
-        //        for each in self.playList{
-        //            for eachtrack in each.songs{
-        //                playListsongsList.append(eachtrack)
-        //            }
-        //        }
         self.collectionView.reloadData()
+
+        let hasPlaylist = !playList.isEmpty
+
+        vwCollectionPlayList.isHidden = !hasPlaylist
+        heightOfPlaylistView.constant = hasPlaylist ? 180 : 0
+        vwPlayList.isHidden = !hasPlaylist
+        heighrOfPlayListLbl.constant = hasPlaylist ? 50 : 0
+        UIView.animate(withDuration: 0.25) {
+            self.view.layoutIfNeeded()
+        }
+        
+        updateTableHeaderHeight()
     }
     
     func fetchRecentlyPlayed(){
@@ -173,6 +188,7 @@ class AllMusicViewController: UI_VC {
                 self.playList.remove(at: sender.view?.tag ?? 0)
                 UserDefaultsManager.shared.playListsData = self.playList
                 self.collectionView.reloadData()
+                self.updateMyPlaylist()
             }
         })
         self.present(alert, animated: true)
