@@ -65,6 +65,9 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     
     var shuffleQueue: [Int] = []
     
+    var isSyncedLyrics = false
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -317,13 +320,14 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
 
                     self.showLyrics()
                     self.lblLyricsText.text = ""
+                    self.isSyncedLyrics = true
 
                 } else if !plain.isEmpty {
                     // ✅ Fallback to plain lyrics
                     self.lyricSynced = plain
-                    self.showLyrics()
+                    self.hideLyrics()
                     self.lblLyricsText.text = plain
-
+                    self.isSyncedLyrics = false
                 } else {
                     // ❌ No lyrics at all
                     self.hideLyrics()
@@ -546,6 +550,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         vc.currentSong = trackItem.convertToSongModel()
         vc.imageURl = self.imageURl
         vc.lyricnew = self.lyricSynced
+        vc.isSyncedLyrics = self.isSyncedLyrics
         self.present(vc, animated: true)
     }
 

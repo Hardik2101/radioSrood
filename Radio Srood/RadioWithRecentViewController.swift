@@ -37,6 +37,7 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     var isPrevent = false
 
     private var isPurchaseSuccess: Bool = false
+    var isSyncedLyrics = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -198,11 +199,14 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
                 if !lyricItem.syncedLyrics.isEmpty {
                     // ✅ Prefer synced lyrics
                     lyricsToSend = lyricItem.syncedLyrics
+                    self.isSyncedLyrics = true
                     print("✅ Using synced lyrics")
 
                 } else if !lyricItem.plainLyrics.isEmpty {
                     // 🟡 Fallback to plain lyrics
                     lyricsToSend = lyricItem.plainLyrics
+                    self.isSyncedLyrics = false
+
                     print("🟡 Using plain lyrics")
 
                 } else {
@@ -215,6 +219,7 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 
             DispatchQueue.main.async {
                 vc.lyricnew = lyricsToSend
+                vc.isSyncedLyrics = self.isSyncedLyrics
                 self.navigationController?.present(vc, animated: true, completion: nil)
             }
         }

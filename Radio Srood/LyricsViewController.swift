@@ -14,7 +14,8 @@ class LyricsViewController: UIViewController {
     var currentLyricData: NSDictionary?
     var recentLyricData: NSDictionary?
     var track: Track?
-    
+    var isSyncedLyrics = false
+
     var ArtistInfo: String = ""
     var TrackInfo: String = ""
     
@@ -59,10 +60,12 @@ class LyricsViewController: UIViewController {
                         if let synced = lyricItem?.syncedLyrics, !synced.isEmpty {
                             // ✅ Prefer synced lyrics
                             self.lyricsView.lyrics = synced
+                            self.lyricsView.isSyncedLyrics = true
 
                         } else if let plain = lyricItem?.plainLyrics, !plain.isEmpty {
                             // 🟡 Fallback to plain lyrics
                             self.lyricsView.lyrics = plain
+                            self.lyricsView.isSyncedLyrics  = false
 
                         } else {
                             // ❌ Nothing available
@@ -118,10 +121,14 @@ class LyricsViewController: UIViewController {
                     if let synced = lyricItem?.syncedLyrics, !synced.isEmpty {
                         // ✅ Synced lyrics
                         self.lyricsView.lyrics = synced
+                        self.lyricsView.isSyncedLyrics = true
+
 
                     } else if let plain = lyricItem?.plainLyrics, !plain.isEmpty {
                         // 🟡 Plain lyrics fallback
                         self.lyricsView.lyrics = plain
+                        self.lyricsView.isSyncedLyrics = false
+
 
                     } else {
                         // ❌ No lyrics at all

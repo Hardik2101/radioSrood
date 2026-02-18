@@ -44,6 +44,7 @@ class OptionsViewController: UIViewController {
     
     var track: Track? // Track passed from HomeViewController or MusicPlayerViewController
     var lyricsNew: String = "" // Synced lyrics for the track
+    var isSyncedLyrics = false
 
 
     override func viewDidLoad() {
@@ -70,14 +71,29 @@ class OptionsViewController: UIViewController {
     }
     
     private func fetchLyrics() {
+
         DataHelper.getLyricsData(
             artist: track?.artist ?? "",
             track: track?.track ?? ""
-        ) { lyricItem in
-            self.lyricsNew =
-                !(lyricItem?.syncedLyrics.isEmpty ?? true)
-                ? lyricItem!.syncedLyrics
-                : (lyricItem?.plainLyrics ?? "")
+        ) { [weak self] lyricItem in
+
+            guard let self = self else { return }
+
+            let synced = lyricItem?.syncedLyrics.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let plain  = lyricItem?.plainLyrics.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+            DispatchQueue.main.async {
+
+                if !synced.isEmpty {
+                    // ✅ Synced lyrics available
+                    self.lyricsNew = synced
+                    self.isSyncedLyrics = true
+                } else {
+                    // ❌ Only plain lyrics
+                    self.lyricsNew = plain
+                    self.isSyncedLyrics = false
+                }
+            }
         }
     }
 
@@ -413,6 +429,7 @@ class OptionsViewController: UIViewController {
         vc.currentSong = currentTrack.convertToSongModel()
         vc.imageURl = URL(string: currentTrack.artcover ?? "")
         vc.lyricnew = lyricsNew
+        vc.isSyncedLyrics = self.isSyncedLyrics
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true, completion: nil)
     }

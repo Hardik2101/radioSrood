@@ -29,6 +29,8 @@ class LyricPlayViewController: UIViewController {
     var imageURl: URL?
     var lyricnew : String?
 
+    var isSyncedLyrics = false
+
     private let totalDuration = player?.currentItem?.duration
         
     override func viewDidLoad() {
@@ -50,6 +52,7 @@ class LyricPlayViewController: UIViewController {
         if let lyrics = lyricnew, !lyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             print("lyric ====", lyrics)
             lyricsView.lyrics = lyrics
+            lyricsView.isSyncedLyrics = isSyncedLyrics
         } else {
             let placeholderLabel = UILabel()
             placeholderLabel.text = "Lyric Not Available \n\n Please send lyric to lyric@radiosrood.com"

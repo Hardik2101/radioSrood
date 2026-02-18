@@ -78,7 +78,10 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     var songCounter = 0
     var pendingTrackAfterAd: (index: Int, fromQueue: Bool)?
     var isWaitingForAd = false
+    
+    var isSyncedLyrics = false
 
+    
     private var lyricSynced: String = ""
         var currentQueueTrack: Track? = nil // New: Stores the current queue track before removal
     override func viewDidLoad() {
@@ -462,12 +465,15 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
                     self.parseLyricSynced()
                     self.showLyrics()
                     self.lblLyrics.text = ""
+                    self.isSyncedLyrics = true
                 } else if !plain.isEmpty {
                     // ✅ Fallback to plain lyrics
                     self.lyricSynced = plain   // safe for passing to other views
                     self.parser = nil          // no parser for plain lyrics
-                    self.showLyrics()
+                    self.hideLyrics()
                     self.lblLyrics.text = plain
+                    self.isSyncedLyrics = false
+
                 } else {
                     // ❌ No lyrics at all
                     self.hideLyrics()
@@ -569,6 +575,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         vc.currentSong = trackItem.convertToSongModel()
         vc.imageURl = self.imageURl
         vc.lyricnew = self.lyricSynced
+        vc.isSyncedLyrics = self.isSyncedLyrics
         self.present(vc, animated: true)
     }
 
