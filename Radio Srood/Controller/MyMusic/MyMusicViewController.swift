@@ -14,6 +14,14 @@ class MyMusicViewController: UIViewController {
     
     @IBOutlet var lblTotalCounts: UILabel!
     
+    
+    @IBOutlet var vwEmpty: UIView!
+    
+    @IBOutlet var imgEmpty: UIImageView!
+    
+    @IBOutlet var lblEmptyTitle: UILabel!
+    @IBOutlet var lblEmptySubTitle: UILabel!
+    
     var radioData: NSDictionary?
     var bannerView: GADBannerView!
     var dataHelper: DataHelper!
@@ -49,7 +57,7 @@ class MyMusicViewController: UIViewController {
         self.navigationController?.navigationBar.backItem?.title = "My Music"
         navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.setNavigationBarHidden(true, animated: animated)
-
+        updateEmptyState()
     }
     
     
@@ -82,6 +90,32 @@ class MyMusicViewController: UIViewController {
         createBanner()
     }
     
+    private func updateEmptyState() {
+
+        let isEmpty = trackData.isEmpty
+        vwEmpty.isHidden = !isEmpty
+        myMusicCollectionView.isHidden = isEmpty
+
+        guard isEmpty else { return }
+
+        if isDownload {
+            imgEmpty.image = UIImage(named: "ic_empty_download")
+            lblEmptyTitle.text = "Downloads you have"
+            lblEmptySubTitle.text = "Tap the download on any songs to see here"
+
+        } else if isFav {
+            imgEmpty.image = UIImage(named: "ic_empty_like")
+            lblEmptyTitle.text = "Songs you have"
+            lblEmptySubTitle.text = "Tap the heart on any song to see here"
+
+        } else {
+            imgEmpty.image = UIImage(named: "ic_empty_collection")
+            lblEmptyTitle.text = "Collection you have"
+            lblEmptySubTitle.text = "Tap the Collection on any song to see here"
+        }
+    }
+    
+    
     private func mapArtCoverURL() {
         for songData in trackData {
             if let url = getArtCover(track: songData.trackName ?? "", artist: songData.artistName ?? "") {
@@ -89,6 +123,8 @@ class MyMusicViewController: UIViewController {
             }
         }
         self.myMusicCollectionView.reloadData()
+        self.updateEmptyState()
+
         activityIndicator.stopAnimating()
     }
     
