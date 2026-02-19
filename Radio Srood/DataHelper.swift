@@ -16,7 +16,19 @@ class DataHelper: NSObject {
         let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_GET_RADIODETAIL)0\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        AF.request(BASE_BACKEND_URL, method: .get, headers: headers).responseData { response in
+        guard let url = URL(string: urlString) else {
+            completion([:])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.headers = headers
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? [Any],
@@ -34,10 +46,22 @@ class DataHelper: NSObject {
     }
 
     func getTimelineData(completion: @escaping (_ resp: NSArray) -> Void) {
-        let url = "\(BASE_BACKEND_URL)\(ENDPOINT_TV)\(API_KEY_PROV)\(API_KEY)"
+        let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_TV)\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        AF.request(url, method: .get, headers: headers).responseData { response in
+        guard let url = URL(string: urlString) else {
+            completion([])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.headers = headers
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? NSArray {
@@ -54,10 +78,22 @@ class DataHelper: NSObject {
     }
 
     func getNewsData(completion: @escaping (_ resp: NSArray) -> Void) {
-        let url = "\(BASE_BACKEND_URL)\(ENDPOINT_NEWS)\(API_KEY_PROV)\(API_KEY)"
+        let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_NEWS)\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        AF.request(url, method: .get, headers: headers).responseData { response in
+        guard let url = URL(string: urlString) else {
+            completion([])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.headers = headers
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? NSArray {
@@ -73,10 +109,22 @@ class DataHelper: NSObject {
     }
 
     func gePodcastData(completion: @escaping (_ resp: NSArray) -> Void) {
-        let url = "\(BASE_BACKEND_URL)\(ENDPOINT_PODCAST)\(API_KEY_PROV)\(API_KEY)"
+        let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_PODCAST)\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        AF.request(url, method: .get, headers: headers).responseData { response in
+        guard let url = URL(string: urlString) else {
+            completion([])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.headers = headers
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? NSArray {
@@ -92,7 +140,18 @@ class DataHelper: NSObject {
     }
 
     func getRecentListData(completion: @escaping (_ resp: NSDictionary) -> Void) {
-        AF.request(recentListURL).responseData { response in
+        guard let url = URL(string: recentListURL) else {
+            completion([:])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let dict = try? JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
@@ -108,7 +167,18 @@ class DataHelper: NSObject {
     }
 
     func getCurrentLyricData(completion: @escaping (_ resp: NSDictionary) -> Void) {
-        AF.request(currentLyricURL).responseData { response in
+        guard let url = URL(string: currentLyricURL) else {
+            completion([:])
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 if let dict = try? JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
@@ -124,30 +194,57 @@ class DataHelper: NSObject {
     }
 
     func getCurrentLyricDataInModle(completion: @escaping (_ resp: CurrentLyricDataModle?) -> Void) {
-        AF.request(currentLyricURL).responseDecodable(of: CurrentLyricDataModle.self) { response in
+        guard let url = URL(string: currentLyricURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: CurrentLyricDataModle.self) { response in
             completion(response.value)
         }
     }
 
     func getRedioHomeData(completion: @escaping (_ resp: HomeMusicModles?) -> Void) {
-        AF.request(redioHomeURL).responseDecodable(of: HomeMusicModles.self) { response in
+        guard let url = URL(string: redioHomeURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.timeoutInterval = 30
+        
+        AF.request(request).responseDecodable(of: HomeMusicModles.self) { response in
             completion(response.value)
         }
     }
     
     func getRecentlyAddedData(completion: @escaping (_ resp: RecentlyAddedModel?) -> Void) {
-        AF.request(recentlyAdded).responseDecodable(of: RecentlyAddedModel.self) { response in
+        guard let url = URL(string: recentlyAdded) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: RecentlyAddedModel.self) { response in
             completion(response.value)
         }
     }
 
-    func getRecentlyAddedDataDetailed1(completion: @escaping (_ resp: RecentlyAddedPlaylist?) -> Void) {
-        AF.request(recentlyAddedDetailed).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
-            completion(response.value)
-        }
-    }
-
-    
     func getRecentlyAddedDataDetailed(completion: @escaping (_ resp: RecentlyAddedPlaylist?) -> Void) {
         guard let url = URL(string: recentlyAddedDetailed) else {
             completion(nil)
@@ -156,11 +253,11 @@ class DataHelper: NSObject {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        urlRequest.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         urlRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         urlRequest.setValue("no-cache", forHTTPHeaderField: "Pragma")
 
-        AF.request(recentlyAddedDetailed).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
+        AF.request(urlRequest).responseDecodable(of: RecentlyAddedPlaylist.self) { response in
             switch response.result {
             case .success(let value):
                 print("✅ Success: \(value)")
@@ -170,25 +267,29 @@ class DataHelper: NSObject {
                 if let data = response.data, let jsonStr = String(data: data, encoding: .utf8) {
                     print("📦 Raw JSON:\n\(jsonStr)")
                 }
+                completion(nil)
             }
         }
-
     }
 
     func getTodayTopPicData(completion: @escaping (_ resp: TodayPickModel?) -> Void) {
-        AF.request(todayPickURL).responseDecodable(of: TodayPickModel.self) { response in
+        guard let url = URL(string: todayPickURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: TodayPickModel.self) { response in
             completion(response.value)
         }
     }
 
-    func getTodayTopPicDetailed11(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
-        AF.request(todayPickURLDetailed).responseDecodable(of: TodayTopPickPlaylistModel.self) { response in
-            completion(response.value)
-        }
-    }
-    
     func getTodayTopPicDetailed(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
-        // Create a URLRequest with a cache-busting policy
         guard let url = URL(string: todayPickURLDetailed) else {
             completion(nil)
             return
@@ -196,7 +297,7 @@ class DataHelper: NSObject {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        urlRequest.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         urlRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         urlRequest.setValue("no-cache", forHTTPHeaderField: "Pragma")
 
@@ -211,91 +312,138 @@ class DataHelper: NSObject {
         }
     }
 
-
-    func getTodayTopPicDetailed1(completion: @escaping (_ resp: TodayTopPickPlaylistModel?) -> Void) {
-        AF.request(todayPickURLDetailed).responseData { response in
-            switch response.result {
-            case .success(let data):
-                do {
-                    let decoder = JSONDecoder()
-                    let decoded = try decoder.decode(TodayTopPickPlaylistModel.self, from: data)
-                    completion(decoded)
-                } catch {
-                    print("❌ Decoding failed:", error)
-                    
-                    if let decodingError = error as? DecodingError {
-                        switch decodingError {
-                        case .keyNotFound(let key, let context):
-                            print("🔑 Missing key: '\(key.stringValue)' – \(context.debugDescription)")
-                        case .typeMismatch(let type, let context):
-                            print("📘 Type mismatch: \(type) – \(context.debugDescription)")
-                        case .valueNotFound(let value, let context):
-                            print("❗️Value not found: \(value) – \(context.debugDescription)")
-                        case .dataCorrupted(let context):
-                            print("💥 Data corrupted – \(context.debugDescription)")
-                        @unknown default:
-                            print("❓ Unknown decoding error")
-                        }
-                    }
-
-                    print("🔎 Raw JSON:\n", String(data: data, encoding: .utf8) ?? "Unable to display JSON")
-                    completion(nil)
-                }
-
-            case .failure(let error):
-                print("🔥 Network error:", error)
-                completion(nil)
-            }
-        }
-    }
-
-
-
-
     func getFeaturedArtistSponserdDetailsData(completion: @escaping (_ resp: NewFeaturedArtistModles?) -> Void) {
-        AF.request(homeSponserURL1).responseDecodable(of: NewFeaturedArtistModles.self) { response in
+        guard let url = URL(string: homeSponserURL1) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: NewFeaturedArtistModles.self) { response in
             completion(response.value)
         }
     }
 
     func getFeaturedArtistSponserdData(completion: @escaping (_ resp: NewSponserModel?) -> Void) {
-        AF.request(homeSponserURL).responseDecodable(of: NewSponserModel.self) { response in
+        guard let url = URL(string: homeSponserURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request).responseDecodable(of: NewSponserModel.self) { response in
             completion(response.value)
         }
     }
 
     func getNewReleaseData(completion: @escaping (_ resp: NewReleaseModles?) -> Void) {
-        AF.request(newReleaseURL).responseDecodable(of: NewReleaseModles.self) { response in
+        guard let url = URL(string: newReleaseURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: NewReleaseModles.self) { response in
             completion(response.value)
         }
     }
 
     func getTrendingPlaylistData(completion: @escaping (_ resp: TrendingPlaylistModles?) -> Void) {
-        AF.request(trendingPlaylistURL).responseDecodable(of: TrendingPlaylistModles.self) { response in
+        guard let url = URL(string: trendingPlaylistURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: TrendingPlaylistModles.self) { response in
             completion(response.value)
         }
     }
 
     func getPopularPlaylistData(completion: @escaping (_ resp: PopularPlaylistModles?) -> Void) {
-        AF.request(popularPlaylistURL).responseDecodable(of: PopularPlaylistModles.self) { response in
+        guard let url = URL(string: popularPlaylistURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: PopularPlaylistModles.self) { response in
             completion(response.value)
         }
     }
 
     func getPlaylistData(completion: @escaping (_ resp: PlaylistsModles?) -> Void) {
-        AF.request(playlistURL).responseDecodable(of: PlaylistsModles.self) { response in
+        guard let url = URL(string: playlistURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: PlaylistsModles.self) { response in
             completion(response.value)
         }
     }
 
     func getFeaturedArtistData(completion: @escaping (_ resp: FeaturedArtistModles?) -> Void) {
-        AF.request(featuredArtistURL).responseDecodable(of: FeaturedArtistModles.self) { response in
+        guard let url = URL(string: featuredArtistURL) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: FeaturedArtistModles.self) { response in
             completion(response.value)
         }
     }
 
     func getFeaturedRadioData(completion: @escaping (_ resp: RadioModel?) -> Void) {
-        AF.request(featuredRadio).responseDecodable(of: RadioModel.self) { response in
+        guard let url = URL(string: featuredRadio) else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        
+        AF.request(request).responseDecodable(of: RadioModel.self) { response in
             completion(response.value)
         }
     }
@@ -345,8 +493,6 @@ class DataHelper: NSObject {
             }
     }
 
-
-
     func fetchMp3(completion: @escaping (_ resp: [PodcastObject]) -> Void) {
         var object = [PodcastObject]()
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -393,7 +539,12 @@ class DataHelper: NSObject {
 
     func downloadImage(withURL url: URL, completion: @escaping (UIImage?) -> Void) {
         let placeholderImage = UIImage(named: "Lav_Radio_Logo.png")
-        AF.request(url).responseData { response in
+        
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        
+        AF.request(request).responseData { response in
             switch response.result {
             case .success(let data):
                 completion(UIImage(data: data) ?? placeholderImage)
@@ -402,4 +553,4 @@ class DataHelper: NSObject {
             }
         }
     }
-}//
+}

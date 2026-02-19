@@ -69,7 +69,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppReview.requestIf(launches: 4)
         // Initialize UMP SDK and request user consent
         requestUserConsent()
-        
+        // Configure Alamofire to not cache responses
+        let configuration = URLSessionConfiguration.default
+        configuration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        configuration.urlCache = nil
+
         return true
     }
 
@@ -127,6 +131,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidBecomeActive(_ application: UIApplication) {
         application.applicationIconBadgeNumber = 0
+        // Clear URL cache to ensure fresh data
+        URLCache.shared.removeAllCachedResponses()
+
         let rootViewController = application.windows.first(where: { $0.isKeyWindow })?.rootViewController
         if let rootViewController = rootViewController {
             AppOpenAdManager.shared.showAdIfAvailable(viewController: rootViewController)
