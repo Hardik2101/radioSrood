@@ -16,19 +16,9 @@ class DataHelper: NSObject {
         let urlString = "\(BASE_BACKEND_URL)\(ENDPOINT_GET_RADIODETAIL)0\(API_KEY_PROV)\(API_KEY)"
         let headers: HTTPHeaders = ["X-API-KEY": API_KEY]
 
-        guard let url = URL(string: urlString) else {
-            completion([:])
-            return
-        }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
-        request.headers = headers
 
-        AF.request(request).responseData { response in
+        AF.request(BASE_BACKEND_URL, method: .get, headers: headers).responseData { response in
             switch response.result {
             case .success(let data):
                 if let array = try? JSONSerialization.jsonObject(with: data, options: []) as? [Any],
