@@ -125,6 +125,7 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
         circularProgressView.isHidden = true
         vwProgress.addSubview(circularProgressView)
     }
+    
     @objc func didBecomeActiveNotificationReceived() {
         updateNowPlaying(isPause: true)
     }
@@ -579,20 +580,24 @@ extension RecentPlayerViewController {
         // CRITICAL FIX: Remove time observer BEFORE reassigning player
         // This prevents the crash: "An instance of AVPlayer cannot remove a time observer
         // that was added by a different instance of AVPlayer"
-        if let timeObserver = timeObserver, let player = player {
-            player.removeTimeObserver(timeObserver)
+        if let timeObserver = timeObserver {
+            player?.removeTimeObserver(timeObserver)
             self.timeObserver = nil
         }
         
+        // Invalidate KVO observer
+        playerItemStatusObserver?.invalidate()
+        playerItemStatusObserver = nil
+        
         // Now pause and clear notifications after observer is removed
-        if let player = player {
-            player.pause()
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+        player?.pause()
+        if let currentItem = player?.currentItem {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
         }
         
         hasTriedFallbackForItem = false
-        playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
+        
         // Observe item status to detect failure and switch to fallback if provided
         if let fallback = fallbackURL {
             playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, change in
@@ -603,14 +608,26 @@ extension RecentPlayerViewController {
                     print("Primary playback failed, attempting fallback: \(fallback)")
                     DispatchQueue.main.async {
                         let fallbackItem = AVPlayerItem(url: fallback)
+                        // Replace current item with fallback
                         player?.replaceCurrentItem(with: fallbackItem)
+
+                        // Remove observer for the original item only (if any)
+                        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+
+                        // Register end-of-playback for the new fallback item so we still get didPlayToEnd notifications
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: fallbackItem)
+
                         // Observe fallback readyToPlay to update UI
+                        self.playerItemStatusObserver?.invalidate()
                         self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
                             guard let self = self else { return }
                             if it.status == .readyToPlay {
                                 DispatchQueue.main.async {
-                                    self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
-                                    self.populateLabelWithTime(self.lblEndTime, time: player?.currentItem?.asset.duration.seconds ?? 0.0)
+                                    if CMTIME_IS_VALID(it.asset.duration) {
+                                        let durationSeconds = CMTimeGetSeconds(it.asset.duration)
+                                        self.playerSlider.maximumValue = Float(durationSeconds)
+                                        self.populateLabelWithTime(self.lblEndTime, time: durationSeconds)
+                                    }
                                 }
                             }
                         }
@@ -618,8 +635,11 @@ extension RecentPlayerViewController {
                     }
                 } else if item.status == .readyToPlay {
                     DispatchQueue.main.async {
-                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
-                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                        if CMTIME_IS_VALID(item.asset.duration) {
+                            let durationSeconds = CMTimeGetSeconds(item.asset.duration)
+                            self.playerSlider.maximumValue = Float(durationSeconds)
+                            self.populateLabelWithTime(self.lblEndTime, time: durationSeconds)
+                        }
                     }
                 }
             }
@@ -629,20 +649,25 @@ extension RecentPlayerViewController {
                 guard let self = self else { return }
                 if item.status == .readyToPlay {
                     DispatchQueue.main.async {
-                        self.playerSlider.maximumValue = Float(item.asset.duration.seconds)
-                        self.populateLabelWithTime(self.lblEndTime, time: item.asset.duration.seconds)
+                        if CMTIME_IS_VALID(item.asset.duration) {
+                            let durationSeconds = CMTimeGetSeconds(item.asset.duration)
+                            self.playerSlider.maximumValue = Float(durationSeconds)
+                            self.populateLabelWithTime(self.lblEndTime, time: durationSeconds)
+                        }
                     }
                 }
             }
         }
+        
         player = PlayObserver(playerItem: playerItem)
         self.playerSlider.minimumValue = 0.0
-        self.playerSlider.maximumValue = Float(player?.currentItem?.asset.duration.seconds ?? 0.0)
+        self.playerSlider.maximumValue = 0.0
         populateLabelWithTime(self.lblStartTime, time: 0.0)
-        populateLabelWithTime(self.lblEndTime, time: player?.currentItem?.asset.duration.seconds ?? 0.0)
+        populateLabelWithTime(self.lblEndTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         self.playerSlider.value = 0.0
         playerSlider.setValue(0, animated: true)
+        
         if !isPlay {
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
             self.updateNowPlaying(isPause: true)
@@ -652,48 +677,88 @@ extension RecentPlayerViewController {
             self.updateNowPlaying(isPause: false)
             player?.play()
         }
+        
         self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
         self.isLike = false
         self.setupNowPlaying()
+        
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
-        //time observer to update slider.
-        timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), // used to monitor the current play time and update slider
-                                       queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.playerSlider.value = Float(progressTime.seconds)
-                self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
+        
+        // IMPROVED: Time observer with higher precision and bounds checking
+        timeObserver = player?.addPeriodicTimeObserver(
+            forInterval: CMTime(value: 1, timescale: 10), // Update 10 times per second for smoother tracking
+            queue: DispatchQueue.main, // Use main queue directly
+            using: { [weak self] (progressTime) in
+                guard let self = self else { return }
+                
+                // Get current seconds
+                let currentSeconds = CMTimeGetSeconds(progressTime)
+                
+                // Prevent going past duration and handle invalid times
+                if let duration = player?.currentItem?.duration,
+                   CMTIME_IS_VALID(duration) {
+                    let maxSeconds = CMTimeGetSeconds(duration)
+                    let displaySeconds = min(currentSeconds, maxSeconds)
+                    
+                    self.playerSlider.value = Float(displaySeconds)
+                    self.populateLabelWithTime(self.lblStartTime, time: displaySeconds)
+                } else {
+                    // Fallback if duration not ready yet
+                    self.playerSlider.value = Float(currentSeconds)
+                    self.populateLabelWithTime(self.lblStartTime, time: currentSeconds)
+                }
             }
-        })
+        )
     }
 
     @objc func playerDidFinishPlaying(sender: Notification) {
-        playerSlider.setValue(0, animated: true)
-        populateLabelWithTime(self.lblStartTime, time: 0.0)
+        // Set to exact duration instead of 0 when playback finishes
+        if let duration = player?.currentItem?.duration, CMTIME_IS_VALID(duration) {
+            let durationSeconds = CMTimeGetSeconds(duration)
+            playerSlider.value = Float(durationSeconds)
+            populateLabelWithTime(self.lblStartTime, time: durationSeconds)
+        } else {
+            playerSlider.setValue(0, animated: true)
+            populateLabelWithTime(self.lblStartTime, time: 0.0)
+        }
+        
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+        
         if isRepeat {
             player?.play()
         } else {
+            // Remove only the observer associated with the ended item (sender.object) instead of all items
             NotificationCenter.default.removeObserver(self,
                                                       name: NSNotification.Name.AVPlayerItemDidPlayToEndTime,
-                                                      object: nil)
+                                                      object: sender.object)
+
+            // Always remove time observer before switching to the next track to avoid "different instance" issues
+            if let timeObserver = timeObserver {
+                player?.removeTimeObserver(timeObserver)
+                self.timeObserver = nil
+            }
+
             if let recentListArray = recentListArray, let selectedIndex = selectedIndex {
                 if selectedIndex < recentListArray.count-1 {
-                    // Remove observer before moving to next track
-                    if let timeObserver = timeObserver, let player = player {
-                        player.removeTimeObserver(timeObserver)
-                        self.timeObserver = nil
-                    }
+                    // (time observer already removed)
                 }
             }
             self.forwardBtnPressed()
         }
     }
 
-    func populateLabelWithTime(_ label : UILabel, time: Double) {
-        let minutes = Int(time / 60)
-        let seconds = Int(time) - minutes * 60
-        label.text = String(format: "%02d", minutes) + ":" + String(format: "%02d", seconds)
+    // IMPROVED: Better time formatting to handle edge cases
+    func populateLabelWithTime(_ label: UILabel, time: Double) {
+        // Ensure non-negative time
+        let validTime = max(0, time)
+        
+        // Round to nearest second to avoid display issues like 3:01 for 3:00
+        let roundedTime = Int(validTime.rounded())
+        
+        let minutes = roundedTime / 60
+        let seconds = roundedTime % 60
+        
+        label.text = String(format: "%02d:%02d", minutes, seconds)
     }
 
     @IBAction func pausePressed() {
@@ -848,8 +913,8 @@ extension RecentPlayerViewController {
 
     func pausePlayer() {
         // Remove time observer before pausing
-        if let timeObserver = timeObserver, let player = player {
-            player.removeTimeObserver(timeObserver)
+        if let timeObserver = timeObserver {
+            player?.removeTimeObserver(timeObserver)
             self.timeObserver = nil
         }
         
@@ -923,23 +988,6 @@ extension RecentPlayerViewController {
         }
 
         UserDefaultsManager.shared.localTracksData = savedTracks
-    }
-
-    
-    func configureLik1e(index : Int){
-//        if let item = track?[index] {
-//            var savedTracks = UserDefaultsManager.shared.localTracksData
-//            let trackIndex = savedTracks.firstIndex(where: {$0.trackid == item.trackid})
-//            if let trackIndex = trackIndex{
-//                savedTracks[trackIndex].isFav = isLike
-//            }
-//            else{
-//                let newItem = item.convertToSongModel()
-//                newItem.isFav = true
-//                savedTracks.append(newItem)
-//            }
-//            UserDefaultsManager.shared.localTracksData = savedTracks
-//        }
     }
 
     func configureDownload() {
