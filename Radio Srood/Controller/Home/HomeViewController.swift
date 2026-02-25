@@ -1185,63 +1185,6 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
 
 }
 
-//extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return self.featuredTop?.count ?? 0
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewHomeCollectionViewCell", for: indexPath) as! NewHomeCollectionViewCell
-//
-//        let featuredItem = self.featuredTop?[indexPath.row]
-//        print("aaaaaaa==1", featuredItem?.featuredImage)
-//        if let url = URL(string: featuredItem?.featuredImage ?? "") {
-//            cell.imgView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-//        }
-//
-//        return cell
-//    }
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let featuredItem = self.featuredTop?[indexPath.row]
-//
-//        // Check if the item is sponsored and print the appropriate message
-//        if featuredItem?.sponsored == true {
-//            if let url = URL(string: featuredItem?.externalLink ?? "https://instagram.com/RadioSrood") {
-//                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-//            }
-//        } else {
-//            let vc = self.storyboard?.instantiateViewController(withIdentifier: "MusicPlayerViewController") as! MusicPlayerViewController
-//            vc.groupID = featuredItem?.featuredSongID
-//            groupID = nil
-//            vc.delegate = self
-//            vc.homeHeader = homeHeader
-//            vc.isSponser = true
-//            vc.modalPresentationStyle = .overCurrentContext
-//            self.present(vc, animated: true)
-//        }
-//
-////        openMusicPlayerViewController()
-////        print(indexPath.row)
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-//        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        let size = sliderCollectionView.frame.size
-//        return CGSize(width: size.width, height: size.height)
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-//        return 0.0
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-//        return 0.0
-//    }
-//
-//}
 
 extension HomeViewController: GADInterstitialDelegate {
     
@@ -1302,41 +1245,6 @@ extension HomeViewController: GADInterstitialDelegate {
     }
     
 }
-
-/*extension HomeViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
- 
- func loadNativeAd() {
- guard !IAPHandler.shared.isGetPurchase() else {
- // Skip loading the ad if the purchase is made
- return
- }
- 
- self.nativeAd.removeAll()
- let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
- multipleAdsOptions.numberOfAds = 2
- adLoader = GADAdLoader(adUnitID: GOOGLE_ADMOB_NATIVE,
- rootViewController: self,
- adTypes: [.unifiedNative],
- options: [multipleAdsOptions])
- adLoader.delegate = self
- adLoader.load(GADRequest())
- }
- 
- func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
- guard !IAPHandler.shared.isGetPurchase() else {
- return
- }
- 
- self.nativeAd.append(nativeAd)
- handleHomeHeaderArrayValue()
- radiosroodTableView.reloadData()
- }
- 
- func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
- print("\(adLoader) failed with error: \(error.localizedDescription)")
- }
- 
- } */
 
 extension HomeViewController: GADBannerViewDelegate {
     

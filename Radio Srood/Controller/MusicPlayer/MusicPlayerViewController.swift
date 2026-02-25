@@ -129,6 +129,34 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         radioTableView.rowHeight = UITableView.automaticDimension
         radioTableView.estimatedRowHeight = 90
         setupCircularProgressView()
+        
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.4
+        radioTableView.addGestureRecognizer(longPress)
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        let point = gesture.location(in: radioTableView)
+        guard let indexPath = radioTableView.indexPathForRow(at: point) else { return }
+        
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+        
+        var selectedTrack: Track?
+        
+        if indexPath.row >= 2 && indexPath.row < 2 + queueRows && indexPath.row != 2 {
+            let queueIndex = indexPath.row - 3
+            selectedTrack = PlaybackQueueManager.shared.getQueue()[safe: queueIndex]
+        } else if indexPath.row >= 2 + queueRows {
+            let adjustedRow = indexPath.row - queueRows
+            let trackIndex = adjustedRow - 3 + 1
+            selectedTrack = tempTrack?[safe: trackIndex]
+        }
+        
+        if let track = selectedTrack {
+            presentOptionsViewController(for: track)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -1024,7 +1052,16 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             }
         }
     }
-    
+    private func presentOptionsViewController(for track: Track) {
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        optionsVC.track = track
+        optionsVC.delegate = self  // if you want delegate callbacks
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let queueCount = PlaybackQueueManager.shared.getQueue().count
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
@@ -1665,5 +1702,13 @@ extension MusicPlayerViewController {
 extension Collection {
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
+    }
+}
+extension MusicPlayerViewController: OptionsViewControllerDelegate {
+    func didUpdateTrackMetadata() {
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.manageTableViewScroll()
+        }
     }
 }

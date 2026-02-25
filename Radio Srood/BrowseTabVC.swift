@@ -13,7 +13,12 @@ import StoreKit
 import AVKit
 
 
-class BrowseTabVC: UI_VC {
+class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
+    
+    func didUpdateTrackMetadata() {
+        // Reload data when track metadata is updated
+        tblBrowse.reloadData()
+    }
     
     @IBOutlet weak var tblBrowse: UITableView! {
         didSet {
@@ -84,7 +89,11 @@ class BrowseTabVC: UI_VC {
         
         self.tblSearch.isHidden = true
         self.tblBrowse.isHidden = false
-
+        
+        // Add long press gesture recognizer
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPressGesture.minimumPressDuration = 0.3
+        tblBrowse.addGestureRecognizer(longPressGesture)
     }
 
 
@@ -136,6 +145,178 @@ class BrowseTabVC: UI_VC {
         })
     }
     
+    // MARK: - Long Press Handler
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            let touchPoint = gesture.location(in: tblBrowse)
+            guard let indexPath = tblBrowse.indexPathForRow(at: touchPoint),
+                  let tableCell = tblBrowse.cellForRow(at: indexPath) else {
+                print("No table view cell found at point \(touchPoint)")
+                return
+            }
+            
+            let sectionTitle = BrowseheaderArray[indexPath.section]
+            
+            // Helper function to apply scale animation to a collection view cell
+            func animateScaleEffect(for collectionView: UICollectionView, at collectionIndexPath: IndexPath) {
+                guard let cell = collectionView.cellForItem(at: collectionIndexPath) else {
+                    print("No collection view cell found at \(collectionIndexPath)")
+                    return
+                }
+                
+                // Trigger haptic feedback
+                let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+                feedbackGenerator.prepare()
+                feedbackGenerator.impactOccurred()
+                
+                // Add subtle shadow for visual feedback
+                cell.layer.shadowOpacity = 0.3
+                cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+                cell.layer.shadowRadius = 4
+                
+                // Scale down animation (to 94%)
+                cell.isUserInteractionEnabled = false
+                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                    cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+                }) { _ in
+                    // Scale back to original size with shadow removal
+                    UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                        cell.transform = .identity
+                        cell.layer.shadowOpacity = 0
+                        cell.isUserInteractionEnabled = true
+                    })
+                }
+            }
+            
+            // Handle long press based on section
+            switch sectionTitle {
+            case Browseheader.playlist.title:
+                if let browseCell = tableCell as? BrowseTableCell,
+                   let collectionView = browseCell.playlistCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case Browseheader.newMusic.title:
+                if let browseCell = tableCell as? BrowseTableCell,
+                   let collectionView = browseCell.playlistCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case Browseheader.popularMusic.title:
+                if let browseCell = tableCell as? BrowsePopularTableCell,
+                   let collectionView = browseCell.trackCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
+                }
+                
+            case Browseheader.recentlyPlay.title:
+                if let recentlyPlayedCell = tableCell as? RecentlyPlayedCell,
+                   let collectionView = recentlyPlayedCell.recentlyPlayedCollectionView,
+                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
+                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                    // Note: Recently Played is handled differently as per HomeViewController
+                    // You may want to skip this or handle differently
+                    print("Long press on Recently Played at index: \(collectionIndexPath.row)")
+                }
+                
+            default:
+                print("Long press on unhandled section: \(sectionTitle)")
+            }
+        }
+    }
+    
+    private func showLongPressAlert(for index: Int, section: String) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let optionsVC = storyboard.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        
+        // Determine the track based on the section
+        var selectedTrack: Track?
+        
+        switch section {
+        case Browseheader.newMusic.title:
+            if index >= 0, index < homeMusic?.newReleases.count ?? 0,
+               let groupID = homeMusic?.newReleases[index].newReleasesTrackID {
+                // Fetch tracks for the selected new release playlist
+                dataHelper.getNewReleaseData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.newRelease.first(where: { $0.id == groupID })?.tracks,
+                       !tracks.isEmpty {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for groupID \(groupID)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case Browseheader.playlist.title:
+            if index >= 0, index < homeMusic?.playlists.count ?? 0,
+               let groupID = homeMusic?.playlists[index].playlistid {
+                dataHelper.getPlaylistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.trendingPlaylist.first(where: { $0.id == groupID })?.tracks,
+                       !tracks.isEmpty {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for playlistID \(groupID)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        case Browseheader.popularMusic.title:
+            if index >= 0, index < homeMusic?.popularTracks.count ?? 0,
+               let groupID = homeMusic?.popularTracks[index].popularTrackID {
+                dataHelper.getPopularPlaylistData { [weak self] resp in
+                    guard let self = self, let resp = resp else { return }
+                    if let tracks = resp.popularTracks.first(where: { $0.id == groupID })?.tracks,
+                       !tracks.isEmpty {
+                        selectedTrack = tracks[0]
+                        self.presentOptionsVC(optionsVC, track: selectedTrack)
+                    } else {
+                        print("Error: No tracks found for popularTrackID \(groupID)")
+                        self.presentOptionsVC(optionsVC, track: nil)
+                    }
+                }
+                return // Wait for async data
+            }
+            
+        default:
+            print("Section \(section) not handled for track selection")
+            presentOptionsVC(optionsVC, track: nil)
+        }
+    }
+    
+    private func presentOptionsVC(_ optionsVC: OptionsViewController, track: Track?) {
+        if let track = track {
+            optionsVC.track = track
+            optionsVC.delegate = self
+            optionsVC.modalPresentationStyle = .overFullScreen
+            DispatchQueue.main.async {
+                self.present(optionsVC, animated: true, completion: nil)
+            }
+        } else {
+            print("No track found for index in section")
+            // Optionally, show an alert to the user
+            let alert = UIAlertController(title: "Error", message: "Unable to load track information", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            DispatchQueue.main.async {
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+    }
 
     private func handleTableView() {
         playList = UserDefaultsManager.shared.playListsData
@@ -649,13 +830,13 @@ class BrowseTabVC: UI_VC {
         bannerView.load(GADRequest())
 
         //////////////// Set the banner view frame
-//        bannerView.frame =  self.vwAds.bounds        //////////////// Remove any existing subviews from vwAds
+//        bannerView.frame =  self.vwAds.bounds        //////////////// Remove any existing subviews from vwAds
 //        for subview in vwAds.subviews {
 //            subview.removeFromSuperview()
 //        }
 //
         //////////////// Add the banner to vwAds
-//        vwAds.addSubview(bannerView)
+//        vwAds.addSubview(bannerView)
         
         bannerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
