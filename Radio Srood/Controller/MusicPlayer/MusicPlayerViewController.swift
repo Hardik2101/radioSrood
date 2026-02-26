@@ -471,7 +471,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
                     self.lyricSynced = plain   // safe for passing to other views
                     self.parser = nil          // no parser for plain lyrics
                     self.hideLyrics()
-                    self.lblLyrics.text = plain
+//                    self.lblLyrics.text = plain
                     self.isSyncedLyrics = false
 
                 } else {

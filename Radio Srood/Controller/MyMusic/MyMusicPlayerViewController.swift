@@ -326,7 +326,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                     // ✅ Fallback to plain lyrics
                     self.lyricSynced = plain
                     self.hideLyrics()
-                    self.lblLyricsText.text = plain
+//                    self.lblLyricsText.text = plain
                     self.isSyncedLyrics = false
                 } else {
                     // ❌ No lyrics at all
