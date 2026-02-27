@@ -56,35 +56,54 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // ✅ FIX 1: Configure & activate AVAudioSession for background playback
+        //    Without this, remote commands and Now Playing never work in BG.
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Audio session setup failed: \(error)")
+        }
+
         let yourBackImage = UIImage(named: "left-arrow")
         self.navigationController?.navigationBar.backIndicatorImage = yourBackImage
         self.navigationController?.navigationBar.backIndicatorTransitionMaskImage = yourBackImage
         self.navigationController?.navigationBar.tintColor = .white
-        self.navigationController?.navigationBar.backItem?.title = "RADIO SROOD"
-        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: UIBarButtonItem.Style.plain, target: nil, action: nil)
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+
         radioTableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 0.1))
         radioTableView.tableFooterView = UIView()
-//        self.view!.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+
         handleRecentInView()
         self.btnDownload.addTarget(self, action: #selector(downloadBtnPressed), for: .touchUpInside)
         tableBgHeightConstraints.constant = 190
         loadNativeAd()
+
         isSetupRemoteTransport = true
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(RadioViewController.didBecomeActiveNotificationReceived),
-                                               name:NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
-                                               object: nil)
+            selector: #selector(RadioViewController.didBecomeActiveNotificationReceived),
+            name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"),
+            object: nil)
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(RadioViewController.playerInterruption(notification:)),
-                                               name:NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
-                                               object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
+            selector: #selector(RadioViewController.playerInterruption(notification:)),
+            name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"),
+            object: nil)
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(handleIAPPurchase),
+            name: .PurchaseSuccess,
+            object: nil)
 
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
-        
         setupCircularProgressView()
 
+        // ✅ FIX 2: Start receiving remote control events (required for lock-screen controls)
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        self.becomeFirstResponder()
     }
+
+
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
@@ -176,11 +195,25 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
         var miniPlayerInfo = BasicDetail()
         miniPlayerInfo.musicVC = self
         if let recentItem = recentListData {
-            if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String, let url = URL(string: recentArtCover) {
-                self.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String,
+               let url = URL(string: recentArtCover) {
+
+                // ✅ Use completion handler so setupNowPlaying runs AFTER image loads
+                self.artCoverImage.af_setImage(
+                    withURL: url,
+                    placeholderImage: UIImage(named: "Lav_Radio_Logo.png"),
+                    completion: { [weak self] _ in
+                        // setupNowPlaying will fetch art from URL directly,
+                        // but this ensures artCoverImage.image is also fresh
+                        // for any code that still reads it.
+                        self?.setupNowPlaying()
+                    }
+                )
                 self.bgImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "b1.png"))
                 miniPlayerInfo.songImage = recentArtCover
             }
+
+
             if let recentTrack = recentItem.value(forKey: "recentTrack") as? String {
                 self.trackTitle.text = recentTrack
                 miniPlayerInfo.songNameTitle = self.trackTitle.text ?? ""
@@ -686,29 +719,33 @@ extension RecentPlayerViewController {
         
         // IMPROVED: Time observer with higher precision and bounds checking
         timeObserver = player?.addPeriodicTimeObserver(
-            forInterval: CMTime(value: 1, timescale: 10), // Update 10 times per second for smoother tracking
-            queue: DispatchQueue.main, // Use main queue directly
-            using: { [weak self] (progressTime) in
-                guard let self = self else { return }
-                
-                // Get current seconds
-                let currentSeconds = CMTimeGetSeconds(progressTime)
-                
-                // Prevent going past duration and handle invalid times
-                if let duration = player?.currentItem?.duration,
-                   CMTIME_IS_VALID(duration) {
-                    let maxSeconds = CMTimeGetSeconds(duration)
-                    let displaySeconds = min(currentSeconds, maxSeconds)
-                    
-                    self.playerSlider.value = Float(displaySeconds)
-                    self.populateLabelWithTime(self.lblStartTime, time: displaySeconds)
-                } else {
-                    // Fallback if duration not ready yet
-                    self.playerSlider.value = Float(currentSeconds)
-                    self.populateLabelWithTime(self.lblStartTime, time: currentSeconds)
-                }
+            forInterval: CMTime(value: 1, timescale: 2),   // every 0.5 s is enough for lock screen
+            queue: .main
+        ) { [weak self] progressTime in
+            guard let self = self else { return }
+
+            let currentSeconds = CMTimeGetSeconds(progressTime)
+            guard !currentSeconds.isNaN else { return }
+
+            if let duration = player?.currentItem?.duration,
+               CMTIME_IS_VALID(duration), !duration.seconds.isNaN {
+                let maxSeconds = duration.seconds
+                let display    = min(currentSeconds, maxSeconds)
+
+                self.playerSlider.maximumValue = Float(maxSeconds)
+                self.playerSlider.value        = Float(display)
+                self.populateLabelWithTime(self.lblStartTime, time: display)
+                self.populateLabelWithTime(self.lblEndTime,   time: maxSeconds)
+            } else {
+                self.playerSlider.value = Float(currentSeconds)
+                self.populateLabelWithTime(self.lblStartTime, time: currentSeconds)
             }
-        )
+
+            // ✅ FIX 11: Keep lock-screen elapsed time in sync every tick
+            self.updateNowPlaying(isPause: !(player?.isPlaying ?? false))
+        }
+
+
     }
 
     @objc func playerDidFinishPlaying(sender: Notification) {
@@ -819,97 +856,164 @@ extension RecentPlayerViewController {
     }
 
     func updateNowPlaying(isPause: Bool) {
-        // Define Now Playing Info
-        if var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo {
-            nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPause ? 0 : 1
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+
+        // Always refresh elapsed time
+        if let current = player?.currentTime(),
+           CMTIME_IS_VALID(current), !current.seconds.isNaN {
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = current.seconds
         }
+
+        // Fill in duration if it wasn't ready during setupNowPlaying
+        if (info[MPMediaItemPropertyPlaybackDuration] as? Double ?? 0) == 0,
+           let duration = player?.currentItem?.duration,
+           CMTIME_IS_VALID(duration), !duration.seconds.isNaN {
+            info[MPMediaItemPropertyPlaybackDuration] = duration.seconds
+        }
+
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPause ? 0.0 : 1.0
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
+
 
     func setupNowPlaying() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            var nowPlayingInfo = [String: Any]()
-            nowPlayingInfo[MPMediaItemPropertyArtist] = self.artistName.text
-            nowPlayingInfo[MPMediaItemPropertyTitle] = self.trackTitle.text
-            nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
-            
-            if let image = self.artCoverImage.image {
-                if #available(iOS 10.0, *) {
-                    // Asynchronous loading of image
-                    DispatchQueue.global(qos: .background).async {
-                        let mediaArtwork = MPMediaItemArtwork(boundsSize: image.size) { (size: CGSize) -> UIImage in
-                            return image
-                        }
-                        nowPlayingInfo[MPMediaItemPropertyArtwork] = mediaArtwork
+        // Capture the art URL NOW, before any async work, so we always
+        // use the URL that belongs to the track that just started playing.
+        let artURLString = recentListData?.value(forKey: "recentArtCover") as? String
 
-                        DispatchQueue.main.async {
-                            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-                        }
-                    }
-                } else {
-                    // Fallback on earlier versions
+        var nowPlayingInfo = [String: Any]()
+        nowPlayingInfo[MPMediaItemPropertyTitle]               = trackTitle.text ?? ""
+        nowPlayingInfo[MPMediaItemPropertyArtist]              = artistName.text ?? ""
+        nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream]   = false
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate]   = player?.isPlaying == true ? 1.0 : 0.0
+
+        // Push basic info immediately (no artwork yet) so title/artist appear right away
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+
+        // ✅ FIX: Fetch artwork directly from URL, not from UIImageView.image
+        //         This guarantees we get the NEW song's art even if the
+        //         UIImageView hasn't finished loading yet.
+        fetchArtworkImage(from: artURLString) { [weak self] image in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                // Rebuild nowPlayingInfo fresh — the player may have updated
+                // elapsed time since we first pushed, so re-read current values.
+                var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+
+                if let duration = player?.currentItem?.duration,
+                   CMTIME_IS_VALID(duration), !duration.seconds.isNaN {
+                    info[MPMediaItemPropertyPlaybackDuration] = duration.seconds
                 }
-            } else {
-                // Handle case where image is nil
-                print("Error: artCoverImage.image is nil")
+                if let current = player?.currentTime(),
+                   CMTIME_IS_VALID(current), !current.seconds.isNaN {
+                    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = current.seconds
+                }
+                info[MPNowPlayingInfoPropertyPlaybackRate] = player?.isPlaying == true ? 1.0 : 0.0
+
+                if let image = image {
+                    let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                    info[MPMediaItemPropertyArtwork] = artwork
+                }
+
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = info
             }
         }
     }
+
+    private func fetchArtworkImage(from urlString: String?, completion: @escaping (UIImage?) -> Void) {
+        guard let urlString = urlString,
+              let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+        // Use AlamofireImage's shared downloader (already in your project)
+        // so it benefits from caching — if it's already cached this is instant
+        UIImageView().af_setImage(withURL: url) // warm the cache (no-op if cached)
+        
+        AF.request(url).responseData { response in
+            switch response.result {
+            case .success(let data):
+                let image = UIImage(data: data)
+                completion(image)
+            case .failure:
+                completion(nil)
+            }
+        }
+    }
+
+
 
     func setupRemoteTransportControls() {
-        // Get the shared MPRemoteCommandCenter
-        let commandCenter = MPRemoteCommandCenter.shared()
-        commandCenter.nextTrackCommand.isEnabled = true
-        commandCenter.previousTrackCommand.isEnabled = true
-        // Add handler for Play Command
-        commandCenter.playCommand.addTarget { [weak self] event in
-            guard let self = self else { return .commandFailed }
-            if let player = player {
-                if !player.isPlaying {
-                    player.play()
-                    self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for:.normal)
-                    return .success
-                }
-            }
-            return .commandFailed
+        let cc = MPRemoteCommandCenter.shared()
+
+        // ✅ FIX: Use removeTarget(nil) to clear all previously added targets
+        //         (MPRemoteCommand has no removeAllTargets — nil removes everything)
+        cc.playCommand.removeTarget(nil)
+        cc.pauseCommand.removeTarget(nil)
+        cc.togglePlayPauseCommand.removeTarget(nil)
+        cc.nextTrackCommand.removeTarget(nil)
+        cc.previousTrackCommand.removeTarget(nil)
+        cc.changePlaybackPositionCommand.removeTarget(nil)
+
+        cc.playCommand.isEnabled                 = true
+        cc.pauseCommand.isEnabled                = true
+        cc.togglePlayPauseCommand.isEnabled      = true
+        cc.nextTrackCommand.isEnabled            = true
+        cc.previousTrackCommand.isEnabled        = true
+        cc.changePlaybackPositionCommand.isEnabled = true
+
+        cc.playCommand.addTarget { [weak self] _ in
+            guard let self = self, let p = player, !p.isPlaying else { return .commandFailed }
+            p.play()
+            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal) }
+            self.updateNowPlaying(isPause: false)
+            return .success
         }
 
-        // Add handler for Pause Command
-        commandCenter.pauseCommand.addTarget { [weak self] event in
-            guard let self = self else { return .commandFailed }
-            if let player = player {
-                if player.isPlaying {
-                    player.pause()
-                    self.playPauseBtn.setImage(UIImage(named: "ic_play"), for:.normal)
-                    return .success
-                }
-            }
-            return .commandFailed
+        cc.pauseCommand.addTarget { [weak self] _ in
+            guard let self = self, let p = player, p.isPlaying else { return .commandFailed }
+            p.pause()
+            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal) }
+            self.updateNowPlaying(isPause: true)
+            return .success
         }
 
-        commandCenter.nextTrackCommand.addTarget { [weak self] event in
+        cc.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
-            if player != nil {
+            DispatchQueue.main.async { self.pausePressed() }
+            return .success
+        }
+
+        cc.nextTrackCommand.addTarget { [weak self] _ in
+            guard let self = self else { return .commandFailed }
+            DispatchQueue.main.async {
                 self.pausePlayer()
                 self.forwardBtnPressed()
-                return .success
             }
-            return .commandFailed
+            return .success
         }
 
-        commandCenter.previousTrackCommand.addTarget { [weak self] event in
+        cc.previousTrackCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
-            if player != nil {
+            DispatchQueue.main.async {
                 self.pausePlayer()
                 self.backwardBtnPressed()
-                return .success
             }
-            return .commandFailed
+            return .success
         }
 
+        cc.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let self = self,
+                  let e = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
+            let target = CMTime(seconds: e.positionTime, preferredTimescale: 1)
+            player?.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
+            self.updateNowPlaying(isPause: !(player?.isPlaying ?? false))
+            return .success
+        }
     }
+
 
     func pausePlayer() {
         // Remove time observer before pausing
