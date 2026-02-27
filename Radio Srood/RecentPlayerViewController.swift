@@ -97,7 +97,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
 
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         setupCircularProgressView()
-
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.4
+        radioTableView.addGestureRecognizer(longPress)
         // ✅ FIX 2: Start receiving remote control events (required for lock-screen controls)
         UIApplication.shared.beginReceivingRemoteControlEvents()
         self.becomeFirstResponder()
@@ -144,7 +146,27 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
         circularProgressView.isHidden = true
         vwProgress.addSubview(circularProgressView)
     }
-    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        let point = gesture.location(in: radioTableView)
+        guard let indexPath = radioTableView.indexPathForRow(at: point) else { return }
+        // Only row 0 is the player — row 1 is options cell, rest are ads
+        guard indexPath.row == 0, let recentItem = recentListData else { return }
+
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+
+        guard let songModel = SongModel(recentItem: recentItem) else { return }
+        let track = songModel.convertToPodcastModel().convertToTrackModel()
+
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else { return }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
+
     @objc func didBecomeActiveNotificationReceived() {
         updateNowPlaying(isPause: true)
     }
@@ -1113,4 +1135,12 @@ extension RecentPlayerViewController {
         UserDefaultsManager.shared.localTracksData = savedTracks
     }
 
+}
+extension RecentPlayerViewController: OptionsViewControllerDelegate {
+    func didUpdateTrackMetadata() {
+        DispatchQueue.main.async {
+            self.isAlreadyLiked()
+            self.isAlreadyDownloaded()
+        }
+    }
 }

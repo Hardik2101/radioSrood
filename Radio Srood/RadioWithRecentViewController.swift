@@ -77,7 +77,9 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
 
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
-
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.4
+        radioTableView.addGestureRecognizer(longPress)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -117,7 +119,44 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     deinit {
         print("Remove screen")
     }
-    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        let point = gesture.location(in: radioTableView)
+        guard let indexPath = radioTableView.indexPathForRow(at: point),
+              indexPath.section == 4 else { return }  // only recently played rows
+
+        guard let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary,
+              let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray,
+              indexPath.row < recentHistory.count,
+              let recentItem = recentHistory[indexPath.row] as? NSDictionary else { return }
+
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+
+        if let cell = radioTableView.cellForRow(at: indexPath) {
+            cell.isUserInteractionEnabled = false
+            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+            }) { _ in
+                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                    cell.transform = .identity
+                    cell.isUserInteractionEnabled = true
+                })
+            }
+        }
+
+        // Build Track from recentItem NSDictionary
+        guard let songModel = SongModel(recentItem: recentItem) else { return }
+        let track = songModel.convertToPodcastModel().convertToTrackModel()
+
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else { return }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
+
     
     @objc func loadRadioData() {
         dataHelper = DataHelper()
@@ -672,6 +711,13 @@ extension RadioWithRecentViewController: GADInterstitialDelegate {
             interstitial!.present(fromRootViewController: self)
         } else {
             loadInterstitial()
+        }
+    }
+}
+extension RadioWithRecentViewController: OptionsViewControllerDelegate {
+    func didUpdateTrackMetadata() {
+        DispatchQueue.main.async {
+            self.loadRecentListData()
         }
     }
 }
