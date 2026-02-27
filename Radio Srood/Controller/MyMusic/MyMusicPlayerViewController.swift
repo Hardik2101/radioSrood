@@ -48,6 +48,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isRepeat = false
     var isShuffle: Bool = false
     var timeObserver: Any?
+    // FIX: added lyricsTimeObserver so it can be properly removed and won't cause crashes
+    private var lyricsTimeObserver: Any?
     private var currentPlayer: AVPlayer?
     private var playerItemStatusObserver: NSKeyValueObservation?
     private var hasTriedFallbackForItem: Bool = false
@@ -157,12 +159,19 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     // MARK: - Single clean teardown method
+    // FIX: Now also removes lyricsTimeObserver to prevent orphaned observers causing crashes
     private func stopAndClearPlayer() {
         playerItemStatusObserver = nil
-        if let obs = timeObserver, let p = currentPlayer {
-            p.removeTimeObserver(obs)
+        if let p = currentPlayer {
+            if let obs = timeObserver {
+                p.removeTimeObserver(obs)
+            }
+            if let obs = lyricsTimeObserver {
+                p.removeTimeObserver(obs)
+            }
         }
         timeObserver = nil
+        lyricsTimeObserver = nil
         if let p = player {
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: p.currentItem)
             p.pause()
@@ -1117,12 +1126,19 @@ extension MyMusicPlayerViewController {
         )
 
         if isPlay {
-            self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
-            self.updateNowPlaying(isPause: false)
-            player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: .main) { [weak self] time in
+            // FIX: store the lyrics observer so it can be properly removed in stopAndClearPlayer
+            lyricsTimeObserver = player?.addPeriodicTimeObserver(
+                forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1),
+                queue: .main
+            ) { [weak self] time in
                 guard let self = self, player?.currentItem?.status == .readyToPlay else { return }
                 self.showLyric(toTime: CMTimeGetSeconds(time))
             }
+            // FIX: update play button to "pause" icon immediately when playback starts
+            DispatchQueue.main.async {
+                self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+            }
+            self.updateNowPlaying(isPause: false)
             player?.play()
         } else {
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
@@ -1151,14 +1167,10 @@ extension MyMusicPlayerViewController {
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
         }
 
-        if let obs = timeObserver, let p = currentPlayer {
-            p.removeTimeObserver(obs)
-            timeObserver = nil
-            currentPlayer = nil
-        }
-
+        // FIX: always update the play button to "play" icon immediately when a song finishes
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
             self.playerSlider.setValue(0, animated: true)
             self.populateLabelWithTime(self.lblStartTime, time: 0.0)
         }
@@ -1166,6 +1178,10 @@ extension MyMusicPlayerViewController {
         if isRepeat {
             player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
             player?.play()
+            // FIX: update button back to "pause" since we're resuming play in repeat mode
+            DispatchQueue.main.async { [weak self] in
+                self?.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+            }
             return
         }
 
@@ -1182,11 +1198,19 @@ extension MyMusicPlayerViewController {
         currentQueueIndex = nil
         currentQueueTrack = nil
 
+        // FIX: ensure isSetMusic and isPlay are set before forwarding so the next
+        // track actually starts playing and the button updates correctly
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self, let track = self.track, self.selectedIndex < track.count - 1 else {
+            guard let self = self, let track = self.track else {
                 self?.pausePlayer()
                 return
             }
+            guard self.selectedIndex < track.count - 1 else {
+                self.pausePlayer()
+                return
+            }
+            self.isSetMusic = true
+            self.isPlay = true
             self.forwardBtnPressed()
         }
     }
