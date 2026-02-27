@@ -79,6 +79,35 @@ struct Track: Codable {
         hlsMediaPath = try? container.decode(String.self, forKey: .hlsMediaPath)
 
     }
+    init(trackid: Int? = nil, artist: String? = nil, track: String? = nil,
+         playcounts: String? = nil, likes: String? = nil, dislikes: String? = nil,
+         composer: String? = nil, lyricWriter: String? = nil, music: String? = nil,
+         dateAdded: String? = nil, lyric: String? = nil, explicit: Bool? = nil,
+         allowDownload: Bool? = nil, mediaPath: String? = nil, artcover: String? = nil,
+         ytLink: String? = nil, fbLink: String? = nil, igLink: String? = nil,
+         playlistid: Int? = nil, lyric_synced: String? = nil, hlsMediaPath: String? = nil) {
+        self.trackid = trackid
+        self.artist = artist
+        self.track = track
+        self.playcounts = playcounts
+        self.likes = likes
+        self.dislikes = dislikes
+        self.composer = composer
+        self.lyricWriter = lyricWriter
+        self.music = music
+        self.dateAdded = dateAdded
+        self.lyric = lyric
+        self.explicit = explicit
+        self.allowDownload = allowDownload
+        self.mediaPath = mediaPath
+        self.artcover = artcover
+        self.ytLink = ytLink
+        self.fbLink = fbLink
+        self.igLink = igLink
+        self.playlistid = playlistid
+        self.lyric_synced = lyric_synced
+        self.hlsMediaPath = hlsMediaPath
+    }
 
     // Convert to internal model
     func convertToSongModel() -> SongModel {

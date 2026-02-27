@@ -143,17 +143,48 @@ class SongModel: NSObject, NSCoding {
     }
 
     // MARK: - Convert to Podcast
-    func convertToPodcastModel() -> PodcastObject {
-        let coverURL = URL(string: artcover) ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
-        if let urlString = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let fullURL = URL(string: songPath + urlString) {
-            return PodcastObject(file: fullURL, trackName: track, artistName: artist, imageURL: coverURL, trackid: trackid)
-        } else if let fallbackURL = URL(string: mediaPath) {
-            return PodcastObject(file: fallbackURL, trackName: track, artistName: artist, imageURL: coverURL, trackid: trackid)
-        } else {
-            return PodcastObject(file: URL(string: "https://defaultaudio.com/placeholder.mp3")!, trackName: track, artistName: artist, imageURL: coverURL,trackid: trackid)
+        func convertToPodcastModel() -> PodcastObject {
+            let coverURL = URL(string: artcover) ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
+
+            let fileURL: URL?
+            if let urlString = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+               let fullURL = URL(string: songPath + urlString) {
+                fileURL = fullURL
+            } else if let fallbackURL = URL(string: mediaPath) {
+                fileURL = fallbackURL
+            } else {
+                fileURL = URL(string: "https://defaultaudio.com/placeholder.mp3")!
+            }
+
+            return PodcastObject(
+                file: fileURL,
+                mediaPath: mediaPath,
+                trackName: track,
+                artistName: artist,
+                imageURL: coverURL,
+                trackid: trackid,
+                likes: likes,
+                dislikes: dislikes,
+                playcounts: Double(playcounts),
+                dateAdded: dateAdded,
+                artcover: artcover,
+                isBookMarked: isBookMarked,
+                composer: composer,
+                lyricWriter: lyricWriter,
+                music: music,
+                lyric: lyric,
+                lyric_synced: lyric_synced,
+                explicit: explicit,
+                allowDownload: allowDownload,
+                ytLink: ytLink,
+                fbLink: fbLink,
+                igLink: igLink,
+                playlistid: playlistid,
+                isFav: isFav,
+                isDownload: isDownload,
+                isRecentlyPlayed: isRecentlyPlayed
+            )
         }
-    }
 
     // MARK: - Debug Description
     override var description: String {

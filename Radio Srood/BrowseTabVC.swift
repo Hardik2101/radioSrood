@@ -18,6 +18,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     func didUpdateTrackMetadata() {
         // Reload data when track metadata is updated
         tblBrowse.reloadData()
+        tblSearch.reloadData()
     }
     
     @IBOutlet weak var tblBrowse: UITableView! {
@@ -94,6 +95,10 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPressGesture.minimumPressDuration = 0.3
         tblBrowse.addGestureRecognizer(longPressGesture)
+        
+        let longPressSearch = UILongPressGestureRecognizer(target: self, action: #selector(handleSearchLongPress(_:)))
+        longPressSearch.minimumPressDuration = 0.3
+        tblSearch.addGestureRecognizer(longPressSearch)
     }
 
 
@@ -219,15 +224,59 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                    let collectionView = recentlyPlayedCell.recentlyPlayedCollectionView,
                    let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
                     animateScaleEffect(for: collectionView, at: collectionIndexPath)
-                    // Note: Recently Played is handled differently as per HomeViewController
-                    // You may want to skip this or handle differently
-                    print("Long press on Recently Played at index: \(collectionIndexPath.row)")
+                    
+                    guard collectionIndexPath.row < recenltPlayed.count else { return }
+                    let track = recenltPlayed[collectionIndexPath.row].convertToPodcastModel().convertToTrackModel()
+                    
+                    guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else { return }
+                    optionsVC.track = track
+                    optionsVC.delegate = self
+                    optionsVC.modalPresentationStyle = .overFullScreen
+                    present(optionsVC, animated: true)
                 }
-                
             default:
                 print("Long press on unhandled section: \(sectionTitle)")
             }
         }
+    }
+    
+    @objc private func handleSearchLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        
+        let point = gesture.location(in: tblSearch)
+        guard let indexPath = tblSearch.indexPathForRow(at: point),
+              indexPath.row < arrSearch.count else { return }
+        
+        // Haptic feedback
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+        
+        // Scale animation on cell
+        if let cell = tblSearch.cellForRow(at: indexPath) {
+            cell.isUserInteractionEnabled = false
+            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+            }) { _ in
+                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                    cell.transform = .identity
+                    cell.isUserInteractionEnabled = true
+                })
+            }
+        }
+        
+        // Convert SearchModel → Track and open OptionsViewController
+        let searchItem = arrSearch[indexPath.row]
+        let track = searchItem.convertToTrack()
+        
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
     }
     
     private func showLongPressAlert(for index: Int, section: String) {

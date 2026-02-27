@@ -301,13 +301,13 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             }
             
         case "Recently Played":
-//            if index >= 0, index < recenltPlayed.count {
-//                selectedTrack = recenltPlayed[index].convertToTrackModel()
-//                presentOptionsVC(optionsVC, track: selectedTrack)
-//            } else {
-//                print("Error: Invalid index \(index) for Recently Played, count: \(recenltPlayed.count)")
-//                presentOptionsVC(optionsVC, track: nil)
-//            }
+            if index >= 0, index < recenltPlayed.count {
+                let track = recenltPlayed[index].convertToPodcastModel().convertToTrackModel()
+                presentOptionsVC(optionsVC, track: track)
+            } else {
+                print("Error: Invalid index \(index) for Recently Played, count: \(recenltPlayed.count)")
+                presentOptionsVC(optionsVC, track: nil)
+            }//            }
             break;
             
         case "Playlists":

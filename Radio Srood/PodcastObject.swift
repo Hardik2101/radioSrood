@@ -10,11 +10,28 @@ class PodcastObject: NSObject, NSCoding {
     var imageURL: URL?
     var trackid: Int?
     var likes: String?
+    var dislikes: String?
     var playcounts: Double?
     var dateAdded: String?
     var artcover: String?
     var artcover200: URL?
     var isBookMarked: Bool?
+
+    // Additional fields from SongModel
+    var composer: String?
+    var lyricWriter: String?
+    var music: String?
+    var lyric: String?
+    var lyric_synced: String?
+    var explicit: Bool?
+    var allowDownload: Bool?
+    var ytLink: String?
+    var fbLink: String?
+    var igLink: String?
+    var playlistid: Int?
+    var isFav: Bool?
+    var isDownload: Bool?
+    var isRecentlyPlayed: Bool?
 
     init(
         file: URL? = nil,
@@ -25,12 +42,27 @@ class PodcastObject: NSObject, NSCoding {
         imageURL: URL? = nil,
         trackid: Int? = nil,
         likes: String? = nil,
+        dislikes: String? = nil,
         playcounts: Double? = nil,
         dateAdded: String? = nil,
         artcover: String? = nil,
         artcover200: URL? = nil,
-        isBookMarked: Bool
-     = false) {
+        isBookMarked: Bool = false,
+        composer: String? = nil,
+        lyricWriter: String? = nil,
+        music: String? = nil,
+        lyric: String? = nil,
+        lyric_synced: String? = nil,
+        explicit: Bool? = nil,
+        allowDownload: Bool? = nil,
+        ytLink: String? = nil,
+        fbLink: String? = nil,
+        igLink: String? = nil,
+        playlistid: Int? = nil,
+        isFav: Bool? = nil,
+        isDownload: Bool? = nil,
+        isRecentlyPlayed: Bool? = nil
+    ) {
         self.file = file
         self.mediaPath = mediaPath
         self.trackName = trackName
@@ -39,11 +71,26 @@ class PodcastObject: NSObject, NSCoding {
         self.imageURL = imageURL
         self.trackid = trackid
         self.likes = likes
+        self.dislikes = dislikes
         self.playcounts = playcounts
         self.dateAdded = dateAdded
         self.artcover = artcover
         self.artcover200 = artcover200
-         self.isBookMarked = isBookMarked
+        self.isBookMarked = isBookMarked
+        self.composer = composer
+        self.lyricWriter = lyricWriter
+        self.music = music
+        self.lyric = lyric
+        self.lyric_synced = lyric_synced
+        self.explicit = explicit
+        self.allowDownload = allowDownload
+        self.ytLink = ytLink
+        self.fbLink = fbLink
+        self.igLink = igLink
+        self.playlistid = playlistid
+        self.isFav = isFav
+        self.isDownload = isDownload
+        self.isRecentlyPlayed = isRecentlyPlayed
     }
 
     // MARK: - NSCoding
@@ -56,11 +103,26 @@ class PodcastObject: NSObject, NSCoding {
         coder.encode(imageURL, forKey: "imageURL")
         coder.encode(trackid, forKey: "trackid")
         coder.encode(likes, forKey: "likes")
+        coder.encode(dislikes, forKey: "dislikes")
         coder.encode(playcounts, forKey: "playcounts")
         coder.encode(dateAdded, forKey: "dateAdded")
         coder.encode(artcover, forKey: "artcover")
         coder.encode(artcover200, forKey: "artcover200")
         coder.encode(isBookMarked, forKey: "isBookMarked")
+        coder.encode(composer, forKey: "composer")
+        coder.encode(lyricWriter, forKey: "lyricWriter")
+        coder.encode(music, forKey: "music")
+        coder.encode(lyric, forKey: "lyric")
+        coder.encode(lyric_synced, forKey: "lyric_synced")
+        coder.encode(explicit, forKey: "explicit")
+        coder.encode(allowDownload, forKey: "allowDownload")
+        coder.encode(ytLink, forKey: "ytLink")
+        coder.encode(fbLink, forKey: "fbLink")
+        coder.encode(igLink, forKey: "igLink")
+        coder.encode(playlistid, forKey: "playlistid")
+        coder.encode(isFav, forKey: "isFav")
+        coder.encode(isDownload, forKey: "isDownload")
+        coder.encode(isRecentlyPlayed, forKey: "isRecentlyPlayed")
     }
 
     required init?(coder: NSCoder) {
@@ -72,52 +134,86 @@ class PodcastObject: NSObject, NSCoding {
         self.imageURL = coder.decodeObject(forKey: "imageURL") as? URL
         self.trackid = coder.decodeObject(forKey: "trackid") as? Int
         self.likes = coder.decodeObject(forKey: "likes") as? String
+        self.dislikes = coder.decodeObject(forKey: "dislikes") as? String
         self.playcounts = coder.decodeObject(forKey: "playcounts") as? Double
         self.dateAdded = coder.decodeObject(forKey: "dateAdded") as? String
         self.artcover = coder.decodeObject(forKey: "artcover") as? String
         self.artcover200 = coder.decodeObject(forKey: "artcover200") as? URL
         self.isBookMarked = coder.decodeObject(forKey: "isBookMarked") as? Bool
+        self.composer = coder.decodeObject(forKey: "composer") as? String
+        self.lyricWriter = coder.decodeObject(forKey: "lyricWriter") as? String
+        self.music = coder.decodeObject(forKey: "music") as? String
+        self.lyric = coder.decodeObject(forKey: "lyric") as? String
+        self.lyric_synced = coder.decodeObject(forKey: "lyric_synced") as? String
+        self.explicit = coder.decodeObject(forKey: "explicit") as? Bool
+        self.allowDownload = coder.decodeObject(forKey: "allowDownload") as? Bool
+        self.ytLink = coder.decodeObject(forKey: "ytLink") as? String
+        self.fbLink = coder.decodeObject(forKey: "fbLink") as? String
+        self.igLink = coder.decodeObject(forKey: "igLink") as? String
+        self.playlistid = coder.decodeObject(forKey: "playlistid") as? Int
+        self.isFav = coder.decodeObject(forKey: "isFav") as? Bool
+        self.isDownload = coder.decodeObject(forKey: "isDownload") as? Bool
+        self.isRecentlyPlayed = coder.decodeObject(forKey: "isRecentlyPlayed") as? Bool
     }
 }
 
+// MARK: - convertToSongModel
 extension PodcastObject {
     func convertToSongModel() -> SongModel {
-        // Break up the initializer into sub-expressions
         let songModel = SongModel()
-        
-        // Set trackid
         songModel.trackid = trackid ?? Int("\(trackName ?? "")_\(artistName ?? "")".hashValue & 0x7FFFFFFF)
-        
-        // Set basic track info
         songModel.artist = artistName ?? ""
         songModel.track = trackName ?? ""
         songModel.artcover = artcover ?? imageURL?.absoluteString ?? ""
         songModel.mediaPath = mediaPath ?? file?.absoluteString ?? ""
-        
-        // Set additional metadata
         songModel.playcounts = playcounts != nil ? String(playcounts!) : ""
         songModel.likes = likes ?? ""
+        songModel.dislikes = dislikes ?? ""
+        songModel.composer = composer ?? ""
+        songModel.lyricWriter = lyricWriter ?? ""
+        songModel.music = music ?? ""
         songModel.dateAdded = dateAdded ?? ""
-        
-        // Set default values for remaining fields
-        songModel.dislikes = ""
-        songModel.composer = ""
-        songModel.lyricWriter = ""
-        songModel.music = ""
-        songModel.lyric = ""
-        songModel.explicit = false
-        songModel.allowDownload = true
-        songModel.ytLink = ""
-        songModel.fbLink = ""
-        songModel.igLink = ""
-        songModel.playlistid = 0
-        songModel.isFav = false
-        songModel.isDownload = false
-        songModel.isBookMarked = false
-        songModel.isRecentlyPlayed = false
-        songModel.lyric_synced = ""
-        
+        songModel.lyric = lyric ?? ""
+        songModel.lyric_synced = lyric_synced ?? ""
+        songModel.explicit = explicit ?? false
+        songModel.allowDownload = allowDownload ?? true
+        songModel.ytLink = ytLink ?? ""
+        songModel.fbLink = fbLink ?? ""
+        songModel.igLink = igLink ?? ""
+        songModel.playlistid = playlistid ?? 0
+        songModel.isFav = isFav ?? false
+        songModel.isDownload = isDownload ?? false
+        songModel.isBookMarked = isBookMarked ?? false
+        songModel.isRecentlyPlayed = isRecentlyPlayed ?? false
         return songModel
     }
 }
 
+// MARK: - convertToTrackModel
+extension PodcastObject {
+    func convertToTrackModel() -> Track {
+        return Track(
+            trackid: trackid ?? Int("\(trackName ?? "")_\(artistName ?? "")".hashValue & 0x7FFFFFFF),
+            artist: artistName,
+            track: trackName,
+            playcounts: playcounts != nil ? String(playcounts!) : nil,
+            likes: likes,
+            dislikes: dislikes,
+            composer: composer,
+            lyricWriter: lyricWriter,
+            music: music,
+            dateAdded: dateAdded,
+            lyric: lyric,
+            explicit: explicit,
+            allowDownload: allowDownload,
+            mediaPath: mediaPath ?? file?.absoluteString,
+            artcover: artcover ?? imageURL?.absoluteString,
+            ytLink: ytLink,
+            fbLink: fbLink,
+            igLink: igLink,
+            playlistid: playlistid,
+            lyric_synced: lyric_synced,
+            hlsMediaPath: nil
+        )
+    }
+}

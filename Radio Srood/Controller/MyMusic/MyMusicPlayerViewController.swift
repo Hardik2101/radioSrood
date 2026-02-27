@@ -30,8 +30,8 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     @IBOutlet var vwLyrics: UIView!
     @IBOutlet weak var heightView: NSLayoutConstraint!
     @IBOutlet var vwProgress: UIView!
-
     @IBOutlet weak var lblLyricsText: UILabel!
+
     var track: [PodcastObject]?
     var tempTrack: [PodcastObject]?
     var firstTrackList: [PodcastObject]?
@@ -49,28 +49,27 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     var isRepeat = false
     var isShuffle: Bool = false
     var timeObserver: Any?
-    // KVO observer for player item status (HLS failure detection)
     private var playerItemStatusObserver: NSKeyValueObservation?
     private var hasTriedFallbackForItem: Bool = false
-    
     private var lyricSynced: String = ""
     var imageURl: URL?
     var circularProgressView: CircularProgressView!
     private var isPurchaseSuccess: Bool = false
-    private var isBookMarked: Bool = false // Replaced isMyMusic with isBookMarked for consistency
-
+    private var isBookMarked: Bool = false
     var isShowOptionList: Bool = false
     private var parsedLyrics: [LyricLine] = []
     private var lastIndex: Int? = nil
-    
     var shuffleQueue: [Int] = []
-    
     var isSyncedLyrics = false
 
-    
+    // MARK: - Queue state (mirrors MusicPlayerViewController)
+    var isPlayingQueueTrack: Bool = false
+    var currentQueueIndex: Int? = nil
+    var currentQueueTrack: Track? = nil
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         radioTableView.delegate = self
         radioTableView.dataSource = self
         let yourBackImage = UIImage(named: "left-arrow")
@@ -90,26 +89,36 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         self.manageTableViewScroll()
         loadNativeAd()
         isSetupRemoteTransport = true
+
         NotificationCenter.default.addObserver(
             self, selector: #selector(didBecomeActiveNotificationReceived),
-            name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"), object: nil
-        )
+            name: NSNotification.Name(rawValue: "UIApplicationDidBecomeActiveNotification"), object: nil)
         NotificationCenter.default.addObserver(
             self, selector: #selector(playerInterruption(notification:)),
-            name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil
-        )
+            name: NSNotification.Name(rawValue: "AVAudioSessionInterruptionNotification"), object: nil)
         NotificationCenter.default.addObserver(
             self, selector: #selector(handleIAPPurchase),
-            name: .PurchaseSuccess, object: nil
-        )
+            name: .PurchaseSuccess, object: nil)
+        // Queue update observer
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(queueDidUpdate),
+            name: .queueUpdated, object: nil)
+
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
+        radioTableView.register(UINib(nibName: "HeaderCell", bundle: nil), forCellReuseIdentifier: "HeaderCell")
         self.radioTableView.isScrollEnabled = false
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(lyricsBtnClicked))
         vwLyrics.isUserInteractionEnabled = true
         vwLyrics.addGestureRecognizer(tapGesture)
+
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.4
+        radioTableView.addGestureRecognizer(longPress)
+
         setupCircularProgressView()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         radioTableView.reloadData()
@@ -141,28 +150,104 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
+
+    // MARK: - Queue Update Handler
+    @objc private func queueDidUpdate() {
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.manageTableViewScroll()
+        }
+    }
+
+    // MARK: - Long Press Handler
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        let point = gesture.location(in: radioTableView)
+        guard let indexPath = radioTableView.indexPathForRow(at: point) else { return }
+
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+
+        // Ignore Banner and Options rows
+        guard indexPath.row >= 2 else { return }
+
+        if indexPath.row == 2 && queueRows > 0 {
+            // "Up Next from Queue" header — ignore
+            return
+        }
+
+        if indexPath.row >= 3 && indexPath.row < 2 + queueRows {
+            // Long press on a queue track
+            let queueIndex = indexPath.row - 3
+            let queue = PlaybackQueueManager.shared.getQueue()
+            guard let queueTrack = queue[safe: queueIndex] else {
+                print("Error: No queue track at index \(queueIndex)")
+                return
+            }
+            print("Long press on queue track: \(queueTrack.track ?? "Unknown")")
+            presentOptionsViewControllerForTrack(queueTrack)
+
+        } else {
+            // Long press on an Up Next track
+            let adjustedRow = indexPath.row - queueRows
+            if adjustedRow == 2 {
+                // "Up Next" header — ignore
+                return
+            }
+            let trackIndex = adjustedRow - 3 + 1
+            guard let selectedTrack = tempTrack?[safe: trackIndex] else {
+                print("Error: No track at trackIndex \(trackIndex) for row \(indexPath.row)")
+                return
+            }
+            print("Long press on Up Next track: \(selectedTrack.trackName ?? "Unknown") at trackIndex: \(trackIndex)")
+            presentOptionsViewController(for: selectedTrack)
+        }
+    }
+
+    // MARK: - Options VC Helpers
+    private func presentOptionsViewController(for podcastTrack: PodcastObject) {
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        optionsVC.track = podcastTrack.convertToTrackModel()
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
+
+    private func presentOptionsViewControllerForTrack(_ track: Track) {
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
+
+    // MARK: - Lyrics
     func showLyric(toTime time: TimeInterval) {
         guard !parsedLyrics.isEmpty else { return }
-        guard let index = parsedLyrics.firstIndex(where: { $0.time >= time }) else {
-            return
-        }
-        guard lastIndex == nil || index - 1 != lastIndex else {
-            return
-        }
+        guard let index = parsedLyrics.firstIndex(where: { $0.time >= time }) else { return }
+        guard lastIndex == nil || index - 1 != lastIndex else { return }
         if index > 0 {
             let line = parsedLyrics[index - 1]
             lastIndex = index - 1
             print("🎵 Lyric: \(line.text)")
-            
             if vwLyrics.isHidden {
                 self.lblLyricsText.text = ""
-            }else {
+            } else {
                 self.lblLyricsText.text = line.text
             }
         }
     }
-    
+
     private func parseLyricSynced() {
         parsedLyrics.removeAll()
         let lines = lyricSynced.components(separatedBy: .newlines)
@@ -183,30 +268,24 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             parsedLyrics.append(LyricLine(time: time, text: text))
         }
     }
-    
+
     @objc func didBecomeActiveNotificationReceived() {
         updateNowPlaying(isPause: true)
     }
-    
+
     @objc func playerInterruption(notification: NSNotification) {
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
         if type == .began {
             player?.pause()
             updateNowPlaying(isPause: false)
-        }
-        else if type == .ended {
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
-                return
-            }
+        } else if type == .ended {
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
                     if UIApplication.shared.applicationState == .background {
-                        print("App in Background")
                         player?.play()
                         self.setupNowPlaying()
                         self.updateNowPlaying(isPause: true)
@@ -227,31 +306,34 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         containerView.addSubview(lblTitle)
         return containerView
     }
-    
+
+    // MARK: - manageTableViewScroll (updated for queue)
     func manageTableViewScroll() {
         DispatchQueue.main.async {
             self.radioTableView.reloadData()
             self.radioTableView.layoutIfNeeded()
-            let contentHeight = self.radioTableView.contentSize.height
-            self.tableBgHeightConstraints.constant = contentHeight
-            let mainCount = 2
-            let count = mainCount + ((self.tempTrack?.count ?? 0) - 1)
-            print("TableView content height:::: \(count)")
-            self.tableBgHeightConstraints.constant = CGFloat(count * 90)
-            print("TableView content height: \(contentHeight)")
+            let trackCount = (self.tempTrack?.count ?? 0) > 1 ? (self.tempTrack!.count - 1) : 0
+            let queueCount = PlaybackQueueManager.shared.getQueue().count
+            let queueRows = queueCount > 0 ? queueCount + 1 : 0
+
+            var totalHeight: CGFloat = 0
+            totalHeight += IAPHandler.shared.isGetPurchase() ? 0 : 65 // Banner
+            totalHeight += 90  // Options cell
+            totalHeight += queueRows > 0 ? CGFloat(queueRows * 90) : 0 // Queue header + rows
+            totalHeight += trackCount > 0 ? 40 : 0  // "Up Next" header
+            totalHeight += CGFloat(trackCount * 90)  // Track rows
+
+            self.tableBgHeightConstraints.constant = totalHeight
+            print("TableView height: \(totalHeight), queueCount: \(queueCount), trackCount: \(trackCount)")
         }
     }
+
     func sanitizeStreamURL(_ urlString: String?) -> URL? {
         guard let urlString = urlString else { return nil }
-
-        // Decode percent encoding
         var decoded = urlString.removingPercentEncoding ?? urlString
-        
-        // If it accidentally includes full https:// inside, extract the last one
         if let range = decoded.range(of: "https://", options: .backwards) {
             decoded = String(decoded[range.lowerBound...])
         }
-        
         return URL(string: decoded)
     }
 
@@ -260,12 +342,11 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         shuffleQueue = Array(0..<track.count).shuffled()
     }
 
+    // MARK: - handleRecentInView
     func handleRecentInView(index: Int) {
         var idx = index
         if isShuffle, let tracks = track {
-            if shuffleQueue.isEmpty {
-                resetShuffleQueue()
-            }
+            if shuffleQueue.isEmpty { resetShuffleQueue() }
             idx = shuffleQueue.removeFirst()
             selectedIndex = idx
         }
@@ -283,62 +364,46 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         self.trackTitle.text = track.trackName
         self.artistName.text = track.artistName
-        
+
         if isShowOptionList {
             btnDownload.isHidden = false
             btnLike.isHidden = false
         } else {
             btnDownload.isHidden = true
             btnLike.isHidden = true
-
         }
         isAlreadyDownloaded(track: track)
         isAlreadyLiked(track: track)
         isAlreadyBookmarked(track: track)
         lastIndex = nil
-        DataHelper.getLyricsData(
-            artist: track.artistName ?? "",
-            track: track.trackName ?? ""
-        ) { lyricItem in
 
+        DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { lyricItem in
             guard let lyricItem = lyricItem else {
-                DispatchQueue.main.async {
-                    self.hideLyrics()
-                }
+                DispatchQueue.main.async { self.hideLyrics() }
                 return
             }
-
             let synced = lyricItem.syncedLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
             let plain  = lyricItem.plainLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-
             DispatchQueue.main.async {
-
                 if !synced.isEmpty {
-                    // ✅ Prefer synced lyrics
                     self.lyricSynced = synced
                     self.parseLyricSynced()
-
                     self.showLyrics()
                     self.lblLyricsText.text = ""
                     self.isSyncedLyrics = true
-
                 } else if !plain.isEmpty {
-                    // ✅ Fallback to plain lyrics
                     self.lyricSynced = plain
                     self.hideLyrics()
                     self.lblLyricsText.text = plain
                     self.isSyncedLyrics = false
                 } else {
-                    // ❌ No lyrics at all
                     self.hideLyrics()
                 }
             }
         }
 
-        // Prefer HLS (m3u8) then fallback to MP3
         if isSetMusic {
             isSetMusic = false
-            // Build primary (HLS) and fallback (MP3) URLs from PodcastObject.file
             let urls = playbackURLs(for: track)
             if let primary = urls.primary {
                 self.play(url: primary, isPlay: self.isPlay, fallbackURL: urls.fallback)
@@ -361,6 +426,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             self.setupRemoteTransportControls()
         }
     }
+
     private func showLyrics() {
         heightView.constant = 20
         vwLyrics.isHidden = false
@@ -372,13 +438,116 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         lblLyricsText.text = ""
     }
 
+    // MARK: - Queue Track Playback
+    private func playQueueTrackAtIndex(_ index: Int) {
+        let queue = PlaybackQueueManager.shared.getQueue()
+        guard index >= 0, index < queue.count else {
+            print("Error: Invalid queue index \(index)")
+            return
+        }
+        let item = queue[index]
+        print("Playing queue track: \(item.track ?? "Unknown") at index: \(index)")
+
+        // Store queue track state
+        isPlayingQueueTrack = true
+        currentQueueIndex = index
+        currentQueueTrack = item
+
+        // Build playback URLs
+        var primaryURL: URL? = nil
+        var fallbackURL: URL? = nil
+        if let hls = item.hlsMediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !hls.isEmpty {
+            if let url = URL(string: hls), url.scheme != nil {
+                primaryURL = url
+            } else if let encoded = hls.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                      let url = URL(string: hlsSongPath + encoded) {
+                primaryURL = url
+            }
+        }
+        if let media = item.mediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !media.isEmpty {
+            if let url = URL(string: media), url.scheme != nil {
+                fallbackURL = url
+            } else if let encoded = media.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                      let url = URL(string: songPath + encoded) {
+                fallbackURL = url
+            }
+        }
+
+        guard let playURL = primaryURL ?? fallbackURL else {
+            print("Error: No valid URL for queue track \(item.track ?? "Unknown")")
+            return
+        }
+
+        pausePlayer()
+        isPlay = true
+
+        // Update UI
+        if let artcover = item.artcover, let url = URL(string: artcover) {
+            artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            bgImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+        }
+        trackTitle.text = item.track
+        artistName.text = item.artist
+
+        // Fetch lyrics for queue track
+        DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { lyricItem in
+            guard let lyricItem = lyricItem else {
+                DispatchQueue.main.async { self.hideLyrics() }
+                return
+            }
+            let synced = lyricItem.syncedLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+            let plain  = lyricItem.plainLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+            DispatchQueue.main.async {
+                if !synced.isEmpty {
+                    self.lyricSynced = synced
+                    self.parseLyricSynced()
+                    self.showLyrics()
+                    self.lblLyricsText.text = ""
+                    self.isSyncedLyrics = true
+                } else if !plain.isEmpty {
+                    self.lyricSynced = plain
+                    self.hideLyrics()
+                    self.lblLyricsText.text = plain
+                    self.isSyncedLyrics = false
+                } else {
+                    self.hideLyrics()
+                }
+            }
+        }
+
+        play(url: playURL, isPlay: true, fallbackURL: primaryURL == nil ? nil : fallbackURL)
+
+        // Remove from queue after starting playback
+        PlaybackQueueManager.shared.removeFromQueue(at: index)
+        print("Queue track \(item.track ?? "Unknown") removed from queue, queue count now: \(PlaybackQueueManager.shared.getQueue().count)")
+
+        // Update currentQueueIndex for next queue track
+        let remainingQueue = PlaybackQueueManager.shared.getQueue()
+        currentQueueIndex = remainingQueue.isEmpty ? nil : index < remainingQueue.count ? index : nil
+
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.manageTableViewScroll()
+        }
+    }
+
+    // MARK: - Forward / Backward
     @objc func backwardBtnPressed() {
+        if isPlayingQueueTrack {
+            // Revert to last Up Next track
+            isPlayingQueueTrack = false
+            currentQueueIndex = nil
+            currentQueueTrack = nil
+            if selectedIndex > 0 { selectedIndex -= 1 }
+            isSetMusic = true
+            isPlay = true
+            handleRecentInView(index: selectedIndex)
+            manageTableViewScroll()
+            return
+        }
         if let track = track {
             if isShuffle {
-                // For backward, you may want to keep a history stack if you want true back navigation
-                if shuffleQueue.isEmpty {
-                    resetShuffleQueue()
-                }
+                if shuffleQueue.isEmpty { resetShuffleQueue() }
                 selectedIndex = shuffleQueue.removeFirst()
             } else if selectedIndex > 0 {
                 selectedIndex -= 1
@@ -391,14 +560,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isPlay = true
             handleRecentInView(index: selectedIndex)
             self.manageTableViewScroll()
-            let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
-            if indexToScroll >= 0 && indexToScroll < radioTableView.numberOfRows(inSection: 0) {
-                let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
-                radioTableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
-            } else {
-                print("Invalid index for scrolling: \(indexToScroll)")
-                radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
-            }
+            scrollToCurrentTrack()
         } else {
             pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
@@ -406,11 +568,23 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func forwardBtnPressed() {
+        // Check queue first
+        let queue = PlaybackQueueManager.shared.getQueue()
+        if !queue.isEmpty {
+            print("Forward: playing next queue track")
+            playQueueTrackAtIndex(0)
+            return
+        }
+
+        // Otherwise go to next Up Next track
+        if isPlayingQueueTrack {
+            isPlayingQueueTrack = false
+            currentQueueIndex = nil
+            currentQueueTrack = nil
+        }
         if let track = track {
             if isShuffle {
-                if shuffleQueue.isEmpty {
-                    resetShuffleQueue()
-                }
+                if shuffleQueue.isEmpty { resetShuffleQueue() }
                 selectedIndex = shuffleQueue.removeFirst()
             } else if selectedIndex < track.count - 1 {
                 selectedIndex += 1
@@ -423,17 +597,22 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isPlay = true
             handleRecentInView(index: selectedIndex)
             self.manageTableViewScroll()
-            let indexToScroll = 2 + selectedIndex - (firstTrackList?.count ?? 0)
-            if indexToScroll >= 0 && indexToScroll < radioTableView.numberOfRows(inSection: 0) {
-                let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
-                radioTableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
-            } else {
-                print("Invalid index for scrolling: \(indexToScroll)")
-                radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
-            }
+            scrollToCurrentTrack()
         } else {
             pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+        }
+    }
+
+    private func scrollToCurrentTrack() {
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+        let indexToScroll = 2 + queueRows + 1 + selectedIndex - (firstTrackList?.count ?? 0)
+        let totalRows = radioTableView.numberOfRows(inSection: 0)
+        if indexToScroll >= 0 && indexToScroll < totalRows {
+            radioTableView.scrollToRow(at: IndexPath(row: indexToScroll, section: 0), at: .middle, animated: true)
+        } else {
+            radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
         }
     }
 
@@ -445,15 +624,10 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     func shareBtnClicked(url: URL?) {
-        guard let url = url else {
-            print("Error: No URL provided for sharing")
-            return
-        }
+        guard let url = url else { return }
         let vc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
         vc.modalPresentationStyle = .popover
-        if let wPPC = vc.popoverPresentationController {
-            wPPC.sourceView = self.view
-        }
+        if let wPPC = vc.popoverPresentationController { wPPC.sourceView = self.view }
         self.present(vc, animated: true)
     }
 
@@ -474,18 +648,12 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         configureLike(index: selectedIndex)
     }
-    
+
     @IBAction func clickOn_btnDownload(_ sender: UIButton) {
         let purchase = IAPHandler.shared.isGetPurchase() || isPurchaseSuccess
-        guard let item = track?[safe: selectedIndex] else {
-            print("Error: No track selected for download")
-            return
-        }
-        guard let url = item.file else {
-            print("Error: Invalid media URL for track: \(item.trackName ?? "Unknown")")
-            return
-        }
-        
+        guard let item = track?[safe: selectedIndex] else { return }
+        guard let url = item.file else { return }
+
         if purchase {
             let name = url.lastPathComponent
             let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -494,13 +662,9 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             vwProgress.isHidden = false
             circularProgressView.setProgress(0)
             circularProgressView.isHidden = false
-            AF.download(url, to: { _, _ in
-                return (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
-            })
+            AF.download(url, to: { _, _ in (destinationURL, [.removePreviousFile, .createIntermediateDirectories]) })
             .downloadProgress { [weak self] progress in
-                DispatchQueue.main.async {
-                    self?.circularProgressView.setProgress(Float(progress.fractionCompleted))
-                }
+                DispatchQueue.main.async { self?.circularProgressView.setProgress(Float(progress.fractionCompleted)) }
                 if progress.fractionCompleted == 1.0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self?.circularProgressView.setProgress(1.0)
@@ -527,8 +691,6 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                 if let destinationURL = response.fileURL {
                     print("File downloaded to: \(destinationURL)")
                     UserDefaults.standard.set(item.imageURL?.absoluteString, forKey: "\(url.deletingPathExtension().lastPathComponent)")
-                } else if let error = response.error {
-                    print("Download error: \(error.localizedDescription)")
                 }
             }
         } else {
@@ -542,12 +704,18 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func lyricsBtnClicked() {
-        guard let trackItem = track?[safe: selectedIndex] else {
-            print("No track selected for lyrics")
-            return
+        let trackItem: Any?
+        if isPlayingQueueTrack, let queueTrack = currentQueueTrack {
+            trackItem = queueTrack
+        } else {
+            trackItem = track?[safe: selectedIndex]
         }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "LyricPlayViewController") as! LyricPlayViewController
-        vc.currentSong = trackItem.convertToSongModel()
+        if let qt = trackItem as? Track {
+            vc.currentSong = qt.convertToSongModel()
+        } else if let pt = trackItem as? PodcastObject {
+            vc.currentSong = pt.convertToSongModel()
+        }
         vc.imageURl = self.imageURl
         vc.lyricnew = self.lyricSynced
         vc.isSyncedLyrics = self.isSyncedLyrics
@@ -555,33 +723,30 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     @objc func moreInfoBtnClicked() {
-        guard let trackItem = track?[safe: selectedIndex] else {
-            print("Error: No track for more info")
-            return
-        }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayListViewController") as! PlayListViewController
-        vc.songToSave = trackItem.convertToSongModel()
+        if isPlayingQueueTrack, let queueTrack = currentQueueTrack {
+            vc.songToSave = queueTrack.convertToSongModel()
+        } else if let trackItem = track?[safe: selectedIndex] {
+            vc.songToSave = trackItem.convertToSongModel()
+        }
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true)
     }
-    
+
     @objc func optionMenuBtnClicked() {
-        guard let trackItem = track?[safe: selectedIndex] else {
-            print("Error: No track for options")
-            return
-        }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "PlayerOptionViewController") as! PlayerOptionViewController
-        vc.currentSong = trackItem.convertToSongModel()
+        if isPlayingQueueTrack, let queueTrack = currentQueueTrack {
+            vc.currentSong = queueTrack.convertToSongModel()
+        } else if let trackItem = track?[safe: selectedIndex] {
+            vc.currentSong = trackItem.convertToSongModel()
+        }
         vc.lyricsNew = self.lyricSynced
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true)
     }
-    
+
     @objc func addToCollection() {
-        guard let trackItem = track?[safe: selectedIndex] else {
-            print("Error: No track to add to collection")
-            return
-        }
+        guard let trackItem = track?[safe: selectedIndex] else { return }
         isBookMarked.toggle()
         var savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = trackItem.convertToSongModel()
@@ -595,26 +760,22 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         UserDefaultsManager.shared.localTracksData = savedTracks
         let message = isBookMarked ? "Successfully added to My Collection" : "Removed from My Collection"
         showToast(message: message, font: .systemFont(ofSize: 12.0))
-        print("Bookmark updated for track: \(trackItem.trackName ?? "Unknown"), trackid: \(songModel.trackid), isBookMarked: \(isBookMarked)")
-        // Reload only the options cell
         DispatchQueue.main.async {
             self.radioTableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .none)
         }
     }
-    
+
     @objc private func handleIAPPurchase() {
         isPurchaseSuccess = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.isPurchaseSuccess = false
-        }
-        manageTableViewScroll() // Update table height if ads are removed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { self.isPurchaseSuccess = false }
+        manageTableViewScroll()
     }
-    
+
+    // MARK: - State Helpers
     func isAlreadyDownloaded(track: PodcastObject) {
         let savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = track.convertToSongModel()
-        let isInDownloads = savedTracks.first { $0.isDownload && $0.trackid == songModel.trackid }
-        isDownload = isInDownloads != nil
+        isDownload = savedTracks.first { $0.isDownload && $0.trackid == songModel.trackid } != nil
         DispatchQueue.main.async {
             if self.isDownload {
                 let image = UIImage(systemName: "checkmark.circle.fill")?.withRenderingMode(.alwaysTemplate)
@@ -634,14 +795,10 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                 self.btnDownload.isUserInteractionEnabled = true
             }
         }
-        print("Checked download status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isDownload: \(isDownload)")
     }
 
     func configureDownload(index: Int) {
-        guard let item = track?[safe: index] else {
-            print("Error: No track to configure download at index \(index)")
-            return
-        }
+        guard let item = track?[safe: index] else { return }
         var savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = item.convertToSongModel()
         if let trackIndex = savedTracks.firstIndex(where: { $0.trackid == songModel.trackid }) {
@@ -652,25 +809,19 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             savedTracks.append(newItem)
         }
         UserDefaultsManager.shared.localTracksData = savedTracks
-        print("Configured download for track: \(item.trackName ?? "Unknown"), trackid: \(songModel.trackid), isDownload: \(isDownload)")
     }
-    
+
     func isAlreadyLiked(track: PodcastObject) {
         let savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = track.convertToSongModel()
-        let isInFav = savedTracks.first { $0.isFav && $0.trackid == songModel.trackid }
-        isLike = isInFav != nil
+        isLike = savedTracks.first { $0.isFav && $0.trackid == songModel.trackid } != nil
         DispatchQueue.main.async {
             self.btnLike.setImage(UIImage(named: self.isLike ? "ic_like_filled" : "ic_like"), for: .normal)
         }
-        print("Checked like status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isLike: \(isLike)")
     }
 
     func configureLike(index: Int) {
-        guard let item = track?[safe: index] else {
-            print("Error: No track to configure like at index \(index)")
-            return
-        }
+        guard let item = track?[safe: index] else { return }
         var savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = item.convertToSongModel()
         if let trackIndex = savedTracks.firstIndex(where: { $0.trackid == songModel.trackid }) {
@@ -681,38 +832,38 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             savedTracks.append(newItem)
         }
         UserDefaultsManager.shared.localTracksData = savedTracks
-        print("Configured like for track: \(item.trackName ?? "Unknown"), trackid: \(songModel.trackid), isLike: \(isLike)")
     }
 
     func isAlreadyBookmarked(track: PodcastObject) {
         let savedTracks = UserDefaultsManager.shared.localTracksData
         let songModel = track.convertToSongModel()
-        let isInCollection = savedTracks.first { $0.isBookMarked && $0.trackid == songModel.trackid }
-        isBookMarked = isInCollection != nil
-        print("Checked bookmark status for track: \(track.trackName ?? "Unknown"), trackid: \(songModel.trackid), isBookMarked: \(isBookMarked)")
+        isBookMarked = savedTracks.first { $0.isBookMarked && $0.trackid == songModel.trackid } != nil
     }
 }
 
+// MARK: - UITableViewDelegate, UITableViewDataSource
 extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
+
+    func numberOfSections(in tableView: UITableView) -> Int { return 1 }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let mainCount = 2 // Banner + Options
         let trackCount = (tempTrack?.count ?? 0) > 1 ? (tempTrack!.count - 1) : 0
-        let totalRows = mainCount + trackCount
-        print("Row count: mainCount=\(mainCount), trackCount=\(trackCount), totalRows=\(totalRows)")
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0 // +1 for header
+        let totalRows = mainCount + queueRows + (trackCount > 0 ? 1 : 0) + trackCount // +1 for "Up Next" header
+        print("Row count: mainCount=\(mainCount), queueRows=\(queueRows), trackCount=\(trackCount), totalRows=\(totalRows)")
         return totalRows
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.row {
-        case 0:
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+
+        // Row 0: Banner Ad
+        if indexPath.row == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as! BannerAdCell
-            for subview in cell.vwMain.subviews {
-                subview.removeFromSuperview()
-            }
+            for subview in cell.vwMain.subviews { subview.removeFromSuperview() }
             if IAPHandler.shared.isGetPurchase() {
                 cell.vwMain.isHidden = true
                 cell.heightOfVw.constant = 0
@@ -724,15 +875,16 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 bannerView.rootViewController = self
                 bannerView.delegate = self
                 bannerView.load(GADRequest())
-                cell.vwMain.addSubview(bannerView)
                 bannerView.frame = cell.vwMain.bounds
+                cell.vwMain.addSubview(bannerView)
             }
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
             return cell
-        case 1:
+
+        // Row 1: Options
+        } else if indexPath.row == 1 {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "RecentPlayerOptionCell", for: indexPath) as? RecentPlayerOptionCell else {
-                print("Error: Failed to dequeue RecentPlayerOptionCell")
                 let fallbackCell = UITableViewCell()
                 fallbackCell.textLabel?.text = "Options Unavailable"
                 fallbackCell.textLabel?.textColor = .white
@@ -743,7 +895,6 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
             cell.btnMoreInfo.addTarget(self, action: #selector(moreInfoBtnClicked), for: .touchUpInside)
             cell.btnOption.addTarget(self, action: #selector(optionMenuBtnClicked), for: .touchUpInside)
             cell.btnAddtoCollection.addTarget(self, action: #selector(addToCollection), for: .touchUpInside)
-            // Set bookmark button image
             let item = track?[safe: selectedIndex]
             let savedTracks = UserDefaultsManager.shared.localTracksData
             let isBookmarked = savedTracks.first { $0.isBookMarked && $0.trackid == item?.convertToSongModel().trackid } != nil
@@ -751,91 +902,155 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
             return cell
-        default:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "MusicListCell", for: indexPath) as! MusicListCell
+
+        // Row 2: "Up Next from Queue" header (only if queue has items)
+        } else if indexPath.row == 2 && queueRows > 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderCell", for: indexPath) as! HeaderCell
+            cell.headerLabel.text = "Up Next from Queue"
             cell.selectionStyle = .none
-            cell.artCoverImage.layer.cornerRadius = 3
-            cell.artCoverImage.layer.masksToBounds = true
-            if let item = tempTrack?[(indexPath.row + 1) - 2] {
-                if let url = item.imageURL {
+            cell.backgroundColor = .clear
+            cell.contentView.isUserInteractionEnabled = false
+            return cell
+
+        // Rows 3...(2+queueRows-1): Queue tracks
+        } else if indexPath.row >= 3 && indexPath.row < 2 + queueRows {
+            let queue = PlaybackQueueManager.shared.getQueue()
+            let queueIndex = indexPath.row - 3
+            if queueIndex >= 0 && queueIndex < queue.count {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "MusicListCell", for: indexPath) as! MusicListCell
+                cell.selectionStyle = .none
+                cell.artCoverImage.layer.cornerRadius = 3
+                cell.artCoverImage.layer.masksToBounds = true
+                let item = queue[queueIndex]
+                cell.trackTitle.text = item.track
+                cell.artistName.text = item.artist
+                if let url = URL(string: item.artcover ?? "") {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
-                cell.trackTitle.text = item.trackName
-                cell.artistName.text = item.artistName
+                cell.backgroundColor = .clear
+                return cell
             }
-            cell.backgroundColor = .clear
-            return cell
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.row {
-        case 0, 1:
-            break
-        default:
-            guard let cell = tableView.cellForRow(at: indexPath) else {
-                print("No cell found at \(indexPath)")
-                return
+            return UITableViewCell()
+
+        // Remaining rows: "Up Next" header + track list
+        } else {
+            let adjustedRow = indexPath.row - queueRows
+
+            // "Up Next" header
+            if adjustedRow == 2 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderCell", for: indexPath) as! HeaderCell
+                cell.headerLabel.text = "Up Next"
+                cell.selectionStyle = .none
+                cell.backgroundColor = .clear
+                cell.contentView.isUserInteractionEnabled = false
+                return cell
             }
-            let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
-            feedbackGenerator.prepare()
-            feedbackGenerator.impactOccurred()
-            cell.layer.shadowOpacity = 0.3
-            cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-            cell.layer.shadowRadius = 4
-            cell.isUserInteractionEnabled = false
-            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
-                cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
-            }) { _ in
-                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
-                    cell.transform = .identity
-                    cell.layer.shadowOpacity = 0
-                    cell.isUserInteractionEnabled = true
-                }) { _ in
-                    self.pausePlayer()
-                    let selectedTrackIndex = (self.firstTrackList?.count ?? 0) + indexPath.row - 1
-                    if let track = self.track, selectedTrackIndex < track.count {
-                        self.selectedIndex = selectedTrackIndex
-                        self.isPlay = true
-                        self.isSetMusic = true
-                        self.handleRecentInView(index: self.selectedIndex)
-                        self.manageTableViewScroll()
-                        let totalRowsInSection = tableView.numberOfRows(inSection: 0)
-                        let indexToScroll = 2 + self.selectedIndex - (self.firstTrackList?.count ?? 0)
-                        if indexToScroll >= 2 && indexToScroll < totalRowsInSection {
-                            let indexPathToScroll = IndexPath(row: indexToScroll, section: 0)
-                            tableView.scrollToRow(at: indexPathToScroll, at: .middle, animated: true)
-                        } else {
-                            tableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
-                        }
-                    } else {
-                        print("Invalid selected index: \(selectedTrackIndex)")
+
+            // Up Next track rows (skip first track at index 0)
+            let trackIndex = adjustedRow - 3 + 1
+            if trackIndex >= 1 && trackIndex < tempTrack?.count ?? 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "MusicListCell", for: indexPath) as! MusicListCell
+                cell.selectionStyle = .none
+                cell.artCoverImage.layer.cornerRadius = 3
+                cell.artCoverImage.layer.masksToBounds = true
+                if let item = tempTrack?[trackIndex] {
+                    cell.trackTitle.text = item.trackName
+                    cell.artistName.text = item.artistName
+                    if let url = item.imageURL {
+                        cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                        cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     }
                 }
+                cell.backgroundColor = .clear
+                return cell
+            }
+            return UITableViewCell()
+        }
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        // Ignore Banner and Options rows
+        guard indexPath.row >= 2 else { return }
+
+        // Ignore headers
+        if indexPath.row == 2 && queueRows > 0 { return }
+
+        // Queue track tapped
+        if indexPath.row >= 3 && indexPath.row < 2 + queueRows {
+            let queueIndex = indexPath.row - 3
+            let queue = PlaybackQueueManager.shared.getQueue()
+            guard queueIndex >= 0, let _ = queue[safe: queueIndex] else {
+                print("Error: Invalid queue index \(queueIndex)")
+                return
+            }
+            print("Selected queue track at queueIndex: \(queueIndex)")
+            playQueueTrackAtIndex(queueIndex)
+            DispatchQueue.main.async {
+                tableView.reloadData()
+                self.manageTableViewScroll()
+            }
+            return
+        }
+
+        // "Up Next" header
+        let adjustedRow = indexPath.row - queueRows
+        if adjustedRow == 2 { return }
+
+        // Up Next track tapped
+        let trackIndex = adjustedRow - 3 + 1
+        guard trackIndex >= 1, trackIndex < tempTrack?.count ?? 0 else {
+            print("Error: Invalid track index \(trackIndex)")
+            return
+        }
+        print("Selected Up Next track at trackIndex: \(trackIndex)")
+
+        // Clear queue state when playing an Up Next track
+        isPlayingQueueTrack = false
+        currentQueueIndex = nil
+        currentQueueTrack = nil
+
+        guard let cell = tableView.cellForRow(at: indexPath) else { return }
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+        cell.isUserInteractionEnabled = false
+        UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+            cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+        }) { _ in
+            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                cell.transform = .identity
+                cell.isUserInteractionEnabled = true
+            }) { _ in
+                self.pausePlayer()
+                self.selectedIndex = trackIndex
+                self.isPlay = true
+                self.isSetMusic = true
+                self.handleRecentInView(index: self.selectedIndex)
+                self.manageTableViewScroll()
             }
         }
-        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
+// MARK: - GADAdLoaderDelegate
 extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLoaderDelegate {
     func loadNativeAd() {
-        guard !IAPHandler.shared.isGetPurchase() else {
-            return
-        }
+        guard !IAPHandler.shared.isGetPurchase() else { return }
         adLoader = GADAdLoader(adUnitID: GOOGLE_ADMOB_NATIVE,
-                              rootViewController: self,
-                              adTypes: [.unifiedNative],
-                              options: nil)
+                               rootViewController: self,
+                               adTypes: [.unifiedNative],
+                               options: nil)
         adLoader.delegate = self
         adLoader.load(GADRequest())
     }
 
     func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
-        guard !IAPHandler.shared.isGetPurchase() else {
-            return
-        }
+        guard !IAPHandler.shared.isGetPurchase() else { return }
         self.nativeAd = nativeAd
         self.manageTableViewScroll()
     }
@@ -845,57 +1060,36 @@ extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLo
     }
 }
 
+// MARK: - Playback
 extension MyMusicPlayerViewController {
-    // Build primary (HLS) and fallback (MP3) URLs for a PodcastObject
+
     private func playbackURLs(for podcast: PodcastObject?) -> (primary: URL?, fallback: URL?) {
         guard let podcast = podcast else { return (nil, nil) }
         var primaryURL: URL? = nil
         var fallbackURL: URL? = nil
-
-        // If the file is local, use it as fallback only
         if let file = podcast.file {
-            if file.isFileURL {
-                fallbackURL = file
-                return (nil, fallbackURL)
-            }
-
-            // If file itself already points to an HLS playlist
-            if file.pathExtension.lowercased() == "m3u8" {
-                primaryURL = file
-                return (primaryURL, nil)
-            }
-
-            // Otherwise assume it's an MP3 URL and construct HLS path using hlsSongPath
-            // Use lastPathComponent without extension and append .m3u8
-            let last = file.lastPathComponent
-            let baseName = (last as NSString).deletingPathExtension
-            if let hls = URL(string: hlsSongPath + baseName + ".m3u8") {
-                primaryURL = hls
-            }
-
-            // Fallback is the original file (MP3) or sanitized URL
+            if file.isFileURL { return (nil, file) }
+            if file.pathExtension.lowercased() == "m3u8" { return (file, nil) }
+            let baseName = (file.lastPathComponent as NSString).deletingPathExtension
+            if let hls = URL(string: hlsSongPath + baseName + ".m3u8") { primaryURL = hls }
             fallbackURL = sanitizeStreamURL(file.absoluteString) ?? file
         }
         return (primaryURL, fallbackURL)
     }
-    
-    // Main play function with optional fallback URL (HLS primary, MP3 fallback)
+
     func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("Playing URL: \(url)")
-        // Ensure previous player is fully cleared
         if let player = player, let timeObserver = timeObserver {
             player.pause()
             player.removeTimeObserver(timeObserver)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
             self.timeObserver = nil
         }
         hasTriedFallbackForItem = false
-        // remove previous observer if any
         playerItemStatusObserver = nil
         let playerItem = AVPlayerItem(url: url)
-        // Observe item status to detect failure and switch to fallback if provided
         if let fallback = fallbackURL {
-            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, change in
+            playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
                 guard let self = self else { return }
                 if item.status == .failed {
                     guard !self.hasTriedFallbackForItem else { return }
@@ -904,7 +1098,6 @@ extension MyMusicPlayerViewController {
                     DispatchQueue.main.async {
                         let fallbackItem = AVPlayerItem(url: fallback)
                         player?.replaceCurrentItem(with: fallbackItem)
-                        // Observe fallback readyToPlay to update UI
                         self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
                             guard let self = self else { return }
                             if it.status == .readyToPlay {
@@ -924,7 +1117,6 @@ extension MyMusicPlayerViewController {
                 }
             }
         } else {
-            // If no fallback, still observe readyToPlay to set duration
             playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
                 guard let self = self else { return }
                 if item.status == .readyToPlay {
@@ -963,31 +1155,46 @@ extension MyMusicPlayerViewController {
             print("Player started for URL: \(url)")
         }
         self.setupNowPlaying()
-        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
-        timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: DispatchQueue.global(), using: { [weak self] (progressTime) in
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying(sender:)),
+                                               name: .AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
+        timeObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global()) { [weak self] progressTime in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 self.playerSlider.value = Float(progressTime.seconds)
                 self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
             }
-        })
+        }
     }
 
     @objc func playerDidFinishPlaying(sender: Notification) {
         playerSlider.setValue(0, animated: true)
         populateLabelWithTime(self.lblStartTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
+        if let timeObserver = timeObserver, let player = player {
+            player.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
+        }
         if isRepeat {
             player?.play()
+            return
+        }
+        // Check queue first
+        let queue = PlaybackQueueManager.shared.getQueue()
+        if !queue.isEmpty {
+            print("Song finished, playing next queue track")
+            playQueueTrackAtIndex(0)
+            return
+        }
+        // Otherwise play next Up Next track
+        isPlayingQueueTrack = false
+        currentQueueIndex = nil
+        currentQueueTrack = nil
+        if let track = track, selectedIndex < track.count - 1 {
+            forwardBtnPressed()
         } else {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-            if let track = track, selectedIndex < track.count - 1 {
-                if let timeObserver = timeObserver, let player = player {
-                    player.removeTimeObserver(timeObserver)
-                    self.timeObserver = nil
-                }
-                self.forwardBtnPressed()
-            }
+            print("No more tracks to play")
+            pausePlayer()
         }
     }
 
@@ -998,22 +1205,16 @@ extension MyMusicPlayerViewController {
     }
 
     @IBAction func pausePressed() {
-        if (player?.isPlaying ?? true) {
-            DispatchQueue.main.async {
-                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
-            }
+        if player?.isPlaying ?? true {
+            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal) }
             player?.pause()
             updateNowPlaying(isPause: true)
         } else {
-            DispatchQueue.main.async {
-                self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
-            }
+            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal) }
             player?.play()
             updateNowPlaying(isPause: false)
         }
     }
-
-    
 
     @IBAction func repeatBtnPressed(_ sender: Any) {
         let image = UIImage(named: "ic_repeat")?.withRenderingMode(.alwaysTemplate)
@@ -1028,13 +1229,9 @@ extension MyMusicPlayerViewController {
     }
 
     func isLastTrack() -> Bool {
-        if isShuffle {
-            return shuffleQueue.isEmpty
-        }
-        guard let track = track else {
-            return false
-        }
-        return selectedIndex == track.count - 1
+        if isShuffle { return shuffleQueue.isEmpty }
+        guard let track = track else { return false }
+        return selectedIndex == track.count - 1 && PlaybackQueueManager.shared.getQueue().isEmpty
     }
 
     @IBAction func backwardBtnEvent(_ sender: Any) {
@@ -1043,9 +1240,7 @@ extension MyMusicPlayerViewController {
     }
 
     @IBAction func forwardBtnEvent(_ sender: Any) {
-        if isLastTrack() {
-            return
-        }
+        if isLastTrack() { return }
         self.pausePlayer()
         self.forwardBtnPressed()
     }
@@ -1055,7 +1250,7 @@ extension MyMusicPlayerViewController {
         let targetTime: CMTime = CMTimeMake(value: seconds, timescale: 1)
         player?.seek(to: targetTime)
     }
-    
+
     func updateNowPlaying(isPause: Bool) {
         if var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo {
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPause ? 0 : 1
@@ -1072,29 +1267,17 @@ extension MyMusicPlayerViewController {
             nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
             if let image = self.artCoverImage.image {
                 DispatchQueue.global(qos: .background).async {
-                    guard let mediaArtwork = self.createMediaArtwork(from: image) else {
-                        print("Error creating media artwork")
-                        return
-                    }
+                    guard let mediaArtwork = self.createMediaArtwork(from: image) else { return }
                     nowPlayingInfo[MPMediaItemPropertyArtwork] = mediaArtwork
-                    DispatchQueue.main.async {
-                        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-                    }
+                    DispatchQueue.main.async { MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo }
                 }
-            } else {
-                print("Error: artCoverImage.image is nil")
             }
         }
     }
-    
+
     func createMediaArtwork(from image: UIImage) -> MPMediaItemArtwork? {
-        guard #available(iOS 10.0, *), let cgImage = image.cgImage else {
-            print("Error: Failed to create CGImage from UIImage or iOS version < 10.0")
-            return nil
-        }
-        return MPMediaItemArtwork(boundsSize: image.size) { _ in
-            return UIImage(cgImage: cgImage)
-        }
+        guard #available(iOS 10.0, *), let cgImage = image.cgImage else { return nil }
+        return MPMediaItemArtwork(boundsSize: image.size) { _ in UIImage(cgImage: cgImage) }
     }
 
     func setupRemoteTransportControls() {
@@ -1103,42 +1286,30 @@ extension MyMusicPlayerViewController {
         commandCenter.previousTrackCommand.isEnabled = true
         commandCenter.playCommand.addTarget { [weak self] event in
             guard let self = self else { return .commandFailed }
-            if let player = player {
-                if !player.isPlaying {
-                    player.play()
-                    self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
-                    return .success
-                }
+            if let player = player, !player.isPlaying {
+                player.play()
+                self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+                return .success
             }
             return .commandFailed
         }
         commandCenter.pauseCommand.addTarget { [weak self] event in
             guard let self = self else { return .commandFailed }
-            if let player = player {
-                if player.isPlaying {
-                    player.pause()
-                    self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
-                    return .success
-                }
+            if let player = player, player.isPlaying {
+                player.pause()
+                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+                return .success
             }
             return .commandFailed
         }
         commandCenter.nextTrackCommand.addTarget { [weak self] event in
             guard let self = self else { return .commandFailed }
-            if player != nil {
-                self.pausePlayer()
-                self.forwardBtnPressed()
-                return .success
-            }
+            if player != nil { self.pausePlayer(); self.forwardBtnPressed(); return .success }
             return .commandFailed
         }
         commandCenter.previousTrackCommand.addTarget { [weak self] event in
             guard let self = self else { return .commandFailed }
-            if player != nil {
-                self.pausePlayer()
-                self.backwardBtnPressed()
-                return .success
-            }
+            if player != nil { self.pausePlayer(); self.backwardBtnPressed(); return .success }
             return .commandFailed
         }
     }
@@ -1154,5 +1325,20 @@ extension MyMusicPlayerViewController {
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
         updateNowPlaying(isPause: true)
+    }
+}
+
+// MARK: - OptionsViewControllerDelegate
+extension MyMusicPlayerViewController: OptionsViewControllerDelegate {
+    func didUpdateTrackMetadata() {
+        DispatchQueue.main.async {
+            self.radioTableView.reloadData()
+            self.manageTableViewScroll()
+            if let currentTrack = self.track?[safe: self.selectedIndex] {
+                self.isAlreadyLiked(track: currentTrack)
+                self.isAlreadyDownloaded(track: currentTrack)
+                self.isAlreadyBookmarked(track: currentTrack)
+            }
+        }
     }
 }

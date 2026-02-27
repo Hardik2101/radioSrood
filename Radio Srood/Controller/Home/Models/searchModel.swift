@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 struct SearchModel: Decodable {
     let trackid: Int
     let artist: String
@@ -25,40 +24,78 @@ struct SearchResponse: Decodable {
     let Search_Data: [SearchModel]
 }
 
+// MARK: - convertToPodcastModel
 extension SearchModel {
     func convertToPodcastModel() -> PodcastObject {
-        // Build the cover URL
-        let coverURL = URL(string: artcover) ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
+        let coverURL = URL(string: artcover.isEmpty ? artcover_200 : artcover)
+                    ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
 
-        // Encode the media path
+        let fileURL: URL?
         if let urlString = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let fullURL = URL(string: songPath + urlString) {
-            return PodcastObject(
-                file: fullURL,
-                trackName: track,
-                artistName: artist,
-                imageURL: coverURL,
-                trackid: trackid
-            )
-        }
-        // Fallback if songPath is not needed
-        else if let fallbackURL = URL(string: mediaPath) {
-            return PodcastObject(
-                file: fallbackURL,
-                trackName: track,
-                artistName: artist,
-                imageURL: coverURL,
-                trackid: trackid
-            )
+            fileURL = fullURL
+        } else if let fallbackURL = URL(string: mediaPath) {
+            fileURL = fallbackURL
         } else {
-            // Last fallback
-            return PodcastObject(
-                file: URL(string: "https://defaultaudio.com/placeholder.mp3")!,
-                trackName: track,
-                artistName: artist,
-                imageURL: coverURL,
-                trackid: trackid
-            )
+            fileURL = URL(string: "https://defaultaudio.com/placeholder.mp3")!
         }
+
+        return PodcastObject(
+            file: fileURL,
+            mediaPath: mediaPath,
+            trackName: track,
+            artistName: artist,
+            imageURL: coverURL,
+            trackid: trackid,
+            likes: likes,
+            dislikes: nil,          // SearchModel doesn't have this
+            playcounts: Double(playcounts),
+            dateAdded: date_added,
+            artcover: artcover.isEmpty ? artcover_200 : artcover,
+            isBookMarked: false,
+            composer: nil,          // SearchModel doesn't have this
+            lyricWriter: nil,       // SearchModel doesn't have this
+            music: nil,             // SearchModel doesn't have this
+            lyric: nil,             // SearchModel doesn't have this
+            lyric_synced: nil,      // SearchModel doesn't have this
+            explicit: nil,          // SearchModel doesn't have this
+            allowDownload: nil,     // SearchModel doesn't have this
+            ytLink: nil,            // SearchModel doesn't have this
+            fbLink: nil,            // SearchModel doesn't have this
+            igLink: nil,            // SearchModel doesn't have this
+            playlistid: nil,        // SearchModel doesn't have this
+            isFav: false,
+            isDownload: false,
+            isRecentlyPlayed: false
+        )
+    }
+}
+
+// MARK: - convertToTrack
+extension SearchModel {
+    func convertToTrack() -> Track {
+        return Track(
+            trackid: self.trackid,
+            artist: self.artist,
+            track: self.track,
+            playcounts: self.playcounts,
+            likes: self.likes,
+            dislikes: nil,          // SearchModel doesn't have this
+            composer: nil,          // SearchModel doesn't have this
+            lyricWriter: nil,       // SearchModel doesn't have this
+            music: nil,             // SearchModel doesn't have this
+            dateAdded: self.date_added,
+            lyric: nil,             // SearchModel doesn't have this
+            explicit: nil,          // SearchModel doesn't have this
+            allowDownload: nil,     // SearchModel doesn't have this
+            mediaPath: self.mediaPath,
+            artcover: self.artcover.isEmpty ? self.artcover_200 : self.artcover,
+            ytLink: nil,            // SearchModel doesn't have this
+            fbLink: nil,            // SearchModel doesn't have this
+            igLink: nil,            // SearchModel doesn't have this
+            playlistid: nil,        // SearchModel doesn't have this
+            lyric_synced: nil,      // SearchModel doesn't have this
+            hlsMediaPath: nil       // SearchModel doesn't have this
+        )
     }
 }
