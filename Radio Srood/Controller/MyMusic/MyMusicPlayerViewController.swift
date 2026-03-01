@@ -425,7 +425,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                 } else if !plain.isEmpty {
                     self.lyricSynced = plain
                     self.hideLyrics()
-                    self.lblLyricsText.text = plain
+//                    self.lblLyricsText.text = plain
                     self.isSyncedLyrics = false
                 } else {
                     self.hideLyrics()
@@ -520,7 +520,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                 } else if !plain.isEmpty {
                     self.lyricSynced = plain
                     self.hideLyrics()
-                    self.lblLyricsText.text = plain
+//                    self.lblLyricsText.text = plain
                     self.isSyncedLyrics = false
                 } else {
                     self.hideLyrics()
