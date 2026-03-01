@@ -61,6 +61,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     var isDownload = false
     var isRepeat = false
     var timeObserver: Any?
+    private var lyricTimeObserver: Any?   // FIX: separate observer for lyrics
     private var lastIndex: Int? = nil
     private var parser: LyricsParser? = nil
     private var isPurchaseSuccess: Bool = false
@@ -81,6 +82,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     private var lyricSynced: String = ""
     var currentQueueTrack: Track? = nil
 
+    // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -95,7 +97,14 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         radioTableView.tableFooterView = UIView()
         loadNativeAd()
         prepareView()
+        
+        // FIX: Activate audio session for background playback BEFORE setup
+        activateAudioSession()
+        
+        // FIX: Setup remote transport controls ONCE here in viewDidLoad
+        setupRemoteTransportControls()
         isSetupRemoteTransport = true
+        
         vwDownloadProgress.isHidden = true
         vwDownloadProgress.setProgress(0.0, animated: false)
 
@@ -117,6 +126,17 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPress.minimumPressDuration = 0.4
         radioTableView.addGestureRecognizer(longPress)
+    }
+    
+    // MARK: - Audio Session Setup (CRITICAL for background/lock screen)
+    private func activateAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true)
+        } catch {
+            print("❌ Failed to activate AVAudioSession: \(error)")
+        }
     }
     
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -141,9 +161,7 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         if let track = selectedTrack {
             presentOptionsViewController(for: track)
         }
-
-        // FIX: Setup remote transport controls once here
-        setupRemoteTransportControls()
+        // NOTE: Removed setupRemoteTransportControls() from here — it belongs in viewDidLoad only
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -162,6 +180,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         TabbarVC.available?.miniPlayer.miniplayer(hide: true)
         navigationItem.hidesBackButton = true
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        
+        // FIX: Re-activate audio session when returning to foreground
+        activateAudioSession()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -182,12 +203,14 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     deinit {
         UIApplication.shared.endReceivingRemoteControlEvents()
         MPNowPlayingInfoCenter.default().nowPlayingInfo = [:]
-        // FIX: Remove all remote command targets on deinit to avoid ghost handlers
+        // FIX: Remove all remote command targets on deinit
         let commandCenter = MPRemoteCommandCenter.shared()
         commandCenter.playCommand.removeTarget(nil)
         commandCenter.pauseCommand.removeTarget(nil)
         commandCenter.nextTrackCommand.removeTarget(nil)
         commandCenter.previousTrackCommand.removeTarget(nil)
+        commandCenter.togglePlayPauseCommand.removeTarget(nil)
+        commandCenter.changePlaybackPositionCommand.removeTarget(nil)
         NotificationCenter.default.removeObserver(self)
         removeTimeObserverIfNeeded()
         print("MusicPlayerViewController deinit")
@@ -198,8 +221,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         if let timeObserver = timeObserver, let player = currentPlayer {
             player.removeTimeObserver(timeObserver)
             self.timeObserver = nil
-            self.currentPlayer = nil
         }
+        // FIX: Also remove lyric observer
+        if let lyricObs = lyricTimeObserver, let player = currentPlayer {
+            player.removeTimeObserver(lyricObs)
+            self.lyricTimeObserver = nil
+        }
+        self.currentPlayer = nil
     }
 
     private func setupCircularProgressView() {
@@ -214,11 +242,9 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
             self.radioTableView.reloadData()
             self.radioTableView.layoutIfNeeded()
 
-            let mainCount = 2
             let trackCount = self.tempTrack?.count ?? 0
             let queueCount = PlaybackQueueManager.shared.getQueue().count
             let queueRows = queueCount > 0 ? queueCount + 1 : 0
-            let totalRows = mainCount + queueRows + (trackCount > 0 ? 1 : 0) + trackCount
 
             var totalHeight: CGFloat = 0
             totalHeight += IAPHandler.shared.isGetPurchase() ? 0 : 65
@@ -248,6 +274,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
     }
 
     @objc func didBecomeActiveNotificationReceived() {
+        // FIX: Re-activate audio session when app comes to foreground
+        activateAudioSession()
         updateNowPlaying(isPause: !(player?.isPlaying ?? false))
     }
 
@@ -264,6 +292,8 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
             if options.contains(.shouldResume) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self = self else { return }
+                    // FIX: Re-activate session after interruption ends
+                    self.activateAudioSession()
                     player?.play()
                     self.setupNowPlaying()
                     self.updateNowPlaying(isPause: false)
@@ -852,16 +882,18 @@ extension MusicPlayerViewController: UITableViewDelegate, UITableViewDataSource 
             }
         }
     }
+
     private func presentOptionsViewController(for track: Track) {
         guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
             print("Error: Could not instantiate OptionsViewController")
             return
         }
         optionsVC.track = track
-        optionsVC.delegate = self  // if you want delegate callbacks
+        optionsVC.delegate = self
         optionsVC.modalPresentationStyle = .overFullScreen
         present(optionsVC, animated: true)
     }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let queueCount = PlaybackQueueManager.shared.getQueue().count
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
@@ -948,7 +980,6 @@ extension MusicPlayerViewController {
             currentQueueTrack = item
         }
 
-        // FIX: Fully tear down player before rebuilding
         stopAndClearPlayer()
         isSetMusic = false
         isPlay = true
@@ -965,13 +996,17 @@ extension MusicPlayerViewController {
         }
     }
 
-    // FIX: Single clean teardown method
     private func stopAndClearPlayer() {
         playerItemStatusObserver = nil
+        // FIX: Remove both observers before clearing player
         if let obs = timeObserver, let p = currentPlayer {
             p.removeTimeObserver(obs)
         }
         timeObserver = nil
+        if let obs = lyricTimeObserver, let p = currentPlayer {
+            p.removeTimeObserver(obs)
+        }
+        lyricTimeObserver = nil
         if let p = player {
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: p.currentItem)
             p.pause()
@@ -984,6 +1019,9 @@ extension MusicPlayerViewController {
     func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("▶️ Playing URL: \(url)")
         stopAndClearPlayer()
+
+        // FIX: Ensure audio session is active before playing
+        activateAudioSession()
 
         let playerItem = AVPlayerItem(url: url)
 
@@ -1003,7 +1041,6 @@ extension MusicPlayerViewController {
                                     let dur = player?.currentItem?.asset.duration.seconds ?? 0
                                     self.playerSlider.maximumValue = Float(dur)
                                     self.populateLabelWithTime(self.lblEndTime, time: dur)
-                                    // FIX: Update NowPlaying with correct duration after fallback ready
                                     self.setupNowPlaying()
                                 }
                             }
@@ -1027,7 +1064,6 @@ extension MusicPlayerViewController {
                         let dur = item.asset.duration.seconds
                         self.playerSlider.maximumValue = Float(dur)
                         self.populateLabelWithTime(self.lblEndTime, time: dur)
-                        // FIX: Update NowPlaying with correct duration once ready
                         self.setupNowPlaying()
                     }
                 }
@@ -1044,20 +1080,23 @@ extension MusicPlayerViewController {
         populateLabelWithTime(self.lblEndTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
 
-        // FIX: Observe end-of-item BEFORE playing
+        // FIX: Observe end-of-item on playerItem directly (not player.currentItem)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(self.playerDidFinishPlaying(sender:)),
             name: .AVPlayerItemDidPlayToEndTime,
-            object: playerItem  // FIX: use playerItem directly, not player?.currentItem
+            object: playerItem
         )
 
         if isPlay {
             self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
             self.updateNowPlaying(isPause: false)
 
-            // Lyric sync observer (1s interval)
-            player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1), queue: .main) { [weak self] time in
+            // FIX: Store lyric observer separately so it can be properly removed
+            lyricTimeObserver = player?.addPeriodicTimeObserver(
+                forInterval: CMTimeMakeWithSeconds(1, preferredTimescale: 1),
+                queue: .main
+            ) { [weak self] time in
                 guard let self = self, player?.currentItem?.status == .readyToPlay else { return }
                 self.showLyric(toTime: CMTimeGetSeconds(time))
             }
@@ -1070,15 +1109,14 @@ extension MusicPlayerViewController {
 
         self.setupNowPlaying()
 
-        // FIX: Time observer stored properly
+        // FIX: Store main time observer for slider/label updates
         timeObserver = player?.addPeriodicTimeObserver(
             forInterval: CMTime(value: 1, timescale: 1),
-            queue: DispatchQueue.main  // FIX: use main queue to avoid dispatch async inside
+            queue: DispatchQueue.main
         ) { [weak self] progressTime in
             guard let self = self else { return }
             self.playerSlider.value = Float(progressTime.seconds)
             self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
-            // FIX: Keep NowPlaying elapsed time in sync
             self.updateNowPlayingElapsedTime(progressTime.seconds)
         }
     }
@@ -1087,19 +1125,16 @@ extension MusicPlayerViewController {
     @objc func playerDidFinishPlaying(sender: Notification) {
         print("🏁 Song finished, counter: \(songCounter), repeat: \(isRepeat), waitingForAd: \(isWaitingForAd)")
 
-        // FIX: Reset UI on main thread
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.playerSlider.setValue(0, animated: true)
             self.populateLabelWithTime(self.lblStartTime, time: 0.0)
         }
 
-        // FIX: Remove observer for this specific item to avoid duplicate fires
         if let item = sender.object as? AVPlayerItem {
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
         }
 
-        // Remove time observer
         removeTimeObserverIfNeeded()
 
         guard !isWaitingForAd else {
@@ -1111,7 +1146,6 @@ extension MusicPlayerViewController {
         if songCounter % 5 == 0 && !IAPHandler.shared.isGetPurchase() {
             displayAdsView()
         } else {
-            // FIX: Small delay ensures player state is fully settled before next track
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.continuePlaying()
             }
@@ -1160,7 +1194,7 @@ extension MusicPlayerViewController {
         }
     }
 
-    // MARK: - Now Playing - FIXED
+    // MARK: - Now Playing
     func setupNowPlaying() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -1168,10 +1202,8 @@ extension MusicPlayerViewController {
             nowPlayingInfo[MPMediaItemPropertyArtist] = self.artistName.text ?? ""
             nowPlayingInfo[MPMediaItemPropertyTitle] = self.trackTitle.text ?? ""
             nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
-            // FIX: Always include playback rate and elapsed time
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player?.isPlaying == true ? 1.0 : 0.0
             nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player?.currentTime().seconds ?? 0.0
-            // FIX: Include duration
             let duration = player?.currentItem?.asset.duration.seconds ?? 0.0
             if duration > 0 && !duration.isNaN && !duration.isInfinite {
                 nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = duration
@@ -1190,7 +1222,6 @@ extension MusicPlayerViewController {
         }
     }
 
-    // FIX: New method - keep elapsed time updated without rebuilding entire info dict
     private func updateNowPlayingElapsedTime(_ elapsed: Double) {
         guard var info = MPNowPlayingInfoCenter.default().nowPlayingInfo else { return }
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed
@@ -1205,12 +1236,12 @@ extension MusicPlayerViewController {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
 
-    // MARK: - Remote Transport Controls - FIXED
+    // MARK: - Remote Transport Controls (FIXED - called ONCE in viewDidLoad)
     func setupRemoteTransportControls() {
         UIApplication.shared.beginReceivingRemoteControlEvents()
         let commandCenter = MPRemoteCommandCenter.shared()
 
-        // FIX: Remove old targets before adding new ones
+        // FIX: Always remove old targets before re-adding to prevent ghost handlers
         commandCenter.playCommand.removeTarget(nil)
         commandCenter.pauseCommand.removeTarget(nil)
         commandCenter.nextTrackCommand.removeTarget(nil)
@@ -1222,51 +1253,60 @@ extension MusicPlayerViewController {
         commandCenter.previousTrackCommand.isEnabled = true
         commandCenter.changePlaybackPositionCommand.isEnabled = true
 
+        // FIX: Play — checks player is actually paused before playing
         commandCenter.playCommand.addTarget { [weak self] _ in
-            guard let self = self, let p = player, !p.isPlaying else { return .commandFailed }
+            guard let self = self else { return .commandFailed }
+            guard let p = player, !p.isPlaying else { return .commandFailed }
             p.play()
-            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal) }
+            DispatchQueue.main.async {
+                self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+            }
             self.updateNowPlaying(isPause: false)
             return .success
         }
 
+        // FIX: Pause — checks player is actually playing before pausing
         commandCenter.pauseCommand.addTarget { [weak self] _ in
-            guard let self = self, let p = player, p.isPlaying else { return .commandFailed }
+            guard let self = self else { return .commandFailed }
+            guard let p = player, p.isPlaying else { return .commandFailed }
             p.pause()
-            DispatchQueue.main.async { self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal) }
+            DispatchQueue.main.async {
+                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+            }
             self.updateNowPlaying(isPause: true)
             return .success
         }
 
+        // FIX: Toggle play/pause from lock screen
         commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             DispatchQueue.main.async { self.pausePressed() }
             return .success
         }
 
-        // FIX: nextTrackCommand now uses weak self and calls forwardBtnPressed correctly
+        // FIX: Next track from lock screen / Control Center / headphones
         commandCenter.nextTrackCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
+            guard !self.isLastTrack() else { return .commandFailed }
             DispatchQueue.main.async {
-                guard !self.isLastTrack() else { return }
                 self.isPlayerListTap = false
-                self.pausePlayer()
+                // FIX: Do NOT call pausePlayer() here — it tears down the player before forwardBtnPressed can use it
                 self.forwardBtnPressed()
             }
             return .success
         }
 
-        // FIX: previousTrackCommand uses weak self and calls backwardBtnPressed correctly
+        // FIX: Previous track from lock screen / Control Center / headphones
         commandCenter.previousTrackCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             DispatchQueue.main.async {
-                self.pausePlayer()
+                // FIX: Do NOT call pausePlayer() here — it tears down the player before backwardBtnPressed can use it
                 self.backwardBtnPressed()
             }
             return .success
         }
 
-        // FIX: Scrubbing from lock screen / Control Center
+        // FIX: Scrubbing from lock screen progress bar
         commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self = self,
                   let e = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
@@ -1321,7 +1361,7 @@ extension MusicPlayerViewController {
     }
 
     @IBAction func backwardBtnEvent(_ sender: Any) {
-        self.pausePlayer()
+        // FIX: Do NOT call pausePlayer() — it destroys the player; just call backwardBtnPressed directly
         self.backwardBtnPressed()
     }
 
@@ -1333,7 +1373,7 @@ extension MusicPlayerViewController {
     @IBAction func forwardBtnEvent(_ sender: Any) {
         guard !isLastTrack() else { return }
         isPlayerListTap = false
-        self.pausePlayer()
+        // FIX: Do NOT call pausePlayer() — it destroys the player; just call forwardBtnPressed directly
         self.forwardBtnPressed()
     }
 
@@ -1352,7 +1392,6 @@ extension MusicPlayerViewController {
             self.populateLabelWithTime(self.lblStartTime, time: 0.0)
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
         }
-        player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         updateNowPlaying(isPause: true)
     }
 
@@ -1440,6 +1479,7 @@ extension Collection {
         return indices.contains(index) ? self[index] : nil
     }
 }
+
 extension MusicPlayerViewController: OptionsViewControllerDelegate {
     func didUpdateTrackMetadata() {
         DispatchQueue.main.async {
