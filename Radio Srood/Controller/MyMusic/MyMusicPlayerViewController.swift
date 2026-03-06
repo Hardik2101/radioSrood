@@ -160,7 +160,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         commandCenter.togglePlayPauseCommand.removeTarget(nil)
         commandCenter.changePlaybackPositionCommand.removeTarget(nil)
         NotificationCenter.default.removeObserver(self)
-        stopAndClearPlayer()
+//        stopAndClearPlayer()
         print("MyMusicPlayerViewController deinit")
     }
 
@@ -183,21 +183,29 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     // MARK: - Teardown
     private func stopAndClearPlayer() {
         playerItemStatusObserver = nil
-        if let p = currentPlayer {
+
+        if let p = player {
             if let obs = timeObserver {
                 p.removeTimeObserver(obs)
             }
             if let obs = lyricsTimeObserver {
                 p.removeTimeObserver(obs)
             }
+            if let currentItem = p.currentItem {
+                NotificationCenter.default.removeObserver(
+                    self,
+                    name: .AVPlayerItemDidPlayToEndTime,
+                    object: currentItem
+                )
+            }
+            // ✅ Don't call p.pause() here — it creates an audible gap
+            // The old player gets deallocated naturally when player = nil below
         }
+
         timeObserver = nil
         lyricsTimeObserver = nil
-        if let p = player {
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: p.currentItem)
-            p.pause()
-        }
         currentPlayer = nil
+        player = nil
         hasTriedFallbackForItem = false
     }
 
@@ -1040,12 +1048,13 @@ extension MyMusicPlayerViewController {
         return (primaryURL, fallbackURL)
     }
 
+    // MARK: - Teardown
+    
+
     func play(url: URL, isPlay: Bool = false, fallbackURL: URL? = nil) {
         print("▶️ Playing URL: \(url)")
-        stopAndClearPlayer()
+        stopAndClearPlayer()  // now fully clears everything
 
-        // ✅ FIX: Re-activate audio session every time we start a new track.
-        // Critical after interruptions (calls, Siri) and returning from background.
         do {
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
@@ -1053,6 +1062,14 @@ extension MyMusicPlayerViewController {
         }
 
         let playerItem = AVPlayerItem(url: url)
+
+        // Register finish notification BEFORE creating player
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.playerDidFinishPlaying(sender:)),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: playerItem
+        )
 
         if let fallback = fallbackURL {
             playerItemStatusObserver = playerItem.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
@@ -1062,6 +1079,15 @@ extension MyMusicPlayerViewController {
                     print("⚠️ Primary failed, switching to fallback: \(fallback)")
                     DispatchQueue.main.async {
                         let fallbackItem = AVPlayerItem(url: fallback)
+                        // Re-register notification on fallback item
+                        NotificationCenter.default.removeObserver(
+                            self, name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
+                        NotificationCenter.default.addObserver(
+                            self,
+                            selector: #selector(self.playerDidFinishPlaying(sender:)),
+                            name: .AVPlayerItemDidPlayToEndTime,
+                            object: fallbackItem
+                        )
                         player?.replaceCurrentItem(with: fallbackItem)
                         self.playerItemStatusObserver = fallbackItem.observe(\.status, options: [.new, .initial]) { [weak self] it, _ in
                             guard let self = self else { return }
@@ -1099,7 +1125,6 @@ extension MyMusicPlayerViewController {
             }
         }
 
-        // ✅ KEY: Assign to BOTH `player` (global, used everywhere) and `currentPlayer` (for observer cleanup)
         player = PlayObserver(playerItem: playerItem)
         currentPlayer = player
 
@@ -1110,12 +1135,15 @@ extension MyMusicPlayerViewController {
         populateLabelWithTime(self.lblEndTime, time: 0.0)
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(self.playerDidFinishPlaying(sender:)),
-            name: .AVPlayerItemDidPlayToEndTime,
-            object: playerItem
-        )
+        timeObserver = player?.addPeriodicTimeObserver(
+            forInterval: CMTime(value: 1, timescale: 1),
+            queue: .main
+        ) { [weak self] progressTime in
+            guard let self = self else { return }
+            self.playerSlider.value = Float(progressTime.seconds)
+            self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
+            self.updateNowPlayingElapsedTime(progressTime.seconds)
+        }
 
         if isPlay {
             lyricsTimeObserver = player?.addPeriodicTimeObserver(
@@ -1137,67 +1165,82 @@ extension MyMusicPlayerViewController {
         }
 
         self.setupNowPlaying()
-
-        timeObserver = player?.addPeriodicTimeObserver(
-            forInterval: CMTime(value: 1, timescale: 1),
-            queue: .main
-        ) { [weak self] progressTime in
-            guard let self = self else { return }
-            self.playerSlider.value = Float(progressTime.seconds)
-            self.populateLabelWithTime(self.lblStartTime, time: progressTime.seconds)
-            self.updateNowPlayingElapsedTime(progressTime.seconds)
-        }
     }
 
     // MARK: - Player Did Finish
     @objc func playerDidFinishPlaying(sender: Notification) {
-        print("🏁 Song finished, isRepeat: \(isRepeat), selectedIndex: \(selectedIndex)")
+        print("🏁 playerDidFinishPlaying fired — selectedIndex: \(selectedIndex), trackCount: \(track?.count ?? 0)")
 
-        if let item = sender.object as? AVPlayerItem {
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
-        }
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
-            self.playerSlider.setValue(0, animated: true)
-            self.populateLabelWithTime(self.lblStartTime, time: 0.0)
-        }
-
+        // Repeat — seek and play immediately, no delay
         if isRepeat {
             player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
             player?.play()
             DispatchQueue.main.async { [weak self] in
                 self?.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
+                self?.playerSlider.setValue(0, animated: false)
+                self?.populateLabelWithTime(self!.lblStartTime, time: 0.0)
             }
+            updateNowPlaying(isPause: false)
             return
         }
 
-        let queue = PlaybackQueueManager.shared.getQueue()
-        if !queue.isEmpty {
-            playQueueTrackAtIndex(0)
-            return
-        }
+        // ✅ No asyncAfter — execute immediately on main queue
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
 
-        isPlayingQueueTrack = false
-        currentQueueIndex = nil
-        currentQueueTrack = nil
+            self.playerSlider.setValue(0, animated: false)
+            self.populateLabelWithTime(self.lblStartTime, time: 0.0)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self, let tracks = self.track else {
-                self?.pausePlayer()
+            // Queue first
+            let queue = PlaybackQueueManager.shared.getQueue()
+            if !queue.isEmpty {
+                self.playQueueTrackAtIndex(0)
                 return
             }
+
+            self.isPlayingQueueTrack = false
+            self.currentQueueIndex = nil
+            self.currentQueueTrack = nil
+
+            // Shuffle
+            if self.isShuffle {
+                if self.shuffleQueue.isEmpty { self.resetShuffleQueue() }
+                guard !self.shuffleQueue.isEmpty else {
+                    self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+                    return
+                }
+                self.selectedIndex = self.shuffleQueue.removeFirst()
+                self.isSetMusic = true
+                self.isPlay = true
+                self.handleRecentInView(index: self.selectedIndex)
+                self.manageTableViewScroll()
+                self.scrollToCurrentTrack()
+                return
+            }
+
+            // Sequential
+            guard let tracks = self.track, !tracks.isEmpty else {
+                print("❌ track array is nil/empty")
+                return
+            }
+
             guard self.selectedIndex < tracks.count - 1 else {
-                self.pausePlayer()
+                print("✅ Was last track, stopping.")
+                self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
+                self.updateNowPlaying(isPause: true)
                 return
             }
+
+            // ✅ Go to next track immediately
+            self.selectedIndex += 1
             self.isSetMusic = true
             self.isPlay = true
-            self.forwardBtnPressed()
+            print("➡️ Moving to track \(self.selectedIndex) of \(tracks.count)")
+            self.handleRecentInView(index: self.selectedIndex)
+            self.manageTableViewScroll()
+            self.scrollToCurrentTrack()
         }
     }
-
     // MARK: - Now Playing Info Center
     func setupNowPlaying() {
         DispatchQueue.main.async { [weak self] in
