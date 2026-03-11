@@ -50,7 +50,7 @@ final class SplashViewController: UIViewController {
         // Start the clock AFTER the view is actually on screen
         splashStart = Date()
         // Decode GIF on background thread — never blocks the main thread
-        decod0eGIFAsync()
+        decodeGIFAsync()
     }
     
     override var prefersStatusBarHidden: Bool { true }
