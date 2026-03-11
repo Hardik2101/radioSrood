@@ -6,10 +6,8 @@ import AVKit
 import StoreKit
 import UserMessagingPlatform
 import AppTrackingTransparency
-//import AppReview//AppReview.requestIf(//https://github.com/mezhevikin/AppReview.git
 
 #if DEBUG
-
 let debugDeveloperSkipAds = false
 #else
 let debugDeveloperSkipAds = false
@@ -17,14 +15,14 @@ let debugDeveloperSkipAds = false
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
+    
     var window: UIWindow?
-
+    private var splashWindow: UIWindow?
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-
+        
         UserDefaults.standard.removeObject(forKey: "NowPlayData")
-
+        
         IAPHandler.shared.setProductIds(ids: [
             IAProduct.Product_identifierOneMonth.rawValue,
             IAProduct.Product_identifierYearly.rawValue])
@@ -44,10 +42,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             IAPHandler.shared.receiptValidation()
         }
-
+        
         OneSignal.initWithLaunchOptions(launchOptions)
         OneSignal.setAppId(ONESIGNAL_APP_KEY)
-//       OneSignal.inFocusDisplayType = OSNotificationDisplayType.notification
         
         AppOpenAdManager.shared.loadAd()
         UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -61,24 +58,83 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         
-        // Initialize Google Mobile Ads SDK
         GADMobileAds.sharedInstance().start(completionHandler: nil)
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.requestPermission()
         }
+        
         AppReview.requestIf(launches: 4)
-        // Initialize UMP SDK and request user consent
         requestUserConsent()
-        // Configure Alamofire to not cache responses
+        
         let configuration = URLSessionConfiguration.default
         configuration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         configuration.urlCache = nil
-
+        
+        // ── GIF Splash ───────────────────────────────────────────────────────
+        // Shown in its own UIWindow so it appears on top of everything,
+        // no matter when the storyboard root VC finishes loading.
+        showSplashWindow()
+        performBackgroundInit()
+        // ────────────────────────────────────────────────────────────────────
+        
         return true
     }
-
+    
+    // MARK: - GIF Splash (dedicated UIWindow)
+    
+    private func showSplashWindow() {
+        let splashWin = UIWindow(frame: UIScreen.main.bounds)
+        splashWin.windowLevel = UIWindow.Level.alert + 1   // above everything
+        splashWin.backgroundColor = .clear
+        
+        let splash = SplashViewController()
+        splash.onReady = { [weak self] in
+            self?.dismissSplashWindow()
+        }
+        
+        splashWin.rootViewController = splash
+        splashWin.makeKeyAndVisible()
+        self.splashWindow = splashWin
+    }
+    
+    private func dismissSplashWindow() {
+        guard let splashWin = splashWindow else { return }
+        UIView.animate(
+            withDuration: 0.4,
+            delay: 0,
+            options: .curveEaseInOut
+        ) {
+            splashWin.alpha = 0
+        } completion: { _ in
+            splashWin.isHidden = true
+            self.splashWindow = nil
+            self.window?.makeKeyAndVisible()   // restore the main app window
+        }
+    }
+    
+    /// Runs heavy init in the background while the GIF plays.
+    /// Add your real work here and call markAppReady() when done.
+    private func performBackgroundInit() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            
+            // ── Put your real pre-loading here ────────────────────────────
+            // e.g. prefetch station list, warm up image caches, etc.
+            // The splash waits for BOTH this call AND the GIF to finish.
+            Thread.sleep(forTimeInterval: 0.5)   // ← remove once you have real work
+            // ─────────────────────────────────────────────────────────────
+            
+            DispatchQueue.main.async {
+                if let splashVC = self?.splashWindow?.rootViewController as? SplashViewController {
+                    splashVC.markAppReady()
+                }
+            }
+        }
+    }
+    
+    // MARK: - UMP Consent
+    
     private func requestUserConsent() {
-        // Requesting consent information update
         let parameters = UMPRequestParameters()
         parameters.tagForUnderAgeOfConsent = false
         
@@ -88,8 +144,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return
             }
             
-            // Check the consent status
-            let consentStatus = UMPConsentInformation.sharedInstance.consentStatus
             let formStatus = UMPConsentInformation.sharedInstance.formStatus
             
             if formStatus == .available {
@@ -98,86 +152,59 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         print(loadError)
                         return
                     }
-                    
                     if let form = form {
-                        form.present(from: self.window?.rootViewController ?? UIViewController()) { dismissError in
-                            if let dismissError = dismissError {
-                                return
-                            }
-                            
-                        }
+                        form.present(from: self.window?.rootViewController ?? UIViewController()) { _ in }
                     }
                 }
-            } else {
-                // Directly request ads if no consent form is needed
             }
         }
     }
-
-
-    func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
-    }
-
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    }
-
-    func applicationWillEnterForeground(_ application: UIApplication) {
-        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-    }
+    
+    // MARK: - App Lifecycle
+    
+    func applicationWillResignActive(_ application: UIApplication) {}
+    
+    func applicationDidEnterBackground(_ application: UIApplication) {}
+    
+    func applicationWillEnterForeground(_ application: UIApplication) {}
     
     func applicationDidBecomeActive(_ application: UIApplication) {
         application.applicationIconBadgeNumber = 0
-        // Clear URL cache to ensure fresh data
         URLCache.shared.removeAllCachedResponses()
-
+        
+        // Don't show the app-open ad while the splash is still visible
+        guard splashWindow == nil else { return }
+        
         let rootViewController = application.windows.first(where: { $0.isKeyWindow })?.rootViewController
         if let rootViewController = rootViewController {
             AppOpenAdManager.shared.showAdIfAvailable(viewController: rootViewController)
         }
-        
     }
-
-    func applicationWillTerminate(_ application: UIApplication) {
-        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-        // Saves changes in the application's managed object context before the application terminates.
-    }
-
+    
+    func applicationWillTerminate(_ application: UIApplication) {}
+    
     override func remoteControlReceived(with event: UIEvent?) {
         super.remoteControlReceived(with: event)
-        // Handle remote control events
     }
+    
+    // MARK: - ATT Permission
     
     func requestPermission() {
         if #available(iOS 15.0, *) {
-            ATTrackingManager.requestTrackingAuthorization(completionHandler: { status in
+            ATTrackingManager.requestTrackingAuthorization { status in
                 switch status {
-                case .authorized:
-                    // Tracking authorization dialog was shown
-                    // and we are authorized
-                    print("Authorized")
-                case .denied:
-                    // Tracking authorization dialog was
-                    // shown and permission is denied
-                    print("Denied")
-                case .notDetermined:
-                    // Tracking authorization dialog has not been shown
-                    print("Not Determined")
-                case .restricted:
-                    print("Restricted ")
-                @unknown default: break
-                    
+                case .authorized:    print("Authorized")
+                case .denied:        print("Denied")
+                case .notDetermined: print("Not Determined")
+                case .restricted:    print("Restricted")
+                @unknown default:    break
                 }
-            })
+            }
         }
     }
 }
 
-
-///Need to chnage the bundle id
+///Need to change the bundle id
 ///Premium version
 ///lyricsview pods
 ///version

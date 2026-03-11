@@ -124,6 +124,8 @@
 		887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */; };
 		889A05982E0EC3AD004B4036 /* LyricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889A05972E0EC3AD004B4036 /* LyricsModel.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
+		88E295552F61985500CECD00 /* radio_srood.gif in Resources */ = {isa = PBXBuildFile; fileRef = 88E295542F61985500CECD00 /* radio_srood.gif */; };
+		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
 		B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7131DCD2B43104D00F65434 /* BannerAdCell.swift */; };
 		B7131DD02B43104D00F65434 /* BannerAdCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7131DCE2B43104D00F65434 /* BannerAdCell.xib */; };
@@ -327,6 +329,8 @@
 		887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTopPicModel.swift; sourceTree = "<group>"; };
 		889A05972E0EC3AD004B4036 /* LyricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsModel.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
+		88E295542F61985500CECD00 /* radio_srood.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = radio_srood.gif; sourceTree = "<group>"; };
+		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
 		B700ED762C750261006FF099 /* TabbarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbarVC.swift; sourceTree = "<group>"; };
@@ -554,6 +558,7 @@
 		3F9AB1211EAB3912000D8FE3 = {
 			isa = PBXGroup;
 			children = (
+				88E295542F61985500CECD00 /* radio_srood.gif */,
 				3F9AB12C1EAB3912000D8FE3 /* Radio Srood */,
 				3F9AB12B1EAB3912000D8FE3 /* Products */,
 				1C5E51BF0C913306EA63BA7A /* Frameworks */,
@@ -622,6 +627,7 @@
 				18C7882F2A1AA8E200712ECE /* PlayListTableViewCell.swift */,
 				5614EF482CB00FE60047E9ED /* BrowseTabVC.swift */,
 				04E213102CE2254100EE8F9B /* BrowseShowAllVC.swift */,
+				88E295562F61A3E200CECD00 /* SplashViewController.swift */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -1165,6 +1171,7 @@
 				DC400F002981B4E2005A5B50 /* ArtistCell.xib in Resources */,
 				8845EF8F2E12A35B007D3D70 /* SearchSongCell.xib in Resources */,
 				0457CC482CDDFE3800506DA7 /* BrowseCollectionCell.xib in Resources */,
+				88E295552F61985500CECD00 /* radio_srood.gif in Resources */,
 				3FE808171EBA0F360022B093 /* download@3x.png in Resources */,
 				3F9AB15C1EAB685B000D8FE3 /* SourceSansPro-Light.otf in Resources */,
 				3F9AB15D1EAB685B000D8FE3 /* SourceSansPro-Semibold.otf in Resources */,
@@ -1350,6 +1357,7 @@
 				4025E1AF2256508C0062DE07 /* ProgressView.swift in Sources */,
 				DC0B7FE229827CCA00CD7A08 /* PlaylistCell.swift in Sources */,
 				0457CC402CDCF79C00506DA7 /* CustomButton.swift in Sources */,
+				88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */,
 				80BFD93B291BFA6C003B4C58 /* RecentPlayerViewController.swift in Sources */,
 				04A925242CE476F2009950D9 /* BrowsePopularCollCell.swift in Sources */,
 				DC7BF9172974328C006641B3 /* Common.swift in Sources */,
