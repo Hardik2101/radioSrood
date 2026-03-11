@@ -5,6 +5,7 @@ import SWRevealViewController
 
 class MyMusicViewController: UIViewController {
     
+    @IBOutlet var btnBack: UIButton!
     @IBOutlet private weak var myMusicCollectionView: UICollectionView!
     @IBOutlet private weak var menuBtn: UIBarButtonItem!
     

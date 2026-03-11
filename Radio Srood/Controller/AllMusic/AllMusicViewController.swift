@@ -28,7 +28,7 @@ class AllMusicViewController: UI_VC {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        checkInternetForTabbar()
         vwAds.isHidden = true
         heightOfAdsView.constant = 0
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -42,6 +42,7 @@ class AllMusicViewController: UI_VC {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        checkInternetForTabbar()
         self.fetchRecentlyPlayed()
         self.navigationController?.setNavigationBarHidden(true, animated: animated)
     }
@@ -50,6 +51,16 @@ class AllMusicViewController: UI_VC {
         super.viewDidAppear(animated)
         setUpUI()
         updateMyPlaylist()
+    }
+
+    // MARK: - Offline handling / refresh
+    
+    override func refreshAfterReconnect() {
+        // Refresh local + any network-backed data for My Music when connection is back.
+        fetchRecentlyPlayed()
+        updateMyPlaylist()
+        tableView.reloadData()
+        collectionView.reloadData()
     }
 
     private func setUpUI() {

@@ -42,6 +42,9 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Initial connectivity check for Radio tab
+        checkInternetForTabbar()
+        
         if #available(iOS 14.0, *) {
             if let windowScene = UIApplication.shared.connectedScenes
                 .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
@@ -84,6 +87,8 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Re-check internet whenever Radio tab becomes visible again.
+        checkInternetForTabbar()
         loadNativeAd()
         loadInterstitial()
         loadRadioData()
@@ -118,6 +123,17 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     
     deinit {
         print("Remove screen")
+    }
+
+    // MARK: - Offline handling / refresh
+    
+    override func refreshAfterReconnect() {
+        // Reload radio data and ads when connection is restored.
+        loadNativeAd()
+        loadInterstitial()
+        loadRadioData()
+        loadCurrentLyricData()
+        radioTableView.reloadData()
     }
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         guard gesture.state == .began else { return }

@@ -272,4 +272,58 @@ class UI_VC: UIViewController {
     @objc private func miniPlayerVisibilityChanged(_ notification: Notification) {
         fixMiniplayerSpace()
     }
+
+    // MARK: - Offline handling shared across tab bar screens
+    
+    /// Prevents duplicate offline screens and controls when to skip checks.
+    private static var isShowingOfflineScreen = false
+    private static var shouldSkipNextInternetCheck = false
+    
+    /// Opens the downloads screen (My Music - Downloads tab).
+    func openDownloadsScreenFromTabbar() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let downloadsVC = storyboard.instantiateViewController(withIdentifier: "MyMusicViewController") as? MyMusicViewController {
+            downloadsVC.isDownload = true
+            navigationController?.pushViewController(downloadsVC, animated: true)
+        }
+    }
+    
+    /// Override in subclasses to refresh that screen's content when internet comes back.
+    @objc func refreshAfterReconnect() {
+        // Default: do nothing. Each tab overrides if it needs network refresh.
+    }
+    
+    /// Checks connectivity and shows the offline screen when needed.
+    /// Call this from `viewDidAppear` of any tab bar-related view controller.
+    func checkInternetForTabbar() {
+        // If we explicitly decided to skip the next check (e.g. right after "Go to downloads"),
+        // consume the flag and return.
+        if UI_VC.shouldSkipNextInternetCheck {
+            UI_VC.shouldSkipNextInternetCheck = false
+            return
+        }
+        // If we're already online, just refresh and exit.
+        if Reachability.isConnectedToNetwork() {
+            UI_VC.isShowingOfflineScreen = false
+            refreshAfterReconnect()
+            return
+        }
+        
+        // Avoid stacking multiple offline screens
+        if UI_VC.isShowingOfflineScreen { return }
+        UI_VC.isShowingOfflineScreen = true
+        
+        presentNoInternetScreen(onRetry: { [weak self] in
+            // If user taps Try Again, re-check connection.
+            UI_VC.isShowingOfflineScreen = false
+            self?.checkInternetForTabbar()
+        }, onGoToDownloads: { [weak self] in
+            // If user goes to downloads, open the downloads screen.
+            UI_VC.isShowingOfflineScreen = false
+            // Skip the next automatic check so we don't re-open the offline screen
+            // when the underlying tab's `viewWillAppear/viewDidAppear` are called.
+            UI_VC.shouldSkipNextInternetCheck = true
+            self?.openDownloadsScreenFromTabbar()
+        })
+    }
 }

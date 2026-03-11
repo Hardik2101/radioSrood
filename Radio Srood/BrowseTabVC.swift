@@ -72,6 +72,9 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Initial connectivity check for Browse tab
+        checkInternetForTabbar()
+        
         prepareView()
 //        self.vwAds.isHidden = true
 //        self.imgAdClose.isHidden = true
@@ -104,7 +107,22 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Re-check internet whenever Browse tab becomes visible again.
+        checkInternetForTabbar()
         tblBrowse.reloadData()
+    }
+
+    // MARK: - Offline handling / refresh
+    
+    override func refreshAfterReconnect() {
+        // Fully reload Browse tab data when connection is restored.
+        loadRedioHomeData()
+        loadFeaturedRadioData()
+        loadCurrentLyricData()
+        loadBannerAds()
+        handleTableView()
+        tblBrowse.reloadData()
+        tblSearch.reloadData()
     }
 
     

@@ -123,6 +123,7 @@
 		8845EF922E12AC7C007D3D70 /* searchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8845EF912E12AC7C007D3D70 /* searchModel.swift */; };
 		887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */; };
 		889A05982E0EC3AD004B4036 /* LyricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889A05972E0EC3AD004B4036 /* LyricsModel.swift */; };
+		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
 		B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7131DCD2B43104D00F65434 /* BannerAdCell.swift */; };
 		B7131DD02B43104D00F65434 /* BannerAdCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7131DCE2B43104D00F65434 /* BannerAdCell.xib */; };
@@ -325,6 +326,7 @@
 		8845EF912E12AC7C007D3D70 /* searchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = searchModel.swift; sourceTree = "<group>"; };
 		887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTopPicModel.swift; sourceTree = "<group>"; };
 		889A05972E0EC3AD004B4036 /* LyricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsModel.swift; sourceTree = "<group>"; };
+		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
 		B700ED762C750261006FF099 /* TabbarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbarVC.swift; sourceTree = "<group>"; };
@@ -986,6 +988,7 @@
 				DC5639C229805FB200697113 /* HomeViewController.swift */,
 				DC400EF32981AF8A005A5B50 /* HomeHeaderEnum.swift */,
 				56B076262E1D893A00F1836D /* OptionsViewController.swift */,
+				88E295502F6185EF00CECD00 /* NoInternetViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -1069,9 +1072,9 @@
 				TargetAttributes = {
 					3F9AB1291EAB3912000D8FE3 = {
 						CreatedOnToolsVersion = 8.3.2;
-						DevelopmentTeam = SAA73LP9PJ;
+						DevelopmentTeam = KFSP6V59LR;
 						LastSwiftMigration = 0830;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -1317,6 +1320,7 @@
 				3F0E156B1EAE02DF0009734F /* AppleTableViewCell.swift in Sources */,
 				B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */,
 				DC7BF9142974303C006641B3 /* UICollectionView+Extension.swift in Sources */,
+				88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */,
 				3F9AD5F81EB0EB90009B1532 /* OfflineTableViewController.swift in Sources */,
 				DC062BB929924B5E008245F2 /* TrendingPlaylistModles.swift in Sources */,
 				DC7BF919297432C7006641B3 /* CanvasApplication.swift in Sources */,
@@ -1547,18 +1551,21 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 786;
-				DEVELOPMENT_TEAM = SAA73LP9PJ;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KFSP6V59LR;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 10.6;
-				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tecocraft.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev_test_profile;
 				SWIFT_OBJC_BRIDGING_HEADER = "Radio Srood/GlobalOneV2-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
@@ -1576,18 +1583,21 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 786;
-				DEVELOPMENT_TEAM = SAA73LP9PJ;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KFSP6V59LR;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 10.6;
-				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tecocraft.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev_test_profile;
 				SWIFT_OBJC_BRIDGING_HEADER = "Radio Srood/GlobalOneV2-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";

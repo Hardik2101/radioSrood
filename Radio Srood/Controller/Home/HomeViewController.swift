@@ -75,6 +75,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Re-check internet every time the Home tab becomes visible.
+        checkInternetForTabbar()
         radiosroodTableView.reloadData()
     }
     
@@ -127,8 +129,20 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         getTrendingData()
     }
 
+    // MARK: - Offline handling / refresh
     
-
+    /// Called from the base class when internet becomes available again.
+    override func refreshAfterReconnect() {
+        // Refresh all network-driven sections on Home screen.
+        loadFeaturedArtistData()
+        getTodayTopPicData()
+        getRecentlyAddedData()
+        getFeaturedData()
+        getHotTracksData()
+        getPopularTracksData()
+        getTrendingData()
+        radiosroodTableView.reloadData()
+    }
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
             let touchPoint = gesture.location(in: radiosroodTableView)

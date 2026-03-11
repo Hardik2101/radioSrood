@@ -66,12 +66,16 @@ class IAPVC: UI_VC {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Initial connectivity check for Plus tab
+        checkInternetForTabbar()
         self.setUpUI()
     }
     
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
+        // Re-check internet whenever Plus tab becomes visible again.
+        checkInternetForTabbar()
         self.btnBack.isHidden = !self.isshowbackButton
         
         if IAPHandler.shared.isGetPurchase() {
@@ -81,6 +85,13 @@ class IAPVC: UI_VC {
         }
         
         self.subscriptionEnabled()
+    }
+
+    // MARK: - Offline handling / refresh
+    
+    override func refreshAfterReconnect() {
+        // When internet returns on Plus tab, just refresh subscription state.
+        subscriptionEnabled()
     }
     
     private func setUpUI() {
@@ -161,7 +172,7 @@ class IAPVC: UI_VC {
             }
         } else {
             CustomLoader.shared.hideLoader()
-            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity." )
+//            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity." )
         }
 
     }
@@ -268,7 +279,7 @@ class IAPVC: UI_VC {
             print("Network is not connected")
             // If there's no network connection, hide the loader and show an alert
             CustomLoader.shared.hideLoader()
-            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity.")
+//            _ = CustomAlertController.alert(title: "Internet is not connected. Please check internet connectivity.")
         }
     }
  
