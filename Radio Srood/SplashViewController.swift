@@ -41,10 +41,10 @@ final class SplashViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = .white  // ← change .black to .white (or your GIF bg color)
         buildUI()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         // Start the clock AFTER the view is actually on screen
@@ -70,9 +70,17 @@ final class SplashViewController: UIViewController {
     // MARK: - GIF Decoding (background thread)
     
     private func decodeGIFAsync() {
+        // ✅ Show first frame instantly on main thread — eliminates black flash
+        if let url = Bundle.main.url(forResource: gifName, withExtension: "gif"),
+           let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+           let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) {
+            self.imageView.image = UIImage(cgImage: cgImage)
+        }
+
+        // Full GIF decode on background thread
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
             guard let self = self else { return }
-            
+
             guard
                 let url    = Bundle.main.url(forResource: self.gifName, withExtension: "gif"),
                 let source = CGImageSourceCreateWithURL(url as CFURL, nil)
@@ -81,21 +89,20 @@ final class SplashViewController: UIViewController {
                 DispatchQueue.main.async { self.markGIFFinished() }
                 return
             }
-            
+
             let (frames, totalDuration) = self.extractFrames(from: source)
-            
+
             guard !frames.isEmpty else {
                 DispatchQueue.main.async { self.markGIFFinished() }
                 return
             }
-            
+
             let animation = UIImage.animatedImage(with: frames, duration: totalDuration)
-            
-            // Back to main thread — show the decoded animation instantly
+
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.imageView.image = animation
-                
+                self.imageView.image = animation  // ✅ Replace static frame with full animation
+
                 let elapsed   = Date().timeIntervalSince(self.splashStart)
                 let remaining = max(totalDuration, self.minimumDisplayDuration) - elapsed
                 DispatchQueue.main.asyncAfter(deadline: .now() + max(remaining, 0)) { [weak self] in

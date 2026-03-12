@@ -85,14 +85,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     private func showSplashWindow() {
         let splashWin = UIWindow(frame: UIScreen.main.bounds)
-        splashWin.windowLevel = UIWindow.Level.alert + 1   // above everything
-        splashWin.backgroundColor = .clear
-        
+        splashWin.windowLevel = UIWindow.Level.alert + 1
+        splashWin.backgroundColor = .white  // ✅ change .clear to .white (match your GIF bg)
+
         let splash = SplashViewController()
         splash.onReady = { [weak self] in
             self?.dismissSplashWindow()
         }
-        
+
         splashWin.rootViewController = splash
         splashWin.makeKeyAndVisible()
         self.splashWindow = splashWin

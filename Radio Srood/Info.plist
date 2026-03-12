@@ -60,7 +60,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string></string>
 	<key>UILocalNotificationDefaultSoundName</key>
 	<string>radiosrood.caf</string>
 	<key>UIMainStoryboardFile</key>
