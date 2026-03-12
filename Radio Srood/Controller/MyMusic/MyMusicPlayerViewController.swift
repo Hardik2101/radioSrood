@@ -369,7 +369,6 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     // MARK: - manageTableViewScroll
     func manageTableViewScroll() {
         DispatchQueue.main.async {
-            self.radioTableView.contentOffset = .zero
             self.radioTableView.reloadData()
             self.radioTableView.layoutIfNeeded()
             let trackCount = (self.tempTrack?.count ?? 0) > 1 ? (self.tempTrack!.count - 1) : 0
@@ -1050,7 +1049,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 self.isSetMusic = true
                 self.handleRecentInView(index: self.selectedIndex)
                 self.manageTableViewScroll()
-                self.scrollToCurrentTrack()
+                // ✅ scrollToCurrentTrack() removed — was causing upward jump
             }
         }
     }
@@ -1279,7 +1278,7 @@ extension MyMusicPlayerViewController {
             print("➡️ Moving to track \(self.selectedIndex) of \(tracks.count)")
             self.handleRecentInView(index: self.selectedIndex)
             self.manageTableViewScroll()
-            self.scrollToCurrentTrack()
+//            self.scrollToCurrentTrack()
         }
     }
     // MARK: - Now Playing Info Center
