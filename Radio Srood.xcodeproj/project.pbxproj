@@ -117,6 +117,7 @@
 		80B72EEE2918FBA9004ACD7F /* MoreInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B72EED2918FBA9004ACD7F /* MoreInfoViewController.swift */; };
 		80B72EF02918FC03004ACD7F /* LyricsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B72EEF2918FC03004ACD7F /* LyricsViewController.swift */; };
 		80BFD93B291BFA6C003B4C58 /* RecentPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */; };
+		880099C72F62DBB600758C9A /* SkeletonCellTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 880099C62F62DBB600758C9A /* SkeletonCellTableViewCell.swift */; };
 		88150FE02E0BEECB0006354C /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150FDF2E0BEECB0006354C /* CircularProgressView.swift */; };
 		8845EF8F2E12A35B007D3D70 /* SearchSongCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8845EF8E2E12A35B007D3D70 /* SearchSongCell.xib */; };
 		8845EF902E12A35B007D3D70 /* SearchSongCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8845EF8D2E12A35B007D3D70 /* SearchSongCell.swift */; };
@@ -322,6 +323,7 @@
 		80B72EED2918FBA9004ACD7F /* MoreInfoViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = MoreInfoViewController.swift; sourceTree = "<group>"; };
 		80B72EEF2918FC03004ACD7F /* LyricsViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = LyricsViewController.swift; sourceTree = "<group>"; };
 		80BFD93A291BFA6C003B4C58 /* RecentPlayerViewController.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = RecentPlayerViewController.swift; sourceTree = "<group>"; };
+		880099C62F62DBB600758C9A /* SkeletonCellTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonCellTableViewCell.swift; sourceTree = "<group>"; };
 		88150FDF2E0BEECB0006354C /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
 		8845EF8D2E12A35B007D3D70 /* SearchSongCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSongCell.swift; sourceTree = "<group>"; };
 		8845EF8E2E12A35B007D3D70 /* SearchSongCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SearchSongCell.xib; sourceTree = "<group>"; };
@@ -770,6 +772,14 @@
 			path = BrowseRadioCell;
 			sourceTree = "<group>";
 		};
+		880099C52F62DB9700758C9A /* SkeletonCell */ = {
+			isa = PBXGroup;
+			children = (
+				880099C62F62DBB600758C9A /* SkeletonCellTableViewCell.swift */,
+			);
+			path = SkeletonCell;
+			sourceTree = "<group>";
+		};
 		B742CD832B6FA1EA00F82380 /* AdsAPI */ = {
 			isa = PBXGroup;
 			children = (
@@ -848,6 +858,7 @@
 		DC400EF52981B2B6005A5B50 /* Cell */ = {
 			isa = PBXGroup;
 			children = (
+				880099C52F62DB9700758C9A /* SkeletonCell */,
 				5614EF4A2CB02B290047E9ED /* BrowseCells */,
 				04A9251D2CE4754A009950D9 /* BrowsePopularCells */,
 				567AC5B42CC2A0CC0096B25F /* BrowseRadioCell */,
@@ -1387,6 +1398,7 @@
 				DCA477002ADAB76600203775 /* MyPlaylistCell.swift in Sources */,
 				18EE8D6F2A16AC0C0094CD2D /* PlayerManager.swift in Sources */,
 				04ADC1C52CFC73AE00E29CE0 /* AudioObserver.swift in Sources */,
+				880099C72F62DBB600758C9A /* SkeletonCellTableViewCell.swift in Sources */,
 				4025E1A92256506E0062DE07 /* SCLAlertView.swift in Sources */,
 				DC0B7FF9298287A100CD7A08 /* CurrentRadioCell.swift in Sources */,
 				DC0B800229828BC100CD7A08 /* NewReleasesCollectionCell.swift in Sources */,

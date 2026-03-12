@@ -51,7 +51,21 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     var isHotTracksLoaded = false
     var isPopularTracksLoaded = false
     var isTrendingLoaded = false
+    // MARK: - Replace your existing isLoading computed property + cellForRowAt + heightForRowAt
 
+    // Add this helper at the top of your HomeViewController class body:
+    private var isLoading: Bool {
+        return !isFeaturedLoaded
+            || !isHotTracksLoaded
+            || !isPopularTracksLoaded
+            || !isTrendingLoaded
+            || !isTodayTopPicLoaded
+            || !isRecentlyAddedLoaded
+    }
+    
+    var isPlaylistsLoaded = false
+    var isFeaturedArtistLoaded = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -100,18 +114,26 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
                 loadInterstitial()
             }
         }
+
+        // Reset flags BEFORE handleTableView()
+        isFeaturedLoaded = false
+        isHotTracksLoaded = false
+        isPopularTracksLoaded = false
+        isTrendingLoaded = false
+        isTodayTopPicLoaded = false
+        isRecentlyAddedLoaded = false
+        isPlaylistsLoaded = false
+        isFeaturedArtistLoaded = false
+
         handleTableView()
-        
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
-        
+
         let purchase = IAPHandler.shared.isGetPurchase()
-        
         if purchase || isPurchaseSuccess {
             self.vwAds.isHidden = true
             self.imgAdClose.isHidden = true
             self.heightOfAdsView.constant = 0
         }
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
             if purchase || self.isPurchaseSuccess {
                 self.vwAds.isHidden = true
@@ -119,14 +141,14 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
                 self.heightOfAdsView.constant = 0
             }
         })
-        
+
         // Refresh all data sections
         getTodayTopPicData()
         getRecentlyAddedData()
         getFeaturedData()
         getHotTracksData()
-        getPopularTracksData()
-        getTrendingData()
+//        getPopularTracksData()
+//        getTrendingData()
     }
 
     // MARK: - Offline handling / refresh
@@ -139,8 +161,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         getRecentlyAddedData()
         getFeaturedData()
         getHotTracksData()
-        getPopularTracksData()
-        getTrendingData()
+//        getPopularTracksData()
+//        getTrendingData()
         radiosroodTableView.reloadData()
     }
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -641,20 +663,10 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             if let resp = resp {
                 self.homeMusic = resp
                 self.isHotTracksLoaded = true
-                DispatchQueue.main.async {
-                    self.radiosroodTableView.reloadData()
-                }
-            }
-        }
-    }
-
-    private func getPopularTracksData() {
-        dataHelper = DataHelper()
-        dataHelper.getRedioHomeData { [weak self] resp in
-            guard let self = self else { return }
-            if let resp = resp {
-                self.homeMusic = resp
                 self.isPopularTracksLoaded = true
+                self.isTrendingLoaded = true
+                self.isPlaylistsLoaded = true
+                self.isFeaturedArtistLoaded = true
                 DispatchQueue.main.async {
                     self.radiosroodTableView.reloadData()
                 }
@@ -662,19 +674,34 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         }
     }
 
-    private func getTrendingData() {
-        dataHelper = DataHelper()
-        dataHelper.getRedioHomeData { [weak self] resp in
-            guard let self = self else { return }
-            if let resp = resp {
-                self.homeMusic = resp
-                self.isTrendingLoaded = true
-                DispatchQueue.main.async {
-                    self.radiosroodTableView.reloadData()
-                }
-            }
-        }
-    }
+
+//    private func getPopularTracksData() {
+//        dataHelper = DataHelper()
+//        dataHelper.getRedioHomeData { [weak self] resp in
+//            guard let self = self else { return }
+//            if let resp = resp {
+//                self.homeMusic = resp
+//                self.isPopularTracksLoaded = true
+//                DispatchQueue.main.async {
+//                    self.radiosroodTableView.reloadData()
+//                }
+//            }
+//        }
+//    }
+//
+//    private func getTrendingData() {
+//        dataHelper = DataHelper()
+//        dataHelper.getRedioHomeData { [weak self] resp in
+//            guard let self = self else { return }
+//            if let resp = resp {
+//                self.homeMusic = resp
+//                self.isTrendingLoaded = true
+//                DispatchQueue.main.async {
+//                    self.radiosroodTableView.reloadData()
+//                }
+//            }
+//        }
+//    }
 
     private func setHeaderData(headerTitle: String, isShowShowAll: Bool = false) -> UIView {
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 20))
@@ -833,7 +860,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
 
     
     func playlistsCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: PlaylistCell.self) {
+        if let cell = tableView.registerAndGet(cell: PlaylistCell.self),
+           isPlaylistsLoaded {
             cell.selectionStyle = .none
             if let playlists = homeMusic?.playlists {
                 cell.presentView = self
@@ -869,7 +897,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func featuredArtistCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: ArtistCell.self) {
+        if let cell = tableView.registerAndGet(cell: ArtistCell.self),
+           isFeaturedArtistLoaded {
             cell.selectionStyle = .none
             if let featuredArtist = homeMusic?.featuredArtist {
                 cell.presentView = self
@@ -1059,35 +1088,54 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         return 1
     }
     
+    // MARK: - Updated cellForRowAt
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch homeHeaderArray[indexPath.section] {
+        let sectionTitle = homeHeaderArray[indexPath.section]
+
+        switch sectionTitle {
         case "Featured":
+            if !isFeaturedLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return newFeaturedCell(with: tableView)
         case "Recently Added":
+            if !isRecentlyAddedLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return newRecentlyAddedCell(with: tableView)
         case "Today Top Picks":
+            if !isTodayTopPicLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return todayTopPicCell(with: tableView)
         case "Hot Tracks":
+            if !isHotTracksLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return newReleasesCell(with: tableView)
-        case "Currently Playing on Radio srood":
-            return currentRadioCell(with: tableView)
         case "Trending":
+            if !isTrendingLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return trendingCell(with: tableView)
         case "Popular Tracks":
+            if !isPopularTracksLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return popularTracksCell(with: tableView)
         case "Playlists":
+            if !isPlaylistsLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return playlistsCell(with: tableView)
+        case "Featured Artist":
+            if !isFeaturedArtistLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return featuredArtistCell(with: tableView)
+        case "Currently Playing on Radio srood":
+            return currentRadioCell(with: tableView)
         case "My Playlist":
             return myPlaylistCell(with: tableView)
         case "Recently Played":
             return recentlyPlayedCell(with: tableView)
-        case "Featured Artist":
-            return featuredArtistCell(with: tableView)
         case "Native Ad First":
             return bannerAdCell(with: tableView, index: 0)
         default:
             return bannerAdCell(with: tableView, index: 1)
         }
+    }
+
+    // MARK: - Skeleton cell helper
+    private func skeletonCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
+        tableView.register(SkeletonCell.self, forCellReuseIdentifier: "SkeletonCell")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SkeletonCell", for: indexPath) as! SkeletonCell
+        cell.backgroundColor = .clear
+        return cell
     }
     
     func  tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -1186,15 +1234,32 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return CGFloat.leastNonzeroMagnitude
     }
+    // MARK: - Updated heightForRowAt
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let sectionTitle = homeHeaderArray[indexPath.section]
-        
-        if sectionTitle == "Currently Playing on Radio srood" {
-            return 0 // 🔒 Hide this row completely
-        }
 
-        // Return normal heights for other sections
-        return UITableView.automaticDimension
+        if sectionTitle == "Currently Playing on Radio srood" { return 0 }
+
+        switch sectionTitle {
+        case "Featured":
+            return isFeaturedLoaded ? UITableView.automaticDimension : 180
+        case "Recently Added":
+            return isRecentlyAddedLoaded ? UITableView.automaticDimension : 180
+        case "Today Top Picks":
+            return isTodayTopPicLoaded ? UITableView.automaticDimension : 180
+        case "Hot Tracks":
+            return isHotTracksLoaded ? UITableView.automaticDimension : 180
+        case "Trending":
+            return isTrendingLoaded ? UITableView.automaticDimension : 180
+        case "Popular Tracks":
+            return isPopularTracksLoaded ? UITableView.automaticDimension : 180
+        case "Playlists":
+            return isPlaylistsLoaded ? UITableView.automaticDimension : 180
+        case "Featured Artist":
+            return isFeaturedArtistLoaded ? UITableView.automaticDimension : 180
+        default:
+            return UITableView.automaticDimension
+        }
     }
 
 }
