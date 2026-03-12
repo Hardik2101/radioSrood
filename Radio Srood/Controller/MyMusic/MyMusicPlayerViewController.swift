@@ -369,6 +369,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     // MARK: - manageTableViewScroll
     func manageTableViewScroll() {
         DispatchQueue.main.async {
+            self.radioTableView.contentOffset = .zero
             self.radioTableView.reloadData()
             self.radioTableView.layoutIfNeeded()
             let trackCount = (self.tempTrack?.count ?? 0) > 1 ? (self.tempTrack!.count - 1) : 0
@@ -584,7 +585,6 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isPlay = true
             handleRecentInView(index: selectedIndex)
             self.manageTableViewScroll()
-            scrollToCurrentTrack()
         } else {
             pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
@@ -618,7 +618,6 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             isPlay = true
             handleRecentInView(index: selectedIndex)
             self.manageTableViewScroll()
-            scrollToCurrentTrack()
         } else {
             pausePlayer()
             self.playPauseBtn.setImage(UIImage(named: "ic_play"), for: .normal)
@@ -626,16 +625,46 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
 
     // MARK: - scrollToCurrentTrack
+    /// Scrolls so the selected track is visible. Scrolls the parent scroll view (not the table) so that
+    /// the banner and RecentPlayerOptionCell at the top stay visible and are not pushed off-screen.
     private func scrollToCurrentTrack() {
         let queueCount = PlaybackQueueManager.shared.getQueue().count
         let queueRows = queueCount > 0 ? queueCount + 1 : 0
         let indexToScroll = 2 + queueRows + 1 + selectedIndex - (firstTrackList?.count ?? 0)
         let totalRows = radioTableView.numberOfRows(inSection: 0)
-        if indexToScroll >= 0 && indexToScroll < totalRows {
-            radioTableView.scrollToRow(at: IndexPath(row: indexToScroll, section: 0), at: .middle, animated: true)
-        } else {
-            radioTableView.scrollToRow(at: IndexPath(row: 1, section: 0), at: .top, animated: true)
+
+        // Keep table content offset at zero so rows 0 and 1 (banner, options) are never scrolled away
+        radioTableView.contentOffset = .zero
+
+        guard indexToScroll >= 0, indexToScroll < totalRows else {
+            return
         }
+
+        let indexPath = IndexPath(row: indexToScroll, section: 0)
+
+        // If the table is inside a scroll view, scroll the parent so the row is visible instead of scrolling the table.
+        // This keeps the banner and RecentPlayerOptionCell (rows 0–1) visible at the top.
+        if let parentScrollView = findParentScrollView(of: radioTableView) {
+            radioTableView.layoutIfNeeded()
+            let rowRectInTable = radioTableView.rectForRow(at: indexPath)
+            let rowRectInScrollContent = radioTableView.convert(rowRectInTable, to: parentScrollView)
+            let targetY = rowRectInScrollContent.minY - (parentScrollView.bounds.height * 0.2)
+            let maxOffsetY = max(0, parentScrollView.contentSize.height - parentScrollView.bounds.height)
+            let clampedY = min(max(0, targetY), maxOffsetY)
+            parentScrollView.setContentOffset(CGPoint(x: parentScrollView.contentOffset.x, y: clampedY), animated: true)
+            return
+        }
+
+        radioTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+    }
+
+    private func findParentScrollView(of view: UIView) -> UIScrollView? {
+        var current: UIView? = view.superview
+        while let v = current {
+            if let sv = v as? UIScrollView { return sv }
+            current = v.superview
+        }
+        return nil
     }
 
     private func setupCircularProgressView() {
@@ -847,6 +876,18 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
 extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int { return 1 }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let queueCount = PlaybackQueueManager.shared.getQueue().count
+        let queueRows = queueCount > 0 ? queueCount + 1 : 0
+        let trackCount = (tempTrack?.count ?? 0) > 1 ? (tempTrack!.count - 1) : 0
+        if indexPath.row == 0 { return IAPHandler.shared.isGetPurchase() ? 0 : 65 }
+        if indexPath.row == 1 { return 90 }
+        if indexPath.row >= 2 && indexPath.row < 2 + queueRows { return 90 }
+        let adjustedRow = indexPath.row - queueRows
+        if trackCount > 0 && adjustedRow == 2 { return 40 }
+        return 90
+    }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let mainCount = 2

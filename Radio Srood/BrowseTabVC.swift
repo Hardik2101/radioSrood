@@ -33,6 +33,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         didSet {
             self.tblSearch.delegate = self
             self.tblSearch.dataSource = self
+            
         }
     }
     
@@ -438,6 +439,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             attributes: attributes
         )
         tfSearchBar.textColor = .white
+        tfSearchBar.autocorrectionType = .no
+        
 
         let cancelButton = UIButton(type: .system)
         cancelButton.setImage(UIImage(systemName: "xmark"), for: .normal)
