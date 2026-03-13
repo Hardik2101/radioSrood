@@ -38,13 +38,20 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 
     private var isPurchaseSuccess: Bool = false
     var isSyncedLyrics = false
-
+    private var isRadioDataLoaded = false
+    private var isLyricDataLoaded = false
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Initial connectivity check for Radio tab
+        navigationController?.setNavigationBarHidden(true, animated: false)
+
+        // ✅ Reset flags on first load only
+        isRadioDataLoaded = false
+        isLyricDataLoaded = false
+
         checkInternetForTabbar()
-        
+
         if #available(iOS 14.0, *) {
             if let windowScene = UIApplication.shared.connectedScenes
                 .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
@@ -52,12 +59,8 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
             }
         } else if #available(iOS 10.3, *) {
             SKStoreReviewController.requestReview()
-        } else {
-            // Fallback for earlier iOS versions (if needed)
-            // Handle the case where SKStoreReviewController is not available
-            // or other fallback behavior.
         }
-        
+
         let yourBackImage = UIImage(named: "left-arrow")
         self.navigationController?.navigationBar.backIndicatorImage = yourBackImage
         self.navigationController?.navigationBar.backIndicatorTransitionMaskImage = yourBackImage
@@ -68,15 +71,8 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         radioTableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: screenSize.width, height: 0.1))
         radioTableView.tableFooterView = UIView()
 
-//        menuBtn.action = #selector(SWRevealViewController.revealToggle(_:))
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
-        
-//        NotificationCenter.default.addObserver(
-//            self, selector: #selector(RadioWithRecentViewController.loadRadioData),
-//            name: .reloadRadio, object: nil
-//        )
-//        Timer.scheduledTimer(timeInterval: 0.8, target: self, selector: #selector(execute), userInfo: nil, repeats: true)
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
 
         radioTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
@@ -87,15 +83,16 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // Re-check internet whenever Radio tab becomes visible again.
         checkInternetForTabbar()
         loadNativeAd()
         loadInterstitial()
-        loadRadioData()
-        loadCurrentLyricData()
+
+        // ✅ Only fetch if not already loaded
+        if !isRadioDataLoaded { loadRadioData() }
+        if !isLyricDataLoaded { loadCurrentLyricData() }
 
         radioTableView.reloadData()
-        
+
         if wasPlayingBeforeAds {
             NotificationCenter.default.post(name: .reloadRadio, object: nil, userInfo: nil)
             wasPlayingBeforeAds = false
@@ -104,9 +101,9 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.isTranslucent = true
+        // ✅ Always hidden — no nav bar on this screen
+        navigationController?.setNavigationBarHidden(true, animated: false)
+
         if isPrevent {
             isPrevent = false
             self.radioTableView.reloadData()
@@ -116,6 +113,12 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
                 loadInterstitial()
             }
         }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // ✅ Restore nav bar for screens we navigate to/from
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 //    @objc func execute() {
 //        loadRecentListData()
@@ -173,13 +176,15 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         present(optionsVC, animated: true)
     }
 
-    
     @objc func loadRadioData() {
         dataHelper = DataHelper()
         if let data = UserDefaults.standard.value(forKey: "NowPlayData") as? NSDictionary {
             playRadioData = data
             isSetupRemoteTransport = true
-            radioTableView.reloadData()
+            isRadioDataLoaded = true
+            DispatchQueue.main.async {
+                self.radioTableView.reloadData()
+            }
         } else {
             dataHelper.getRadioData { [weak self] (data) in
                 guard let self = self else { return }
@@ -197,7 +202,10 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         dataHelper.getCurrentLyricData { [weak self] resp in
             guard let self = self else { return }
             self.currentLyricData = resp
-            self.radioTableView.reloadData()
+            self.isLyricDataLoaded = true
+            DispatchQueue.main.async {
+                self.radioTableView.reloadData()
+            }
         }
     }
 
@@ -206,7 +214,10 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         dataHelper.getRecentListData(completion: { [weak self] resp in
             guard let self = self else { return }
             self.radioData = resp
-            self.radioTableView.reloadData()
+            self.isRadioDataLoaded = true
+            DispatchQueue.main.async {
+                self.radioTableView.reloadData()
+            }
         })
     }
     
@@ -383,18 +394,24 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {
+        if !isRadioDataLoaded {
+            return 3 // skeleton sections: radio cell, banner, skeleton rows
+        }
         if radioData != nil {
             return 5
-        } else {
-            return 0
         }
+        return 0
     }
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if !isRadioDataLoaded {
+            return 1
+        }
         if radioData != nil {
             switch section {
             case 4:
-                if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray {
+                if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary,
+                   let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray {
                     return recentHistory.count
                 } else {
                     return 0
@@ -402,16 +419,33 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             default:
                 return 1
             }
-        } else {
-            return 0
         }
+        return 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        // ✅ Show skeleton while data is loading
+        // In cellForRowAt, the skeleton section case 0:
+        if !isRadioDataLoaded {
+            switch indexPath.section {
+            case 0:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "RadioCell", for: indexPath) as! RadioCell
+                cell.selectionStyle = .none
+                cell.showSkeleton() // ✅ no DispatchQueue needed anymore
+                return cell
+            default:
+                tableView.register(SkeletonCell.self, forCellReuseIdentifier: "SkeletonCell")
+                let cell = tableView.dequeueReusableCell(withIdentifier: "SkeletonCell", for: indexPath) as! SkeletonCell
+                cell.backgroundColor = .clear
+                return cell
+            }
+        }
+
         if radioData == nil {
             return UITableViewCell()
         }
-        
+
         switch indexPath.section {
         case 0:
             let cell = tableView.dequeueReusableCell(withIdentifier: "RadioCell", for: indexPath) as! RadioCell
@@ -420,11 +454,28 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             cell.presentView = self
             cell.artCoverImage.layer.cornerRadius = 5
             cell.artCoverImage.layer.masksToBounds = true
+
+            // In cellForRowAt, the skeleton section case 0:
+            if !isRadioDataLoaded {
+                switch indexPath.section {
+                case 0:
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "RadioCell", for: indexPath) as! RadioCell
+                    cell.selectionStyle = .none
+                    cell.showSkeleton() // ✅ no DispatchQueue needed anymore
+                    return cell
+                default:
+                    tableView.register(SkeletonCell.self, forCellReuseIdentifier: "SkeletonCell")
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "SkeletonCell", for: indexPath) as! SkeletonCell
+                    cell.backgroundColor = .clear
+                    return cell
+                }
+            }
+
+            // ✅ Data loaded — hide skeleton
+            cell.hideSkeleton()
+
             if let radioUrl = radioUrl {
                 cell.radioUrl = radioUrl
-//                cell.artCoverImage.af_setImage(withURL: artImageURL, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-//                cell.trackTitle.text = trackTitle
-//                cell.artistName.text = artistName
                 cell.makeScreen(true)
             } else {
                 if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary {
@@ -446,42 +497,27 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                 }
             }
             return cell
-            
         case 1:
             let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as! BannerAdCell
-            for subview in cell.vwMain.subviews {
-                subview.removeFromSuperview()
-            }
-            
-            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess  {
+            for subview in cell.vwMain.subviews { subview.removeFromSuperview() }
+            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
                 cell.vwMain.isHidden = true
                 cell.heightOfVw.constant = 0
             } else {
                 cell.vwMain.isHidden = false
                 cell.heightOfVw.constant = 65
             }
-            
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
-            
-            // Load banner ad into the cell's view hierarchy
             let bannerView = GADBannerView(adSize: kGADAdSizeBanner)
             bannerView.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
             bannerView.rootViewController = self
             bannerView.delegate = self
             bannerView.load(GADRequest())
-            // Set the banner view frame
-            bannerView.frame = CGRect(x: 0, y: 0, width: cell.vwMain.frame.width, height: cell.vwMain.frame.height)
-            // Remove any existing subviews from vwAds
-            
-            // Add the banner view to the cell's content view
-            cell.vwMain.addSubview(bannerView)
-            
-            // Set the banner view frame
             bannerView.frame = cell.vwMain.bounds
-            
+            cell.vwMain.addSubview(bannerView)
             return cell
-            
+
         case 2:
             let cell = tableView.dequeueReusableCell(withIdentifier: "OptionCell", for: indexPath) as! OptionCell
             cell.selectionStyle = .none
@@ -489,26 +525,23 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             cell.btnShare.addTarget(self, action: #selector(shareBtnClicked), for: .touchUpInside)
             cell.btnMoreInfo.addTarget(self, action: #selector(moreInfoBtnClicked), for: .touchUpInside)
             return cell
-            
+
         case 3:
             let cell = tableView.dequeueReusableCell(withIdentifier: "UpNextCell", for: indexPath) as! UpNextCell
             cell.selectionStyle = .none
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
-
             if let currentLyricData = self.currentLyricData {
-                if let currentTrackInfo = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
+                if let _ = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
                     if let radioData = radioData {
                         if let currentSong = radioData.value(forKey: "currentTrack") as? NSDictionary {
                             if let currentArtist = currentSong.value(forKey: "comingNextArtCover") as? String {
                                 cell.artCoverImage.af_setImage(withURL: URL(string: currentArtist) ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                                 cell.bgImage.af_setImage(withURL: URL(string: currentArtist) ?? URL(string: "")!, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                             }
-                            
                             if let comingNextArtist = currentSong.value(forKey: "comingNextTrack") as? String {
                                 cell.title.text = comingNextArtist
                             }
-
                             if let comingNextTrack = currentSong.value(forKey: "comingNextArtist") as? String {
                                 cell.subTitle.text = comingNextTrack
                             }
@@ -517,20 +550,20 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                 }
             }
             return cell
-            
+
         case 4:
             let cell = tableView.dequeueReusableCell(withIdentifier: "RecentListCell", for: indexPath) as! RecentListCell
             cell.selectionStyle = .none
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
-            if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary, let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray, let recentItem = recentHistory[indexPath.row] as? NSDictionary {
+            if let currentSong = radioData?.value(forKey: "currentTrack") as? NSDictionary,
+               let recentHistory = currentSong.value(forKey: "recentHistory") as? NSArray,
+               let recentItem = recentHistory[indexPath.row] as? NSDictionary {
                 if let recentArtCover = recentItem.value(forKey: "recentArtCover") as? String,
                    let url = updatedArtcoverURL(from: recentArtCover) {
-                    
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
-
                 if let recentTrack = recentItem.value(forKey: "recentTrack") as? String {
                     cell.trackTitle.text = recentTrack
                 }
@@ -539,54 +572,27 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
                 }
             }
             return cell
-            
+
         default:
             let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as! BannerAdCell
-            for subview in cell.vwMain.subviews {
-                subview.removeFromSuperview()
-            }
-            
-            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess  {
+            for subview in cell.vwMain.subviews { subview.removeFromSuperview() }
+            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
                 cell.vwMain.isHidden = true
                 cell.heightOfVw.constant = 0
             } else {
                 cell.vwMain.isHidden = false
                 cell.heightOfVw.constant = 65
             }
-            
             cell.selectionStyle = .none
             cell.backgroundColor = .clear
-            
-            // Load banner ad into the cell's view hierarchy
             let bannerView = GADBannerView(adSize: kGADAdSizeBanner)
             bannerView.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
             bannerView.rootViewController = self
             bannerView.delegate = self
             bannerView.load(GADRequest())
-            // Set the banner view frame
-            bannerView.frame = CGRect(x: 0, y: 0, width: cell.vwMain.frame.width, height: cell.vwMain.frame.height)
-            // Remove any existing subviews from vwAds
-            
-            // Add the banner view to the cell's content view
-            cell.vwMain.addSubview(bannerView)
-            
-            // Set the banner view frame
             bannerView.frame = cell.vwMain.bounds
+            cell.vwMain.addSubview(bannerView)
             return cell
-//                let cell = tableView.dequeueReusableCell(withIdentifier: "AdViewCell", for: indexPath) as! AdViewCell
-//                cell.selectionStyle = .none
-//                (cell.unifiedNativeAdView.callToActionView as! UIButton).layer.cornerRadius = 5
-//                (cell.unifiedNativeAdView.callToActionView as! UIButton).layer.masksToBounds = true
-//                if let nativeAd = nativeAd {
-//                    cell.unifiedNativeAdView.nativeAd = nativeAd
-//                    (cell.unifiedNativeAdView.headlineView as! UILabel).text = nativeAd.headline
-//                    (cell.unifiedNativeAdView.bodyView as! UILabel).text = nativeAd.body
-//                    (cell.unifiedNativeAdView.imageView as! UIImageView).image = nativeAd.images?.first?.image
-//                    (cell.unifiedNativeAdView.callToActionView as! UIButton).isUserInteractionEnabled = false
-//                    cell.unifiedNativeAdView.mediaView?.contentMode = .scaleAspectFill
-//                    (cell.unifiedNativeAdView.callToActionView as! UIButton).setTitle(nativeAd.callToAction?.uppercased(), for: .normal)
-//                }
-//                return UITableViewCell()
         }
     }
 

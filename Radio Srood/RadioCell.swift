@@ -35,6 +35,11 @@ class RadioCell: UITableViewCell {
     weak var presentView: RadioWithRecentViewController?
     var isLike = false
     var radioMiniPlayerInfo: BasicDetail?
+    private var isSkeletonVisible = false
+    private var shimmerTimer: Timer?
+    private var shimmerBlocks: [UIView] = []
+    private var shimmerAlphaIncreasing = true
+    private var shimmerProgress: CGFloat = 0.0
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -71,6 +76,129 @@ class RadioCell: UITableViewCell {
             self, selector: #selector(RadioCell.stopPlayer),
             name: .pauseRadio, object: nil
         )
+    }
+    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard isSkeletonVisible else { return }
+        guard viewWithTag(9999) == nil else { return }
+
+        let overlay = UIView(frame: contentView.bounds)
+        overlay.tag = 9999
+        overlay.backgroundColor = UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1.0)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.clipsToBounds = true
+        contentView.addSubview(overlay)
+
+        let imgFrame    = contentView.convert(artCoverImage.frame, from: artCoverImage.superview)
+        let titleFrame  = contentView.convert(trackTitle.frame, from: trackTitle.superview)
+        let artistFrame = contentView.convert(artistName.frame, from: artistName.superview)
+        let btnFrame    = contentView.convert(playPauseBtn.frame, from: playPauseBtn.superview)
+
+        let frames: [(CGRect, CGFloat)] = [
+            (imgFrame, 6),
+            (CGRect(x: titleFrame.minX, y: titleFrame.minY, width: titleFrame.width * 0.72, height: 14), 5),
+            (CGRect(x: artistFrame.minX, y: artistFrame.minY, width: artistFrame.width * 0.50, height: 11), 4),
+            (CGRect(x: btnFrame.minX, y: btnFrame.minY, width: btnFrame.width, height: btnFrame.height), btnFrame.width / 2),
+        ]
+
+        var blocks: [(UIView, CGFloat)] = []
+
+        for (frame, radius) in frames {
+            let base = UIView(frame: frame)
+            base.backgroundColor = UIColor(white: 0.20, alpha: 1.0)
+            base.layer.cornerRadius = radius
+            base.layer.masksToBounds = true
+            overlay.addSubview(base)
+            blocks.append((base, frame.width))
+        }
+
+        // ✅ Dispatch AFTER run loop commits the layer tree
+        DispatchQueue.main.async {
+            for (i, (base, width)) in blocks.enumerated() {
+                self.addSkeletonShimmer(to: base, width: width, index: i)
+            }
+        }
+    }
+
+    private func addSkeletonShimmer(to base: UIView, width: CGFloat, index: Int) {
+        // Remove any existing shimmer
+        base.layer.sublayers?.filter { $0.name == "shimmerGradient" }.forEach { $0.removeFromSuperlayer() }
+
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.name = "shimmerGradient"
+        gradientLayer.frame = CGRect(x: 0, y: 0, width: width, height: base.frame.height)
+        gradientLayer.colors = [
+            UIColor(white: 0.20, alpha: 1.0).cgColor,
+            UIColor(white: 0.55, alpha: 1.0).cgColor,
+            UIColor(white: 0.20, alpha: 1.0).cgColor,
+        ]
+        gradientLayer.locations  = [0.0, 0.5, 1.0]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        gradientLayer.endPoint   = CGPoint(x: 1, y: 0.5)
+        base.layer.addSublayer(gradientLayer)
+
+        // ✅ Animate the gradient startPoint/endPoint — most reliable way
+        let startAnim = CABasicAnimation(keyPath: "startPoint")
+        startAnim.fromValue = CGPoint(x: -1.0, y: 0.5)
+        startAnim.toValue   = CGPoint(x: 1.0, y: 0.5)
+
+        let endAnim = CABasicAnimation(keyPath: "endPoint")
+        endAnim.fromValue = CGPoint(x: 0.0, y: 0.5)
+        endAnim.toValue   = CGPoint(x: 2.0, y: 0.5)
+
+        let group = CAAnimationGroup()
+        group.animations    = [startAnim, endAnim]
+        group.duration      = 1.3
+        group.repeatCount   = .infinity
+        group.beginTime     = CACurrentMediaTime() + Double(index) * 0.15
+        group.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        group.isRemovedOnCompletion = false
+        group.fillMode      = .forwards
+
+        gradientLayer.add(group, forKey: "shimmer")
+    }
+
+
+    private func startShimmerTimer() {
+        shimmerTimer?.invalidate()
+        shimmerAlphaIncreasing = true
+
+        // Set all blocks to base color first
+        for block in shimmerBlocks {
+            block.backgroundColor = UIColor(white: 0.20, alpha: 1.0)
+        }
+
+        shimmerTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.tickShimmer()
+            }
+        }
+        RunLoop.main.add(shimmerTimer!, forMode: .common) // ✅ .common keeps it running during scrolling
+    }
+    private func tickShimmer() {
+        let speed: CGFloat = 0.018
+        if shimmerAlphaIncreasing {
+            shimmerProgress += speed
+            if shimmerProgress >= 1.0 {
+                shimmerProgress = 1.0
+                shimmerAlphaIncreasing = false
+            }
+        } else {
+            shimmerProgress -= speed
+            if shimmerProgress <= 0.0 {
+                shimmerProgress = 0.0
+                shimmerAlphaIncreasing = true
+            }
+        }
+
+        // ✅ Interpolate between dark (0.20) and bright (0.55)
+        let brightness = 0.20 + (shimmerProgress * 0.35)
+        for block in shimmerBlocks {
+            block.backgroundColor = UIColor(white: brightness, alpha: 1.0)
+        }
     }
     
     deinit {
@@ -220,7 +348,19 @@ class RadioCell: UITableViewCell {
             configureCurrentPlayingSong()
         }
     }
-    
+    // Add these two methods to RadioCell class
+
+    func showSkeleton() {
+        isSkeletonVisible = true
+        setNeedsLayout()
+        layoutIfNeeded()
+    }
+
+    func hideSkeleton() {
+        isSkeletonVisible = false
+        viewWithTag(9999)?.removeFromSuperview()
+    }
+
     @IBAction func pausePressed() {
         if isPlaying {
             DispatchQueue.main.async {
