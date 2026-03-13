@@ -124,8 +124,8 @@
 		8845EF922E12AC7C007D3D70 /* searchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8845EF912E12AC7C007D3D70 /* searchModel.swift */; };
 		887079472DE6D79700F1B4BA /* TodayTopPicModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */; };
 		889A05982E0EC3AD004B4036 /* LyricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889A05972E0EC3AD004B4036 /* LyricsModel.swift */; };
+		889AC9042F63D21E0015FB74 /* radio_srood.gif in Resources */ = {isa = PBXBuildFile; fileRef = 889AC9032F63D21E0015FB74 /* radio_srood.gif */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
-		88E295552F61985500CECD00 /* radio_srood.gif in Resources */ = {isa = PBXBuildFile; fileRef = 88E295542F61985500CECD00 /* radio_srood.gif */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
 		B7131DCF2B43104D00F65434 /* BannerAdCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7131DCD2B43104D00F65434 /* BannerAdCell.swift */; };
@@ -330,8 +330,8 @@
 		8845EF912E12AC7C007D3D70 /* searchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = searchModel.swift; sourceTree = "<group>"; };
 		887079462DE6D79600F1B4BA /* TodayTopPicModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTopPicModel.swift; sourceTree = "<group>"; };
 		889A05972E0EC3AD004B4036 /* LyricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsModel.swift; sourceTree = "<group>"; };
+		889AC9032F63D21E0015FB74 /* radio_srood.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = radio_srood.gif; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
-		88E295542F61985500CECD00 /* radio_srood.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = radio_srood.gif; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAA532388CE5DF95C2935FC9 /* Pods-Radio Srood.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Radio Srood.debug.xcconfig"; path = "Target Support Files/Pods-Radio Srood/Pods-Radio Srood.debug.xcconfig"; sourceTree = "<group>"; };
@@ -560,7 +560,7 @@
 		3F9AB1211EAB3912000D8FE3 = {
 			isa = PBXGroup;
 			children = (
-				88E295542F61985500CECD00 /* radio_srood.gif */,
+				889AC9032F63D21E0015FB74 /* radio_srood.gif */,
 				3F9AB12C1EAB3912000D8FE3 /* Radio Srood */,
 				3F9AB12B1EAB3912000D8FE3 /* Products */,
 				1C5E51BF0C913306EA63BA7A /* Frameworks */,
@@ -1182,7 +1182,6 @@
 				DC400F002981B4E2005A5B50 /* ArtistCell.xib in Resources */,
 				8845EF8F2E12A35B007D3D70 /* SearchSongCell.xib in Resources */,
 				0457CC482CDDFE3800506DA7 /* BrowseCollectionCell.xib in Resources */,
-				88E295552F61985500CECD00 /* radio_srood.gif in Resources */,
 				3FE808171EBA0F360022B093 /* download@3x.png in Resources */,
 				3F9AB15C1EAB685B000D8FE3 /* SourceSansPro-Light.otf in Resources */,
 				3F9AB15D1EAB685B000D8FE3 /* SourceSansPro-Semibold.otf in Resources */,
@@ -1197,6 +1196,7 @@
 				DC0B800029828B6700CD7A08 /* NewReleasesCell.xib in Resources */,
 				3F9AD5DC1EAF5636009B1532 /* next-btn.png in Resources */,
 				3F9AB1331EAB3912000D8FE3 /* Main.storyboard in Resources */,
+				889AC9042F63D21E0015FB74 /* radio_srood.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
