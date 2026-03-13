@@ -68,24 +68,32 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        // ✅ Reset flags on first load only
+        isFeaturedLoaded = false
+        isHotTracksLoaded = false
+        isPopularTracksLoaded = false
+        isTrendingLoaded = false
+        isTodayTopPicLoaded = false
+        isRecentlyAddedLoaded = false
+        isPlaylistsLoaded = false
+        isFeaturedArtistLoaded = false
+
         prepareView()
         self.vwAds.isHidden = true
         self.imgAdClose.isHidden = true
         self.heightOfAdsView.constant = 0
         radiosroodTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         loadBannerAds()
-        
+
         pageView.numberOfPages = featuredTop?.count ?? 0
         pageView.currentPage = 0
-//        DispatchQueue.main.async {
-//            self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.changeImage), userInfo: nil, repeats: true)
-//        }
         self.loadFeaturedArtistData()
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-            longPressGesture.minimumPressDuration = 0.3 // Duration in seconds
-            radiosroodTableView.addGestureRecognizer(longPressGesture)
+        longPressGesture.minimumPressDuration = 0.3
+        radiosroodTableView.addGestureRecognizer(longPressGesture)
     }
+
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -115,17 +123,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             }
         }
 
-        // Reset flags BEFORE handleTableView()
-        isFeaturedLoaded = false
-        isHotTracksLoaded = false
-        isPopularTracksLoaded = false
-        isTrendingLoaded = false
-        isTodayTopPicLoaded = false
-        isRecentlyAddedLoaded = false
-        isPlaylistsLoaded = false
-        isFeaturedArtistLoaded = false
-
         handleTableView()
+
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
 
         let purchase = IAPHandler.shared.isGetPurchase()
@@ -142,14 +141,15 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             }
         })
 
-        // Refresh all data sections
-        getTodayTopPicData()
-        getRecentlyAddedData()
-        getFeaturedData()
-        getHotTracksData()
-//        getPopularTracksData()
-//        getTrendingData()
+        // ✅ Only fetch if not already loaded — skeleton only shows on first launch
+        if !isFeaturedLoaded { getFeaturedData() }
+        if !isHotTracksLoaded { getHotTracksData() }
+        if !isTodayTopPicLoaded { getTodayTopPicData() }
+        if !isRecentlyAddedLoaded { getRecentlyAddedData() }
+//        if !isPopularTracksLoaded { getPopularTracksData() }
+//        if !isTrendingLoaded { getTrendingData() }
     }
+
 
     // MARK: - Offline handling / refresh
     

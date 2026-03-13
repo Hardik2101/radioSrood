@@ -62,7 +62,10 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     var radioModel: [RadioModelData] = []
     
     var arrSearch: [SearchModel] = [] // Or whatever model type you're searching
-
+    var isPlaylistLoaded = false
+    var isNewMusicLoaded = false
+    var isPopularMusicLoaded = false
+    var isRadioLoaded = false
 
     
     var timer = Timer()
@@ -72,34 +75,28 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Initial connectivity check for Browse tab
+
+        // ✅ Reset flags on first load only
+        isPlaylistLoaded = false
+        isNewMusicLoaded = false
+        isPopularMusicLoaded = false
+        isRadioLoaded = false
+
         checkInternetForTabbar()
-        
         prepareView()
-//        self.vwAds.isHidden = true
-//        self.imgAdClose.isHidden = true
-//        self.heightOfAdsView.constant = 0
         tblBrowse.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         tblBrowse.register(UINib(nibName: "RJTVTableViewCell", bundle: nil), forCellReuseIdentifier: "RJTVTableViewCell")
         tblSearch.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
-//        loadBannerAds()
-//
-//        pageView.numberOfPages = featuredTop?.count ?? 0
-//        pageView.currentPage = 0
-////////////////        DispatchQueue.main.async {
-////////////////            self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.changeImage), userInfo: nil, repeats: true)
-////////////////        }
+
         loadFeaturedRadioData()
-        
+
         self.tblSearch.isHidden = true
         self.tblBrowse.isHidden = false
-        
-        // Add long press gesture recognizer
+
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPressGesture.minimumPressDuration = 0.3
         tblBrowse.addGestureRecognizer(longPressGesture)
-        
+
         let longPressSearch = UILongPressGestureRecognizer(target: self, action: #selector(handleSearchLongPress(_:)))
         longPressSearch.minimumPressDuration = 0.3
         tblSearch.addGestureRecognizer(longPressSearch)
@@ -133,7 +130,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         loadCurrentLyricData()
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
-        let font = UIFont.systemFont(ofSize: 23) //////////////// Adjust the font size as needed
+        let font = UIFont.systemFont(ofSize: 23)
         let attributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white,
             .font: font ]
@@ -146,28 +143,26 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                 loadInterstitial()
             }
         }
+
         handleTableView()
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
 
         let purchase = IAPHandler.shared.isGetPurchase()
-
-        if purchase || isPurchaseSuccess {
-//            self.vwAds.isHidden = true
-//            self.imgAdClose.isHidden = true
-//            self.heightOfAdsView.constant = 0
-////////////////            isPurchaseSuccess = false
-        }
-        
+        if purchase || isPurchaseSuccess { }
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
-            if purchase || self.isPurchaseSuccess {
-//                self.vwAds.isHidden = true
-//                self.imgAdClose.isHidden = true
-//                self.heightOfAdsView.constant = 0
-    ////////////////            isPurchaseSuccess = false
-            }
+            if purchase || self.isPurchaseSuccess { }
         })
+
+        // ✅ Only fetch if not already loaded — skeleton only shows on first launch
+        if !isPlaylistLoaded || !isNewMusicLoaded || !isPopularMusicLoaded {
+            loadRedioHomeData()
+        }
+        if !isRadioLoaded {
+            loadFeaturedRadioData()
+        }
     }
+
     
     // MARK: - Long Press Handler
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -585,7 +580,12 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             guard let self = self else { return }
             if let resp = resp {
                 self.homeMusic = resp
-                self.tblBrowse.reloadData()
+                self.isPlaylistLoaded = true
+                self.isNewMusicLoaded = true
+                self.isPopularMusicLoaded = true
+                DispatchQueue.main.async {
+                    self.tblBrowse.reloadData()
+                }
             }
         }
     }
@@ -668,8 +668,9 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         player?.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
-    func newReleasesCell(with tableView: UITableView) -> UITableViewCell {//
-        if let cell = tableView.registerAndGet(cell: BrowseTableCell.self) {
+    func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: BrowseTableCell.self),
+           isNewMusicLoaded {
             cell.selectionStyle = .none
             if let newReleases = homeMusic?.newReleases {
                 cell.presentViewBrowse = self
@@ -682,8 +683,9 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         return UITableViewCell()
     }
     
-    func popularTracksCell(with tableView: UITableView) -> UITableViewCell {//
-        if let cell = tableView.registerAndGet(cell: BrowsePopularTableCell.self) {
+    func popularTracksCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: BrowsePopularTableCell.self),
+           isPopularMusicLoaded {
             cell.selectionStyle = .none
             if let popularTracks = homeMusic?.popularTracks {
                 cell.presentViewBrowse = self
@@ -696,8 +698,9 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         return UITableViewCell()
     }
     
-    func playlistsCell(with tableView: UITableView) -> UITableViewCell {//
-        if let cell = tableView.registerAndGet(cell: BrowseTableCell.self) {
+    func playlistsCell(with tableView: UITableView) -> UITableViewCell {
+        if let cell = tableView.registerAndGet(cell: BrowseTableCell.self),
+           isPlaylistLoaded {
             cell.selectionStyle = .none
             if let playlists = homeMusic?.playlists {
                 cell.presentViewBrowse = self
@@ -712,7 +715,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     
     
     func browseRadioCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: BrowseRadioTableCell.self) {
+        if let cell = tableView.registerAndGet(cell: BrowseRadioTableCell.self),
+           isRadioLoaded {
             cell.selectionStyle = .none
             cell.presentViewBrowse = self
             cell.radioModel = self.radioModel
@@ -750,8 +754,11 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         dataHelper.getFeaturedRadioData { [weak self] resp in
             guard let self = self else { return }
             if let resp = resp {
-                self.radioModel = resp.radio//+resp.radio+resp.radio+resp.radio+resp.radio
-                self.tblBrowse.reloadData()
+                self.radioModel = resp.radio
+                self.isRadioLoaded = true
+                DispatchQueue.main.async {
+                    self.tblBrowse.reloadData()
+                }
             }
         }
     }
@@ -967,7 +974,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
+
         if tableView == tblSearch {
             let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
             cell.selectionStyle = .none
@@ -981,15 +988,25 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
 
         switch BrowseheaderArray[indexPath.section] {
-        case Browseheader.playlist.title:     return playlistsCell(with: tableView)
-        case Browseheader.newMusic.title:     return newReleasesCell(with: tableView)
-        case Browseheader.popularMusic.title: return popularTracksCell(with: tableView)
-        case Browseheader.currentRadio.title: return currentRadioCell(with: tableView)
-        case Browseheader.rjtv.title:         return rjTvCell(with: tableView)
-        case Browseheader.radio.title:        return browseRadioCell(with: tableView) // need Radio api call
-        case Browseheader.recentlyPlay.title: return recentlyPlayedCell(with: tableView)
+        case Browseheader.playlist.title:
+            if !isPlaylistLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return playlistsCell(with: tableView)
+        case Browseheader.newMusic.title:
+            if !isNewMusicLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return newReleasesCell(with: tableView)
+        case Browseheader.popularMusic.title:
+            if !isPopularMusicLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return popularTracksCell(with: tableView)
+        case Browseheader.radio.title:
+            if !isRadioLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return browseRadioCell(with: tableView)
+        case Browseheader.currentRadio.title:
+            return currentRadioCell(with: tableView)
+        case Browseheader.rjtv.title:
+            return rjTvCell(with: tableView)
+        case Browseheader.recentlyPlay.title:
+            return recentlyPlayedCell(with: tableView)
         default:
-            //"Native Ad First" & "Native Ad Second"
             let cell = UITableViewCell()
             cell.selectionStyle = .none
             cell.textLabel?.text = BrowseheaderArray[indexPath.section]
@@ -998,6 +1015,14 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
             cell.backgroundColor = .clear
             return cell
         }
+    }
+
+    // Add skeleton helper
+    private func skeletonCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
+        tableView.register(SkeletonCell.self, forCellReuseIdentifier: "SkeletonCell")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SkeletonCell", for: indexPath) as! SkeletonCell
+        cell.backgroundColor = .clear
+        return cell
     }
     
     
@@ -1018,7 +1043,22 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         default:                              return nil
         }
     }
-    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if tableView == tblSearch { return 70 }
+
+        switch BrowseheaderArray[indexPath.section] {
+        case Browseheader.playlist.title:
+            return isPlaylistLoaded ? UITableView.automaticDimension : 180
+        case Browseheader.newMusic.title:
+            return isNewMusicLoaded ? UITableView.automaticDimension : 180
+        case Browseheader.popularMusic.title:
+            return isPopularMusicLoaded ? UITableView.automaticDimension : 180
+        case Browseheader.radio.title:
+            return isRadioLoaded ? UITableView.automaticDimension : 180
+        default:
+            return UITableView.automaticDimension
+        }
+    }
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         
         if tableView == tblSearch {
