@@ -923,44 +923,47 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         return UITableViewCell()
     }
     
-    func bannerAdCell(with tableView: UITableView, index: Int) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: IndexPath(row: 0, section: index)) as? BannerAdCell {
-            
-            // Remove any existing subviews from vwMain
-            for subview in cell.vwMain.subviews {
-                subview.removeFromSuperview()
-            }
-            
-            // Configure the cell based on conditions
-            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
-                cell.vwMain.isHidden = true
-                cell.heightOfVw.constant = 0
-            } else {
-                cell.vwMain.isHidden = false
-                cell.heightOfVw.constant = 65
-                
-                if bannerAdViews.indices.contains(index) {
-                    let bannerView = bannerAdViews[index]
-                    cell.vwMain.addSubview(bannerView)
-                    
-                    // Set the banner view frame using constraints or autoresizing mask
-                    bannerView.translatesAutoresizingMaskIntoConstraints = false
-                    NSLayoutConstraint.activate([
-                        bannerView.leadingAnchor.constraint(equalTo: cell.vwMain.leadingAnchor),
-                        bannerView.trailingAnchor.constraint(equalTo: cell.vwMain.trailingAnchor),
-                        bannerView.topAnchor.constraint(equalTo: cell.vwMain.topAnchor),
-                        bannerView.bottomAnchor.constraint(equalTo: cell.vwMain.bottomAnchor)
-                    ])
-                }
-            }
-            
-            cell.selectionStyle = .none
-            cell.backgroundColor = .clear
-            
-            return cell
+    func bannerAdCell(with tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
+
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as? BannerAdCell else {
+            return UITableViewCell()
         }
-        
-        return UITableViewCell()
+
+        // Remove old banner views
+        for subview in cell.vwMain.subviews {
+            subview.removeFromSuperview()
+        }
+
+        if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
+            cell.vwMain.isHidden = true
+            cell.heightOfVw.constant = 0
+        } else {
+
+            cell.vwMain.isHidden = false
+            cell.heightOfVw.constant = 65
+
+            let bannerIndex = indexPath.section
+
+            if bannerAdViews.indices.contains(bannerIndex) {
+
+                let bannerView = bannerAdViews[bannerIndex]
+
+                cell.vwMain.addSubview(bannerView)
+                bannerView.translatesAutoresizingMaskIntoConstraints = false
+
+                NSLayoutConstraint.activate([
+                    bannerView.leadingAnchor.constraint(equalTo: cell.vwMain.leadingAnchor),
+                    bannerView.trailingAnchor.constraint(equalTo: cell.vwMain.trailingAnchor),
+                    bannerView.topAnchor.constraint(equalTo: cell.vwMain.topAnchor),
+                    bannerView.bottomAnchor.constraint(equalTo: cell.vwMain.bottomAnchor)
+                ])
+            }
+        }
+
+        cell.selectionStyle = .none
+        cell.backgroundColor = .clear
+
+        return cell
     }
     
     func openRadioWithRecentViewController() {
@@ -1124,10 +1127,10 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         case "Recently Played":
             return recentlyPlayedCell(with: tableView)
         case "Native Ad First":
-            return bannerAdCell(with: tableView, index: 0)
+            return bannerAdCell(with: tableView, indexPath: indexPath)
+
         default:
-            return bannerAdCell(with: tableView, index: 1)
-        }
+            return bannerAdCell(with: tableView, indexPath: indexPath)        }
     }
 
     // MARK: - Skeleton cell helper
