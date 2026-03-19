@@ -432,9 +432,13 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             case 0:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "RadioCell", for: indexPath) as! RadioCell
                 cell.selectionStyle = .none
-                cell.showSkeleton() // ✅ no DispatchQueue needed anymore
-                return cell
-            default:
+                cell.showSkeleton()
+                // ✅ Shift skeleton image view to the right by adding left inset
+                DispatchQueue.main.async {
+                    cell.artCoverImage.frame.origin.x += 20
+                    cell.contentView.layoutIfNeeded()
+                }
+                return cell            default:
                 tableView.register(SkeletonCell.self, forCellReuseIdentifier: "SkeletonCell")
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SkeletonCell", for: indexPath) as! SkeletonCell
                 cell.backgroundColor = .clear

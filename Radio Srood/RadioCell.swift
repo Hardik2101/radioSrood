@@ -82,7 +82,8 @@ class RadioCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         guard isSkeletonVisible else { return }
-        guard viewWithTag(9999) == nil else { return }
+
+        viewWithTag(9999)?.removeFromSuperview()
 
         let overlay = UIView(frame: contentView.bounds)
         overlay.tag = 9999
@@ -91,16 +92,47 @@ class RadioCell: UITableViewCell {
         overlay.clipsToBounds = true
         contentView.addSubview(overlay)
 
-        let imgFrame    = contentView.convert(artCoverImage.frame, from: artCoverImage.superview)
-        let titleFrame  = contentView.convert(trackTitle.frame, from: trackTitle.superview)
-        let artistFrame = contentView.convert(artistName.frame, from: artistName.superview)
-        let btnFrame    = contentView.convert(playPauseBtn.frame, from: playPauseBtn.superview)
+        contentView.layoutIfNeeded()
+
+        let imgSize: CGFloat = min(contentView.bounds.width - 32, contentView.bounds.height - 80)
+        let imgFrame = CGRect(
+            x: (contentView.bounds.width - imgSize) / 2,
+            y: 16,
+            width: imgSize,
+            height: imgSize
+        )
+
+        let labelY = imgFrame.maxY + 16
+        let titleWidth = contentView.bounds.width * 0.60
+        let titleFrame = CGRect(
+            x: (contentView.bounds.width - titleWidth) / 2,
+            y: labelY,
+            width: titleWidth,
+            height: 14
+        )
+
+        let artistWidth = contentView.bounds.width * 0.40
+        let artistFrame = CGRect(
+            x: (contentView.bounds.width - artistWidth) / 2,
+            y: labelY + 22,
+            width: artistWidth,
+            height: 11
+        )
+
+        // ✅ Button centered below labels
+        let btnFrame = contentView.convert(playPauseBtn.frame, from: playPauseBtn.superview)
+        let centeredBtnFrame = CGRect(
+            x: (contentView.bounds.width - btnFrame.width) / 2,
+            y: artistFrame.maxY + 20,
+            width: btnFrame.width,
+            height: btnFrame.height
+        )
 
         let frames: [(CGRect, CGFloat)] = [
             (imgFrame, 6),
-            (CGRect(x: titleFrame.minX, y: titleFrame.minY, width: titleFrame.width * 0.72, height: 14), 5),
-            (CGRect(x: artistFrame.minX, y: artistFrame.minY, width: artistFrame.width * 0.50, height: 11), 4),
-            (CGRect(x: btnFrame.minX, y: btnFrame.minY, width: btnFrame.width, height: btnFrame.height), btnFrame.width / 2),
+            (titleFrame, 5),
+            (artistFrame, 4),
+            (centeredBtnFrame, centeredBtnFrame.width / 2),
         ]
 
         var blocks: [(UIView, CGFloat)] = []
