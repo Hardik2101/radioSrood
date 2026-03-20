@@ -336,11 +336,13 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                // ✅ FIX: Re-activate audio session after phone call / Siri interruption
+                // ✅ FIX: Only resume if this VC's player is the one that was playing
+                // If player is nil or already playing, skip — another player owns audio
+                guard let p = player, !p.isPlaying else { return }
                 try? AVAudioSession.sharedInstance().setActive(true)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self = self else { return }
-                    player?.play()
+                    p.play()
                     self.playPauseBtn.setImage(UIImage(named: "ic_pause"), for: .normal)
                     self.setupNowPlaying()
                     self.updateNowPlaying(isPause: false)

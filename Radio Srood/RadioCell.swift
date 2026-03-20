@@ -278,7 +278,7 @@ class RadioCell: UITableViewCell {
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
             return
         }
-        
+
         if type == .began {
             radioPlayer.pause()
             updateNowPlaying(isPause: false)
@@ -286,36 +286,35 @@ class RadioCell: UITableViewCell {
         } else if type != .ended {
             return
         }
-            
-        //Only when type == .ended
-        guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
-            return
-        }
+
+        guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
         let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
         if !options.contains(.shouldResume) { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
+
+        // ✅ FIX: Only resume if THIS cell's radio was the active player
+        guard isPlaying else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
             if UIApplication.shared.applicationState != .background {
                 self.radioPlayer.play()
-                configureCurrentPlayingSong()
+                self.configureCurrentPlayingSong()
                 return
             }
-            
+
             print("App in Background")
-            /*Radio Already play by other screen */
-            if AppPlayer.radioURL != radioUrl {
+            if AppPlayer.radioURL != self.radioUrl {
                 NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
             }
-            
-            let playURL = URL(string: self.radioUrl)
-            self.asset = AVAsset(url: playURL!)
-            self.playerItem = AVPlayerItem(url:playURL!)
+            let playURL = URL(string: self.radioUrl)!
+            self.asset = AVAsset(url: playURL)
+            self.playerItem = AVPlayerItem(url: playURL)
             self.playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [], context: nil)
             self.playerItem.addObserver(self, forKeyPath: "presentationSize", options: [], context: nil)
             self.radioPlayer = RadioObserver(playerItem: self.playerItem)
             self.radioPlayer.play()
             self.setupNowPlaying()
             self.updateNowPlaying(isPause: true)
-            
             self.configureCurrentPlayingSong()
         }
     }

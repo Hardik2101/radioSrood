@@ -318,10 +318,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         } else if type == .ended {
             guard let ov = ui[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             if AVAudioSession.InterruptionOptions(rawValue: ov).contains(.shouldResume) {
+                // ✅ FIX: Only resume if this VC's player is the one that was playing
+                // If player is nil or already playing, skip — another player owns audio
+                guard let p = player, !p.isPlaying else { return }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self = self else { return }
                     self.activateAudioSession()
-                    player?.play()
+                    p.play()
                     self.setupNowPlaying()
                     self.updateNowPlaying(isPause: false)
                 }

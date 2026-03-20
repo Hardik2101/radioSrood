@@ -174,28 +174,21 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     @objc func playerInterruption(notification: NSNotification) {
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
         if type == .began {
             player?.pause()
             updateNowPlaying(isPause: false)
-        }
-        else if type == .ended {
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
-                return
-            }
+        } else if type == .ended {
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
-                    if UIApplication.shared.applicationState == .background {
-                        print("App in Background")
-                        player?.play()
-                        self.setupNowPlaying()
-                        self.updateNowPlaying(isPause: true)
-                    } else {
-                        player?.play()
-                    }
+                // ✅ FIX: Only resume if this VC's player is the one that was playing
+                guard let p = player, !p.isPlaying else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    guard let self = self else { return }
+                    p.play()
+                    self.setupNowPlaying()
+                    self.updateNowPlaying(isPause: true)
                 }
             }
         }
