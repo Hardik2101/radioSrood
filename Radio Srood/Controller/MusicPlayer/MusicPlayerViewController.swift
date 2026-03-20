@@ -469,6 +469,13 @@ class MusicPlayerViewController: UIViewController, GADBannerViewDelegate, AdsAPI
         isQueueTrack ? configureRecentlyPlayed() : configureRecentlyPlayed(index: index)
         lastIndex = nil
 
+        // ✅ FIX: Clear lyrics immediately before async fetch
+        lblLyrics.text = ""
+        lyricSynced = ""
+        parsedLyrics.removeAll()
+        isSyncedLyrics = false
+        hideLyrics()
+
         DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") {
             [weak self] lyricItem in
             guard let self = self else { return }

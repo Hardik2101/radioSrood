@@ -431,6 +431,15 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         isAlreadyBookmarked(track: track)
         lastIndex = nil
 
+        // ✅ FIX: Clear lyrics immediately before async fetch
+        DispatchQueue.main.async {
+            self.lblLyricsText.text = ""
+            self.lyricSynced = ""
+            self.parsedLyrics.removeAll()
+            self.isSyncedLyrics = false
+            self.hideLyrics()
+        }
+
         DataHelper.getLyricsData(artist: track.artistName ?? "", track: track.trackName ?? "") { [weak self] lyricItem in
             guard let self = self else { return }
             guard let lyricItem = lyricItem else {
@@ -517,6 +526,15 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
         }
         trackTitle.text = item.track
         artistName.text = item.artist
+
+        // ✅ FIX: Clear lyrics immediately before async fetch
+        DispatchQueue.main.async {
+            self.lblLyricsText.text = ""
+            self.lyricSynced = ""
+            self.parsedLyrics.removeAll()
+            self.isSyncedLyrics = false
+            self.hideLyrics()
+        }
 
         DataHelper.getLyricsData(artist: item.artist ?? "", track: item.track ?? "") { [weak self] lyricItem in
             guard let self = self else { return }
