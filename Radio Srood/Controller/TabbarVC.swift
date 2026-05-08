@@ -33,25 +33,25 @@ class TabbarVC: UITabBarController, UITabBarControllerDelegate {
         let homeViewController = storyboard.vc(HomeViewController.self)
         let browseViewController = storyboard.vc(BrowseTabVC.self)
         let radioViewController = storyboard.vc(RadioWithRecentViewController.self)
+        let searchViewController = storyboard.vc(SearchViewController.self)
         let allMusicViewController = storyboard.vc(AllMusicViewController.self)
-        let iAPVC = storyboard.vc(IAPVC.self)
         
         // Embed each view controller in a UINavigationController
         let homeViewControllerNav = UINavigationController(rootViewController: homeViewController)
         let browseViewControllerNav = UINavigationController(rootViewController: browseViewController)
         let radioiewControllerNav = UINavigationController(rootViewController: radioViewController)
+        let searchViewControllerNav = UINavigationController(rootViewController: searchViewController)
         let allMusicViewControllerNav = UINavigationController(rootViewController: allMusicViewController)
-        let iAPVCNav = UINavigationController(rootViewController: iAPVC)
         
         // Set tab bar items
         homeViewControllerNav.tabBarItem = UITabBarItem(title: "Home", image: UIImage(named: "ic_home"), tag: 0)
         browseViewControllerNav.tabBarItem = UITabBarItem(title: "Browse", image: UIImage(named: "ic_browse"), tag: 1)
         radioiewControllerNav.tabBarItem = UITabBarItem(title: "Radio", image: UIImage(named: "ic_radio"), tag: 2)
-        allMusicViewControllerNav.tabBarItem = UITabBarItem(title: "My Music", image: UIImage(named: "ic_mymusic"), tag: 3)
-        iAPVCNav.tabBarItem = UITabBarItem(title: "Plus", image: UIImage(named: "ic_srood_plus"), tag: 4) // Changed title to avoid duplication
+        searchViewControllerNav.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 3)
+        allMusicViewControllerNav.tabBarItem = UITabBarItem(title: "My Music", image: UIImage(named: "ic_mymusic"), tag: 4)
         
         // Add view controllers to the tab bar
-        viewControllers = [homeViewControllerNav, browseViewControllerNav, radioiewControllerNav, allMusicViewControllerNav, iAPVCNav]
+        viewControllers = [homeViewControllerNav, browseViewControllerNav, radioiewControllerNav, searchViewControllerNav, allMusicViewControllerNav]
     }
     
     func setupTabbar() {
