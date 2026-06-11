@@ -417,6 +417,31 @@ class DataHelper: NSObject {
             }
     }
     
+    static func getSearchBrowseAllData(completion: @escaping (_ response: SearchBrowseAllResponse?) -> Void) {
+        guard let url = URL(string: searchBrowseAllURL) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseDecodable(of: SearchBrowseAllResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data)
+                case .failure(let error):
+                    print("Browse all API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
     static func getSearchResults(query: String, completion: @escaping (_ results: [SearchModel]?) -> Void) {
         let baseURL = searchBaseURL
         let apiKey = "SaReO9O0D45a03b-47c79ec2-fcc9775e78b2"

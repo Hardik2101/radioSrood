@@ -7330,11 +7330,8 @@ Your support means the world to us!</string>
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Songs, artists, lyrics, playlists..." minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="2XQ-8R-uJv">
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Artists, Songs, Lyrics, and More" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="2XQ-8R-uJv">
                                 <rect key="frame" x="16" y="117" width="361" height="44"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="44" id="YPg-vH-9U7"/>
-                                </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
@@ -7343,16 +7340,8 @@ Your support means the world to us!</string>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </tableView>
                         </subviews>
-                        <color key="backgroundColor" red="0.086274509803921567" green="0.086274509803921567" blue="0.086274509803921567" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="2XQ-8R-uJv" firstAttribute="leading" secondItem="eZH-3M-Ajc" secondAttribute="leading" constant="16" id="2DE-7e-Gvh"/>
-                            <constraint firstAttribute="trailing" secondItem="2XQ-8R-uJv" secondAttribute="trailing" constant="16" id="4Ap-W6-bjs"/>
-                            <constraint firstItem="2XQ-8R-uJv" firstAttribute="top" secondItem="wVu-vf-kEF" secondAttribute="bottom" constant="8" id="7J0-kW-WwN"/>
-                            <constraint firstItem="nKf-4M-SXk" firstAttribute="top" secondItem="2XQ-8R-uJv" secondAttribute="bottom" constant="12" id="BFA-yD-X7A"/>
-                            <constraint firstItem="z1o-JN-SCW" firstAttribute="top" secondItem="nKf-4M-SXk" secondAttribute="bottom" id="dFf-NY-txA"/>
-                            <constraint firstItem="nKf-4M-SXk" firstAttribute="leading" secondItem="eZH-3M-Ajc" secondAttribute="leading" constant="12" id="dgC-DW-Ccz"/>
-                            <constraint firstAttribute="trailing" secondItem="nKf-4M-SXk" secondAttribute="trailing" constant="12" id="woc-R6-4Lm"/>
-                        </constraints>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints/>
                     </view>
                     <navigationItem key="navigationItem" id="Kcl-EH-4nP"/>
                     <connections>
