@@ -45,7 +45,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     var adLoader: GADAdLoader!
     var dataHelper: DataHelper!
     var homeMusic: HomeMusicModles?
-    var currentLyricData: CurrentLyricDataModle?
 //    var Browseheader: Browseheader = .newReleases
     var browseheader: Browseheader = .playlist // Use the global Browseheader
     var groupID: Int?
@@ -83,6 +82,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         isRadioLoaded = false
 
         checkInternetForTabbar()
+        BrowseheaderArray.removeAll(where: { $0 == Browseheader.currentRadio.title })
         prepareView()
         tblBrowse.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
         tblBrowse.register(UINib(nibName: "RJTVTableViewCell", bundle: nil), forCellReuseIdentifier: "RJTVTableViewCell")
@@ -116,7 +116,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         // Fully reload Browse tab data when connection is restored.
         loadRedioHomeData()
         loadFeaturedRadioData()
-        loadCurrentLyricData()
         loadBannerAds()
         handleTableView()
         tblBrowse.reloadData()
@@ -127,7 +126,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.configureCurrentPlayingSong()
-        loadCurrentLyricData()
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
         let font = UIFont.systemFont(ofSize: 23)
@@ -390,6 +388,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     
     private func handleBrowseheaderArrayValue() {
         BrowseheaderArray = Browseheader.allCases.map({ $0.title })
+        BrowseheaderArray.removeAll(where: { $0 == Browseheader.currentRadio.title })
         if recenltPlayed.count <= 0 {
             BrowseheaderArray.removeAll(where: { $0 == Browseheader.recentlyPlay.title })
         }
@@ -560,19 +559,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         bannerAdViews = [adView1, adView2]
     }
     
-    
-    private func loadCurrentLyricData() {
-        dataHelper = DataHelper()
-        dataHelper.getCurrentLyricDataInModle { [weak self] resp in
-            guard let self = self else { return }
-            if let resp = resp {
-                DispatchQueue.main.async {
-                    self.currentLyricData = resp
-                    self.tblBrowse.reloadData()
-                }
-            }
-        }
-    }
     
     private func loadRedioHomeData() {
         dataHelper = DataHelper()
@@ -929,20 +915,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         print("Remove BrowseTabVC from memory")
     }
     
-    func currentRadioCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: CurrentRadioCell.self) {
-            cell.selectionStyle = .none
-            if let currentLyricData = self.currentLyricData {
-                cell.currentTrackInfo = currentLyricData.currentTrackInfo
-//                tblBrowse.reloadData()
-            }
-            return cell
-        }
-        return UITableViewCell()
-    }
-    
-    
-    
 }
 
 extension BrowseTabVC : MusicPlayerViewControllerDelegate {
@@ -1000,8 +972,6 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.radio.title:
             if !isRadioLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return browseRadioCell(with: tableView)
-        case Browseheader.currentRadio.title:
-            return currentRadioCell(with: tableView)
         case Browseheader.rjtv.title:
             return rjTvCell(with: tableView)
         case Browseheader.recentlyPlay.title:
@@ -1036,7 +1006,6 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.playlist.title:     return setHeaderData(headerTitle: Browseheader.playlist.title)
         case Browseheader.newMusic.title:     return setHeaderData(headerTitle: Browseheader.newMusic.title)
         case Browseheader.popularMusic.title: return setHeaderData(headerTitle: Browseheader.popularMusic.title)
-        case Browseheader.currentRadio.title: return setHeaderData(headerTitle: Browseheader.currentRadio.title, isShowShowAll: false)
         case Browseheader.rjtv.title:         return setHeaderData(headerTitle: Browseheader.rjtv.title, isShowShowAll: false)
         case Browseheader.radio.title:        return setHeaderData(headerTitle: Browseheader.radio.title)
         case Browseheader.recentlyPlay.title: return setHeaderData(headerTitle: Browseheader.recentlyPlay.title)
@@ -1069,7 +1038,6 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.playlist.title:       return 27
         case Browseheader.newMusic.title:       return 27
         case Browseheader.popularMusic.title:   return 27
-        case Browseheader.currentRadio.title:   return 27
         case Browseheader.rjtv.title:           return 27
         case Browseheader.radio.title:          return 27
         case Browseheader.recentlyPlay.title:   return 27
@@ -1092,9 +1060,10 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         } else {
             print("Selected section: \(indexPath.section), row: \(indexPath.row)")
             
-            if indexPath.section == 3 { //indexPath.section == 3
+            switch BrowseheaderArray[indexPath.section] {
+            case Browseheader.radio.title:
                 openRadioWithRecentViewController()
-            } else if indexPath.section == 4 {
+            case Browseheader.rjtv.title:
                 guard let url = URL(string: "https://live.pamirtv.com/stream/ptv.m3u8") else { return }
                 NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
                 player = PlayObserver() //killing player before stream
@@ -1105,7 +1074,8 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
                 self.present(self.avPlayerViewController, animated: true) { [weak self] in
                     self?.avPlayerViewController.player?.play()
                 }
-                
+            default:
+                break
             }
         }
     }

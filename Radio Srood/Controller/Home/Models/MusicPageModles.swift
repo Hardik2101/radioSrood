@@ -129,4 +129,91 @@ struct CurrentTrackInfo: Codable {
         case artistLyricWriterInfo = "ArtistLyricWriterInfo"
         case currentArtCoverInfo, comingNextInfo, currentLyricInfo, mediaPathInfo
     }
+
+    /// Builds track info from `currentsongappv2.json` `currentTrack` (or legacy `currentTrackInfo`) payload.
+    init?(dictionary: NSDictionary) {
+        let artist = dictionary["currentArtist"] as? String
+            ?? dictionary["currentArtistInfo"] as? String
+        let track = dictionary["currentTrack"] as? String
+            ?? dictionary["currentTrackInfo"] as? String
+        guard let artist, let track else { return nil }
+
+        currentArtistInfo = artist
+        currentTrackInfo = track
+        currentTrackID = dictionary["currentTrackID"] as? Int ?? 0
+        currentPlayCountsInfo = dictionary["currentPlayCounts"] as? Int
+            ?? dictionary["currentPlayCountsInfo"] as? Int ?? 0
+        songLastPlayedInfo = dictionary["SongLastPlayedInfo"] as? String ?? ""
+        dateTrackAddedInfo = dictionary["DateTrackAddedInfo"] as? String ?? ""
+        artistRecentPlayedInfo = dictionary["ArtistRecentPlayedInfo"] as? String ?? ""
+        socialMediaLinkInfo1 = dictionary["SocialMediaLinkInfo1"] as? String ?? ""
+        socialMediaLinkInfo2 = dictionary["SocialMediaLinkInfo2"] as? String ?? ""
+        upComingConcertInfo = dictionary["UpComingConcertInfo"] as? String ?? ""
+        artistMusicComposerInfo = dictionary["ArtistMusicComposerInfo"] as? String ?? ""
+        artistLyricWriterInfo = dictionary["ArtistLyricWriterInfo"] as? String ?? ""
+        currentArtCoverInfo = dictionary["currentArtCover"] as? String
+            ?? dictionary["currentArtCoverInfo"] as? String ?? ""
+        comingNextInfo = dictionary["comingNextInfo"] as? String ?? ""
+        currentLyricInfo = dictionary["currentLyricInfo"] as? String ?? ""
+        mediaPathInfo = dictionary["mediaPathInfo"] as? String ?? ""
+    }
+}
+
+extension CurrentLyricDataModle {
+    /// Builds the home-screen model from `currentsongappv2.json`.
+    static func from(radioData: NSDictionary) -> CurrentLyricDataModle? {
+        let trackDictionary = (radioData["currentTrack"] as? NSDictionary)
+            ?? (radioData["currentTrackInfo"] as? NSDictionary)
+        guard let trackDictionary, let trackInfo = CurrentTrackInfo(dictionary: trackDictionary) else {
+            return nil
+        }
+        return CurrentLyricDataModle(
+            type: radioData["type"] as? String ?? "currentData",
+            currentTrackInfo: trackInfo
+        )
+    }
+}
+
+enum RadioCurrentSongMapper {
+    /// Maps `currentsongappv2.json` `currentTrack` to the legacy `currentTrackInfo` dictionary shape.
+    static func legacyCurrentTrackInfo(from currentTrack: NSDictionary) -> NSDictionary {
+        [
+            "currentArtistInfo": currentTrack["currentArtist"] ?? currentTrack["currentArtistInfo"] ?? "",
+            "currentTrackInfo": currentTrack["currentTrack"] ?? currentTrack["currentTrackInfo"] ?? "",
+            "currentTrackID": currentTrack["currentTrackID"] ?? 0,
+            "currentPlayCountsInfo": currentTrack["currentPlayCounts"] ?? currentTrack["currentPlayCountsInfo"] ?? 0,
+            "SongLastPlayedInfo": currentTrack["SongLastPlayedInfo"] ?? "",
+            "DateTrackAddedInfo": currentTrack["DateTrackAddedInfo"] ?? "",
+            "ArtistRecentPlayedInfo": currentTrack["ArtistRecentPlayedInfo"] ?? "",
+            "SocialMediaLinkInfo1": currentTrack["SocialMediaLinkInfo1"] ?? "",
+            "SocialMediaLinkInfo2": currentTrack["SocialMediaLinkInfo2"] ?? "",
+            "UpComingConcertInfo": currentTrack["UpComingConcertInfo"] ?? "",
+            "ArtistMusicComposerInfo": currentTrack["ArtistMusicComposerInfo"] ?? "",
+            "ArtistLyricWriterInfo": currentTrack["ArtistLyricWriterInfo"] ?? "",
+            "currentArtCoverInfo": currentTrack["currentArtCover"] ?? currentTrack["currentArtCoverInfo"] ?? "",
+            "comingNextInfo": currentTrack["comingNextInfo"] ?? "",
+            "currentLyricInfo": currentTrack["currentLyricInfo"] ?? "",
+            "mediaPathInfo": currentTrack["mediaPathInfo"] ?? "",
+            "currentSongLikes": currentTrack["currentSongLikes"] ?? 0
+        ] as NSDictionary
+    }
+
+    /// Wraps mapped track info for screens that expect `{ currentTrackInfo: ... }`.
+    static func legacyLyricDataPayload(from radioData: NSDictionary) -> NSDictionary? {
+        guard let currentTrack = radioData["currentTrack"] as? NSDictionary else { return nil }
+        return ["currentTrackInfo": legacyCurrentTrackInfo(from: currentTrack)] as NSDictionary
+    }
+
+    /// Maps a recently played item to the legacy more-info payload shape.
+    static func legacyLyricDataPayload(fromRecentItem item: NSDictionary) -> NSDictionary {
+        let mapped: [String: Any] = [
+            "currentArtistInfo": item["recentArtist"] ?? "",
+            "currentTrackInfo": item["recentTrack"] ?? "",
+            "currentTrackID": item["recentTrackID"] ?? 0,
+            "currentArtCoverInfo": item["recentArtCover"] ?? "",
+            "mediaPathInfo": item["mediaPathInfo"] ?? "",
+            "currentLyricInfo": item["recentLyric"] ?? ""
+        ]
+        return ["currentTrackInfo": mapped] as NSDictionary
+    }
 }

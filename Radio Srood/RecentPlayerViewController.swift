@@ -326,8 +326,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
     
     @objc func moreInfoBtnClicked() {
+        guard let recentListData else { return }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MoreInfoViewController") as! MoreInfoViewController
-        vc.currentLyricData = self.recentListData
+        vc.currentLyricData = RadioCurrentSongMapper.legacyLyricDataPayload(fromRecentItem: recentListData)
         self.navigationController?.present(vc, animated: true, completion: nil)
     }
 
@@ -1120,6 +1121,8 @@ extension RecentPlayerViewController {
             savedTracks[index].track = recentItem["recentTrack"] as? String ?? savedTracks[index].track
             savedTracks[index].artist = recentItem["recentArtist"] as? String ?? savedTracks[index].artist
             savedTracks[index].artcover = recentItem["recentArtCover"] as? String ?? savedTracks[index].artcover
+            savedTracks[index].artcover_200 = recentItem["recentArtCover_200"] as? String
+                ?? recentItem["artcover_200"] as? String ?? savedTracks[index].artcover_200
         } else if let newItem = SongModel(recentItem: recentItem) {
             newItem.isDownload = true
             savedTracks.append(newItem)

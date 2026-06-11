@@ -18,18 +18,27 @@ class LyricsViewController: UIViewController {
 
     var ArtistInfo: String = ""
     var TrackInfo: String = ""
+
+    private var resolvedCurrentTrackInfo: NSDictionary? {
+        if let payload = currentLyricData,
+           let trackInfo = payload.value(forKey: "currentTrackInfo") as? NSDictionary {
+            return trackInfo
+        }
+        if let currentTrack = currentLyricData?.value(forKey: "currentTrack") as? NSDictionary {
+            return RadioCurrentSongMapper.legacyCurrentTrackInfo(from: currentTrack)
+        }
+        return nil
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        lyricsView.backgroundColor = .clear
-//        lyricsView.lyricFont = UIFont.boldSystemFont(ofSize: 24)
-        lyricsView.lyricTextColor = UIColor.lightGray
-//        lyricsView.lyricHighlightedFont = UIFont.boldSystemFont(ofSize: 24)
+
+        view.backgroundColor = .clear
+        configureLyricsAppearance()
+        lyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.55)
         lyricsView.lyricHighlightedTextColor = UIColor.white
 
-        if let currentLyricData = currentLyricData {
-            if let currentTrackInfo = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
+        if let currentTrackInfo = resolvedCurrentTrackInfo {
                 if let currentArtCoverInfo = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String, let url = URL(string: currentArtCoverInfo ) {
                     artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -76,6 +85,7 @@ class LyricsViewController: UIViewController {
                             Please send lyrics to lyric@radiosrood.com
                             """
                         }
+                        self.configureLyricsAppearance()
                     }
                 }
 
@@ -87,7 +97,6 @@ class LyricsViewController: UIViewController {
 //                        lblSongLyric.text = currentLyricInfo
 //                    }
 //                }
-            }
         }
         if let recentLyricData = recentLyricData {
             if let currentArtCoverInfo = recentLyricData.value(forKey: "recentArtCover") as? String, let url = URL(string: currentArtCoverInfo) {
@@ -139,6 +148,7 @@ class LyricsViewController: UIViewController {
                         Please send lyrics to lyric@radiosrood.com
                         """
                     }
+                    self.configureLyricsAppearance()
                 }
             }
 
@@ -151,7 +161,7 @@ class LyricsViewController: UIViewController {
 //            }
         }
         if let track = track {
-            if let url = URL(string: track.artcover ?? "" + "?s=200")   {
+            if let url = track.thumbnailArtCoverURL {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
             lblSongTitle.text = track.track
@@ -162,7 +172,27 @@ class LyricsViewController: UIViewController {
             }
         }
         
+        configureLyricsAppearance()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        configureLyricsAppearance()
+    }
+
+    private func configureLyricsAppearance() {
         lyricsView.backgroundColor = .clear
+        lyricsView.isOpaque = false
+        lyricsView.backgroundView = nil
+        lyricsView.separatorColor = .clear
+        if #available(iOS 15.0, *) {
+            lyricsView.sectionHeaderTopPadding = 0
+        }
+        lyricsView.visibleCells.forEach { cell in
+            cell.backgroundColor = .clear
+            cell.contentView.backgroundColor = .clear
+            cell.isOpaque = false
+        }
     }
 
     @IBAction func doneClieckedEvent(_ sender: Any) {

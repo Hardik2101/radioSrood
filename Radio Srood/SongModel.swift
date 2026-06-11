@@ -16,6 +16,7 @@ class SongModel: NSObject, NSCoding {
     var allowDownload: Bool = false
     var mediaPath: String = ""
     var artcover: String = ""
+    var artcover_200: String = ""
     var ytLink: String = ""
     var fbLink: String = ""
     var igLink: String = ""
@@ -47,6 +48,7 @@ class SongModel: NSObject, NSCoding {
         aCoder.encode(allowDownload, forKey: "allowDownload")
         aCoder.encode(mediaPath, forKey: "mediaPath")
         aCoder.encode(artcover, forKey: "artcover")
+        aCoder.encode(artcover_200, forKey: "artcover_200")
         aCoder.encode(ytLink, forKey: "ytLink")
         aCoder.encode(fbLink, forKey: "fbLink")
         aCoder.encode(igLink, forKey: "igLink")
@@ -75,6 +77,7 @@ class SongModel: NSObject, NSCoding {
         allowDownload = aDecoder.decodeBool(forKey: "allowDownload")
         mediaPath = aDecoder.decodeObject(forKey: "mediaPath") as? String ?? ""
         artcover = aDecoder.decodeObject(forKey: "artcover") as? String ?? ""
+        artcover_200 = aDecoder.decodeObject(forKey: "artcover_200") as? String ?? ""
         ytLink = aDecoder.decodeObject(forKey: "ytLink") as? String ?? ""
         fbLink = aDecoder.decodeObject(forKey: "fbLink") as? String ?? ""
         igLink = aDecoder.decodeObject(forKey: "igLink") as? String ?? ""
@@ -104,6 +107,7 @@ class SongModel: NSObject, NSCoding {
         self.allowDownload = dictionary["allowDownload"] as? Bool ?? false
         self.mediaPath = dictionary["mediaPath"] as? String ?? ""
         self.artcover = dictionary["artcover"] as? String ?? ""
+        self.artcover_200 = dictionary["artcover_200"] as? String ?? ""
         self.ytLink = dictionary["ytLink"] as? String ?? ""
         self.fbLink = dictionary["fbLink"] as? String ?? ""
         self.igLink = dictionary["igLink"] as? String ?? ""
@@ -121,6 +125,8 @@ class SongModel: NSObject, NSCoding {
         self.track = recentItem["recentTrack"] as? String ?? ""
         self.artist = recentItem["recentArtist"] as? String ?? ""
         self.artcover = recentItem["recentArtCover"] as? String ?? ""
+        self.artcover_200 = recentItem["recentArtCover_200"] as? String
+            ?? recentItem["artcover_200"] as? String ?? ""
         self.mediaPath = recentItem["mediaPathInfo"] as? String ?? ""
         self.lyric = recentItem["recentLyric"] as? String ?? ""
         self.allowDownload = (recentItem["allow_download"] as? Int == 1)
@@ -133,6 +139,8 @@ class SongModel: NSObject, NSCoding {
         self.track = currentTrack["currentTrack"] as? String ?? ""
         self.artist = currentTrack["currentArtist"] as? String ?? ""
         self.artcover = currentTrack["currentArtCover"] as? String ?? ""
+        self.artcover_200 = currentTrack["currentArtCover_200"] as? String
+            ?? currentTrack["artcover_200"] as? String ?? ""
         self.mediaPath = currentTrack["mediaPathInfo"] as? String ?? ""
         self.lyric = currentTrack["currentLyricInfo"] as? String ?? ""
         self.playcounts = currentTrack["currentPlayCounts"] as? String ?? ""
@@ -168,6 +176,7 @@ class SongModel: NSObject, NSCoding {
                 playcounts: Double(playcounts),
                 dateAdded: dateAdded,
                 artcover: artcover,
+                artcover_200: artcover_200.isEmpty ? nil : artcover_200,
                 isBookMarked: isBookMarked,
                 composer: composer,
                 lyricWriter: lyricWriter,
@@ -189,5 +198,15 @@ class SongModel: NSObject, NSCoding {
     // MARK: - Debug Description
     override var description: String {
         return "SongModel(trackid: \(trackid), track: \(track), artist: \(artist), isFav: \(isFav), isDownload: \(isDownload))"
+    }
+
+    var thumbnailArtCoverURL: URL? {
+        if !artcover_200.isEmpty, let url = URL(string: artcover_200) {
+            return url
+        }
+        if !artcover.isEmpty, let url = URL(string: artcover) {
+            return url
+        }
+        return nil
     }
 }

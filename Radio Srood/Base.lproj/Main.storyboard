@@ -3983,7 +3983,7 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="XYM-1x-eRh" firstAttribute="top" secondItem="6Xj-IO-5yG" secondAttribute="bottom" id="1dx-i8-RNv"/>
                             <constraint firstAttribute="trailing" secondItem="6Xj-IO-5yG" secondAttribute="trailing" id="4wo-ho-XIz"/>
@@ -5819,8 +5819,8 @@
                                 <blurEffect style="dark"/>
                             </visualEffectView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rOi-wS-ORx" customClass="LyricsView" customModule="SpotlightLyrics">
-                                <rect key="frame" x="12" y="173" width="369" height="496"/>
-                                <color key="backgroundColor" red="0.15686274509803921" green="0.15686274509803921" blue="0.15686274509803921" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="12" y="114" width="369" height="589"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGb-rP-b9h">
                                 <rect key="frame" x="0.0" y="118" width="393" height="50"/>

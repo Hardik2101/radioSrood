@@ -161,6 +161,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         getRecentlyAddedData()
         getFeaturedData()
         getHotTracksData()
+        loadCurrentLyricData()
 //        getPopularTracksData()
 //        getTrendingData()
         radiosroodTableView.reloadData()
@@ -591,11 +592,13 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     private func loadCurrentLyricData() {
         dataHelper = DataHelper()
-        dataHelper.getCurrentLyricDataInModle { [weak self] resp in
+        dataHelper.getRecentListData { [weak self] resp in
             guard let self = self else { return }
-            if let resp = resp {
-                self.currentLyricData = resp
-                self.radiosroodTableView.reloadData()
+            if let model = CurrentLyricDataModle.from(radioData: resp) {
+                self.currentLyricData = model
+                DispatchQueue.main.async {
+                    self.radiosroodTableView.reloadData()
+                }
             }
         }
     }
