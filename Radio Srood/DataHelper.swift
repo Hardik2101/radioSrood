@@ -156,50 +156,6 @@ class DataHelper: NSObject {
         }
     }
 
-    func getCurrentLyricData(completion: @escaping (_ resp: NSDictionary) -> Void) {
-        guard let url = URL(string: currentLyricURL) else {
-            completion([:])
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
-
-        AF.request(request).responseData { response in
-            switch response.result {
-            case .success(let data):
-                if let dict = try? JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
-                    completion(dict ?? [:])
-                } else {
-                    completion([:])
-                }
-            case .failure(let error):
-                print("Request failed: \(error)")
-                completion([:])
-            }
-        }
-    }
-
-    func getCurrentLyricDataInModle(completion: @escaping (_ resp: CurrentLyricDataModle?) -> Void) {
-        guard let url = URL(string: currentLyricURL) else {
-            completion(nil)
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
-        
-        AF.request(request).responseDecodable(of: CurrentLyricDataModle.self) { response in
-            completion(response.value)
-        }
-    }
-
     func getRedioHomeData(completion: @escaping (_ resp: HomeMusicModles?) -> Void) {
         guard let url = URL(string: redioHomeURL) else {
             completion(nil)

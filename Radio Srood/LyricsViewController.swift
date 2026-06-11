@@ -18,6 +18,17 @@ class LyricsViewController: UIViewController {
 
     var ArtistInfo: String = ""
     var TrackInfo: String = ""
+
+    private var resolvedCurrentTrackInfo: NSDictionary? {
+        if let payload = currentLyricData,
+           let trackInfo = payload.value(forKey: "currentTrackInfo") as? NSDictionary {
+            return trackInfo
+        }
+        if let currentTrack = currentLyricData?.value(forKey: "currentTrack") as? NSDictionary {
+            return RadioCurrentSongMapper.legacyCurrentTrackInfo(from: currentTrack)
+        }
+        return nil
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,8 +38,7 @@ class LyricsViewController: UIViewController {
         lyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.55)
         lyricsView.lyricHighlightedTextColor = UIColor.white
 
-        if let currentLyricData = currentLyricData {
-            if let currentTrackInfo = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
+        if let currentTrackInfo = resolvedCurrentTrackInfo {
                 if let currentArtCoverInfo = currentTrackInfo.value(forKey: "currentArtCoverInfo") as? String, let url = URL(string: currentArtCoverInfo ) {
                     artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -87,7 +97,6 @@ class LyricsViewController: UIViewController {
 //                        lblSongLyric.text = currentLyricInfo
 //                    }
 //                }
-            }
         }
         if let recentLyricData = recentLyricData {
             if let currentArtCoverInfo = recentLyricData.value(forKey: "recentArtCover") as? String, let url = URL(string: currentArtCoverInfo) {

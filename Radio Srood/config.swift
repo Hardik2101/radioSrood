@@ -4,7 +4,6 @@ import UIKit
 let BASE_BACKEND_URL =  "https://api.app.scdn.stream/rSroodMainRadioData.json" // your  backend
 let baseURL = "https://radiosrood.com/api/"
 let recentListURL = baseURL + "currentsongappv2.json"
-let currentLyricURL = baseURL + "currentlyric.json"
 let songPath = "https://mediahost.srood.stream/media/mp3/"
 let hlsSongPath = "https://mediahost.srood.stream/media/hls/"
 let musicBaseUrl = "https://api.app.scdn.stream/"

@@ -32,14 +32,12 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     var interstitial: GADInterstitial!
     weak var stopPlayerDelegate: StopPlayerDelegate?
     var wasPlayingBeforeAds = false
-    var currentLyricData: NSDictionary?
     var selectedIndex: Int?
     var isPrevent = false
 
     private var isPurchaseSuccess: Bool = false
     var isSyncedLyrics = false
     private var isRadioDataLoaded = false
-    private var isLyricDataLoaded = false
     
     
     override func viewDidLoad() {
@@ -48,7 +46,6 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 
         // ✅ Reset flags on first load only
         isRadioDataLoaded = false
-        isLyricDataLoaded = false
 
         checkInternetForTabbar()
 
@@ -89,7 +86,6 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
 
         // ✅ Only fetch if not already loaded
         if !isRadioDataLoaded { loadRadioData() }
-        if !isLyricDataLoaded { loadCurrentLyricData() }
 
         radioTableView.reloadData()
 
@@ -135,7 +131,6 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
         loadNativeAd()
         loadInterstitial()
         loadRadioData()
-        loadCurrentLyricData()
         radioTableView.reloadData()
     }
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -193,18 +188,6 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
                     self.isSetupRemoteTransport = true
                     self.loadRecentListData()
                 }
-            }
-        }
-    }
-
-    func loadCurrentLyricData() {
-        dataHelper = DataHelper()
-        dataHelper.getCurrentLyricData { [weak self] resp in
-            guard let self = self else { return }
-            self.currentLyricData = resp
-            self.isLyricDataLoaded = true
-            DispatchQueue.main.async {
-                self.radioTableView.reloadData()
             }
         }
     }
@@ -323,8 +306,10 @@ class RadioWithRecentViewController: UI_VC, GADBannerViewDelegate {
     }
 
     @objc func moreInfoBtnClicked() {
+        guard let radioData,
+              let payload = RadioCurrentSongMapper.legacyLyricDataPayload(from: radioData) else { return }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MoreInfoViewController") as! MoreInfoViewController
-        vc.currentLyricData = self.currentLyricData
+        vc.currentLyricData = payload
         self.navigationController?.present(vc, animated: true, completion: nil)
     }
     @objc private func handleIAPPurchase() {
@@ -535,26 +520,21 @@ extension RadioWithRecentViewController: UITableViewDelegate, UITableViewDataSou
             cell.selectionStyle = .none
             cell.artCoverImage.layer.cornerRadius = 3
             cell.artCoverImage.layer.masksToBounds = true
-            if let currentLyricData = self.currentLyricData {
-                if let _ = currentLyricData.value(forKey: "currentTrackInfo") as? NSDictionary {
-                    if let radioData = radioData {
-                        if let currentSong = radioData.value(forKey: "currentTrack") as? NSDictionary {
-                            if let url = artCoverURL(
-                                from: currentSong,
-                                keys200: ["comingNextArtCover_200", "artcover_200"],
-                                keys500: ["comingNextArtCover"]
-                            ) {
-                                cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-                                cell.bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-                            }
-                            if let comingNextArtist = currentSong.value(forKey: "comingNextTrack") as? String {
-                                cell.title.text = comingNextArtist
-                            }
-                            if let comingNextTrack = currentSong.value(forKey: "comingNextArtist") as? String {
-                                cell.subTitle.text = comingNextTrack
-                            }
-                        }
-                    }
+            if let radioData,
+               let currentSong = radioData.value(forKey: "currentTrack") as? NSDictionary {
+                if let url = artCoverURL(
+                    from: currentSong,
+                    keys200: ["comingNextArtCover_200", "artcover_200"],
+                    keys500: ["comingNextArtCover"]
+                ) {
+                    cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    cell.bgImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                }
+                if let comingNextArtist = currentSong.value(forKey: "comingNextTrack") as? String {
+                    cell.title.text = comingNextArtist
+                }
+                if let comingNextTrack = currentSong.value(forKey: "comingNextArtist") as? String {
+                    cell.subTitle.text = comingNextTrack
                 }
             }
             return cell

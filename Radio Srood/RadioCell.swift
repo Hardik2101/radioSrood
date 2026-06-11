@@ -491,7 +491,6 @@ class RadioCell: UITableViewCell {
             self.btnLike.setImage(UIImage(named: "ic_like"), for: .normal)
             self.isLike = false
             self.presentView?.radioData = resp
-            self.presentView?.loadCurrentLyricData()
             self.presentView?.loadNativeAd()
             self.presentView?.radioTableView.reloadData()
         })

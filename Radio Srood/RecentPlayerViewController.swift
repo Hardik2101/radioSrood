@@ -326,8 +326,9 @@ class RecentPlayerViewController: UIViewController, GADBannerViewDelegate {
     }
     
     @objc func moreInfoBtnClicked() {
+        guard let recentListData else { return }
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "MoreInfoViewController") as! MoreInfoViewController
-        vc.currentLyricData = self.recentListData
+        vc.currentLyricData = RadioCurrentSongMapper.legacyLyricDataPayload(fromRecentItem: recentListData)
         self.navigationController?.present(vc, animated: true, completion: nil)
     }
 
