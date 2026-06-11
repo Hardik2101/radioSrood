@@ -981,7 +981,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 let item = queue[queueIndex]
                 cell.trackTitle.text = item.track
                 cell.artistName.text = item.artist
-                if let url = URL(string: item.artcover ?? "") {
+                if let url = item.thumbnailArtCoverURL {
                     cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -1009,7 +1009,7 @@ extension MyMusicPlayerViewController: UITableViewDelegate, UITableViewDataSourc
                 if let item = tempTrack?[trackIndex] {
                     cell.trackTitle.text = item.trackName
                     cell.artistName.text = item.artistName
-                    if let url = item.imageURL {
+                    if let url = item.thumbnailArtCoverURL ?? item.imageURL {
                         cell.artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                         cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                     }

@@ -20,6 +20,7 @@ struct Track: Codable {
     let explicit, allowDownload: Bool?
     let mediaPath: String?
     let artcover: String?
+    let artcover_200: String?
     let ytLink: String?
     let fbLink: String?
     let igLink: String?
@@ -34,7 +35,7 @@ struct Track: Codable {
         case dateAdded = "date_added"
         case lyric, explicit
         case allowDownload = "allow_download"
-        case mediaPath, artcover
+        case mediaPath, artcover, artcover_200
         case ytLink = "yt_link"
         case fbLink = "fb_link"
         case igLink = "ig_link"
@@ -71,6 +72,7 @@ struct Track: Codable {
         allowDownload = try? container.decode(Bool.self, forKey: .allowDownload)
         mediaPath = try? container.decode(String.self, forKey: .mediaPath)
         artcover = try? container.decode(String.self, forKey: .artcover)
+        artcover_200 = try? container.decode(String.self, forKey: .artcover_200)
         ytLink = try? container.decode(String.self, forKey: .ytLink)
         fbLink = try? container.decode(String.self, forKey: .fbLink)
         igLink = try? container.decode(String.self, forKey: .igLink)
@@ -84,6 +86,7 @@ struct Track: Codable {
          composer: String? = nil, lyricWriter: String? = nil, music: String? = nil,
          dateAdded: String? = nil, lyric: String? = nil, explicit: Bool? = nil,
          allowDownload: Bool? = nil, mediaPath: String? = nil, artcover: String? = nil,
+         artcover_200: String? = nil,
          ytLink: String? = nil, fbLink: String? = nil, igLink: String? = nil,
          playlistid: Int? = nil, lyric_synced: String? = nil, hlsMediaPath: String? = nil) {
         self.trackid = trackid
@@ -101,6 +104,7 @@ struct Track: Codable {
         self.allowDownload = allowDownload
         self.mediaPath = mediaPath
         self.artcover = artcover
+        self.artcover_200 = artcover_200
         self.ytLink = ytLink
         self.fbLink = fbLink
         self.igLink = igLink
@@ -128,6 +132,7 @@ struct Track: Codable {
         song.lyric_synced = self.lyric_synced ?? ""
         song.mediaPath = self.mediaPath ?? ""
         song.artcover = self.artcover ?? ""
+        song.artcover_200 = self.artcover_200 ?? ""
         song.ytLink = self.ytLink ?? ""
         song.fbLink = self.fbLink ?? ""
         song.igLink = self.igLink ?? ""
@@ -136,5 +141,17 @@ struct Track: Codable {
         song.isBookMarked = false
         song.isRecentlyPlayed = false
         return song
+    }
+}
+
+extension Track {
+    var thumbnailArtCoverURL: URL? {
+        if let artcover_200, !artcover_200.isEmpty, let url = URL(string: artcover_200) {
+            return url
+        }
+        if let artcover, !artcover.isEmpty, let url = URL(string: artcover) {
+            return url
+        }
+        return nil
     }
 }

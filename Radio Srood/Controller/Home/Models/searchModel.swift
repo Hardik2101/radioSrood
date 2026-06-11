@@ -27,7 +27,7 @@ struct SearchResponse: Decodable {
 // MARK: - convertToPodcastModel
 extension SearchModel {
     func convertToPodcastModel() -> PodcastObject {
-        let coverURL = URL(string: artcover.isEmpty ? artcover_200 : artcover)
+        let coverURL = URL(string: artcover)
                     ?? URL(string: "https://defaultcover.com/placeholder.jpg")!
 
         let fileURL: URL?
@@ -51,7 +51,8 @@ extension SearchModel {
             dislikes: nil,          // SearchModel doesn't have this
             playcounts: Double(playcounts),
             dateAdded: date_added,
-            artcover: artcover.isEmpty ? artcover_200 : artcover,
+            artcover: artcover,
+            artcover_200: artcover_200,
             isBookMarked: false,
             composer: nil,          // SearchModel doesn't have this
             lyricWriter: nil,       // SearchModel doesn't have this
@@ -89,7 +90,8 @@ extension SearchModel {
             explicit: nil,          // SearchModel doesn't have this
             allowDownload: nil,     // SearchModel doesn't have this
             mediaPath: self.mediaPath,
-            artcover: self.artcover.isEmpty ? self.artcover_200 : self.artcover,
+            artcover: self.artcover,
+            artcover_200: self.artcover_200,
             ytLink: nil,            // SearchModel doesn't have this
             fbLink: nil,            // SearchModel doesn't have this
             igLink: nil,            // SearchModel doesn't have this

@@ -32,21 +32,8 @@ class RecentlyPlayedTableViewCell: UITableViewCell {
     func configureView(track : SongModel){
         lblPlayedSongtitle.text = track.artist
         lblPlayedSongName.text = track.track
-        if var components = URLComponents(string: track.artcover) {
-            if let queryItems = components.queryItems {
-                components.queryItems = queryItems.map { item in
-                    if item.name == "s" {
-                        return URLQueryItem(name: "s", value: "200")
-                    }
-                    return item
-                }
-            } else {
-                components.queryItems = [URLQueryItem(name: "s", value: "200")]
-            }
-            
-            if let finalURL = components.url {
-                imgPlayedSong.af_setImage(withURL: finalURL, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-            }
+        if let url = track.thumbnailArtCoverURL {
+            imgPlayedSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
     }
 

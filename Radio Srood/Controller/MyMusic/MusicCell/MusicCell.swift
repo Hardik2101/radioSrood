@@ -14,7 +14,7 @@ class MusicCell: UICollectionViewCell {
 //                artworkImage.image = podcastObject.image
                 trackTitle.text = podcastObject.trackName
                 artistName.text = podcastObject.artistName
-                if let url = podcastObject.imageURL {
+                if let url = podcastObject.thumbnailArtCoverURL {
                     artworkImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
             }

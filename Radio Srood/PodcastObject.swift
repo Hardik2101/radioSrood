@@ -14,6 +14,7 @@ class PodcastObject: NSObject, NSCoding {
     var playcounts: Double?
     var dateAdded: String?
     var artcover: String?
+    var artcover_200: String?
     var artcover200: URL?
     var isBookMarked: Bool?
 
@@ -46,6 +47,7 @@ class PodcastObject: NSObject, NSCoding {
         playcounts: Double? = nil,
         dateAdded: String? = nil,
         artcover: String? = nil,
+        artcover_200: String? = nil,
         artcover200: URL? = nil,
         isBookMarked: Bool = false,
         composer: String? = nil,
@@ -75,6 +77,7 @@ class PodcastObject: NSObject, NSCoding {
         self.playcounts = playcounts
         self.dateAdded = dateAdded
         self.artcover = artcover
+        self.artcover_200 = artcover_200
         self.artcover200 = artcover200
         self.isBookMarked = isBookMarked
         self.composer = composer
@@ -107,6 +110,7 @@ class PodcastObject: NSObject, NSCoding {
         coder.encode(playcounts, forKey: "playcounts")
         coder.encode(dateAdded, forKey: "dateAdded")
         coder.encode(artcover, forKey: "artcover")
+        coder.encode(artcover_200, forKey: "artcover_200")
         coder.encode(artcover200, forKey: "artcover200")
         coder.encode(isBookMarked, forKey: "isBookMarked")
         coder.encode(composer, forKey: "composer")
@@ -138,6 +142,7 @@ class PodcastObject: NSObject, NSCoding {
         self.playcounts = coder.decodeObject(forKey: "playcounts") as? Double
         self.dateAdded = coder.decodeObject(forKey: "dateAdded") as? String
         self.artcover = coder.decodeObject(forKey: "artcover") as? String
+        self.artcover_200 = coder.decodeObject(forKey: "artcover_200") as? String
         self.artcover200 = coder.decodeObject(forKey: "artcover200") as? URL
         self.isBookMarked = coder.decodeObject(forKey: "isBookMarked") as? Bool
         self.composer = coder.decodeObject(forKey: "composer") as? String
@@ -165,6 +170,7 @@ extension PodcastObject {
         songModel.artist = artistName ?? ""
         songModel.track = trackName ?? ""
         songModel.artcover = artcover ?? imageURL?.absoluteString ?? ""
+        songModel.artcover_200 = artcover_200 ?? artcover200?.absoluteString ?? ""
         songModel.mediaPath = mediaPath ?? file?.absoluteString ?? ""
         songModel.playcounts = playcounts != nil ? String(playcounts!) : ""
         songModel.likes = likes ?? ""
@@ -189,6 +195,21 @@ extension PodcastObject {
     }
 }
 
+extension PodcastObject {
+    var thumbnailArtCoverURL: URL? {
+        if let artcover_200, !artcover_200.isEmpty, let url = URL(string: artcover_200) {
+            return url
+        }
+        if let artcover200 {
+            return artcover200
+        }
+        if let artcover, !artcover.isEmpty, let url = URL(string: artcover) {
+            return url
+        }
+        return imageURL
+    }
+}
+
 // MARK: - convertToTrackModel
 extension PodcastObject {
     func convertToTrackModel() -> Track {
@@ -208,6 +229,7 @@ extension PodcastObject {
             allowDownload: allowDownload,
             mediaPath: mediaPath ?? file?.absoluteString,
             artcover: artcover ?? imageURL?.absoluteString,
+            artcover_200: artcover_200 ?? artcover200?.absoluteString,
             ytLink: ytLink,
             fbLink: fbLink,
             igLink: igLink,

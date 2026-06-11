@@ -151,7 +151,7 @@ class LyricsViewController: UIViewController {
 //            }
         }
         if let track = track {
-            if let url = URL(string: track.artcover ?? "" + "?s=200")   {
+            if let url = track.thumbnailArtCoverURL {
                 artCoverImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
             }
             lblSongTitle.text = track.track
