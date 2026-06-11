@@ -21,11 +21,10 @@ class LyricsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        lyricsView.backgroundColor = .clear
-//        lyricsView.lyricFont = UIFont.boldSystemFont(ofSize: 24)
-        lyricsView.lyricTextColor = UIColor.lightGray
-//        lyricsView.lyricHighlightedFont = UIFont.boldSystemFont(ofSize: 24)
+
+        view.backgroundColor = .clear
+        configureLyricsAppearance()
+        lyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.55)
         lyricsView.lyricHighlightedTextColor = UIColor.white
 
         if let currentLyricData = currentLyricData {
@@ -76,6 +75,7 @@ class LyricsViewController: UIViewController {
                             Please send lyrics to lyric@radiosrood.com
                             """
                         }
+                        self.configureLyricsAppearance()
                     }
                 }
 
@@ -139,6 +139,7 @@ class LyricsViewController: UIViewController {
                         Please send lyrics to lyric@radiosrood.com
                         """
                     }
+                    self.configureLyricsAppearance()
                 }
             }
 
@@ -162,7 +163,27 @@ class LyricsViewController: UIViewController {
             }
         }
         
+        configureLyricsAppearance()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        configureLyricsAppearance()
+    }
+
+    private func configureLyricsAppearance() {
         lyricsView.backgroundColor = .clear
+        lyricsView.isOpaque = false
+        lyricsView.backgroundView = nil
+        lyricsView.separatorColor = .clear
+        if #available(iOS 15.0, *) {
+            lyricsView.sectionHeaderTopPadding = 0
+        }
+        lyricsView.visibleCells.forEach { cell in
+            cell.backgroundColor = .clear
+            cell.contentView.backgroundColor = .clear
+            cell.isOpaque = false
+        }
     }
 
     @IBAction func doneClieckedEvent(_ sender: Any) {

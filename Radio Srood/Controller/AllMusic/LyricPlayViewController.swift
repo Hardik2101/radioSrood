@@ -35,11 +35,11 @@ class LyricPlayViewController: UIViewController {
         
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .clear
         lblNameSong.text = currentSong.track
         if let url = URL(string: currentSong.artcover) {
             imgSong.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
-        lyricsView.backgroundColor = .clear
         // Load lyrics data
 //        var lyrics: String? = nil
 //        if let lyricsUrl = URL(string: lyricsUrl) {
@@ -65,9 +65,9 @@ class LyricPlayViewController: UIViewController {
             lyricsView.addSubview(placeholderLabel)
         }
 
-        lyricsView.backgroundColor = .clear
+        configureLyricsAppearance()
         lyricsView.lyricFont = UIFont.boldSystemFont(ofSize: 24)
-        lyricsView.lyricTextColor = UIColor.lightGray
+        lyricsView.lyricTextColor = UIColor.white.withAlphaComponent(0.55)
         lyricsView.lyricHighlightedFont = UIFont.boldSystemFont(ofSize: 24)
         lyricsView.lyricHighlightedTextColor = UIColor.white
         
@@ -101,6 +101,26 @@ class LyricPlayViewController: UIViewController {
         }
         
         self.bgImage.af_setImage(withURL: imageURl ?? URL(string: "")!, placeholderImage: UIImage(named: "b1.png"))
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        configureLyricsAppearance()
+    }
+
+    private func configureLyricsAppearance() {
+        lyricsView.backgroundColor = .clear
+        lyricsView.isOpaque = false
+        lyricsView.backgroundView = nil
+        lyricsView.separatorColor = .clear
+        if #available(iOS 15.0, *) {
+            lyricsView.sectionHeaderTopPadding = 0
+        }
+        lyricsView.visibleCells.forEach { cell in
+            cell.backgroundColor = .clear
+            cell.contentView.backgroundColor = .clear
+            cell.isOpaque = false
+        }
     }
     
     @IBAction func actionPlay(_ sender: Any) {
