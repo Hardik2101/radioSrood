@@ -106,12 +106,6 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         return button
     }()
 
-    private let actionsContainer: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -161,11 +155,10 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         activityIndicator.color = .white
 
         headerView.addSubview(coverImageView)
+        headerView.addSubview(shuffleButton)
+        headerView.addSubview(playButton)
         headerView.addSubview(titleLabel)
         headerView.addSubview(statsLabel)
-        headerView.addSubview(actionsContainer)
-        actionsContainer.addSubview(shuffleButton)
-        actionsContainer.addSubview(playButton)
 
         let coverWidth = UIScreen.main.bounds.width - 32
         NSLayoutConstraint.activate([
@@ -174,29 +167,24 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
             coverImageView.widthAnchor.constraint(equalToConstant: coverWidth),
             coverImageView.heightAnchor.constraint(equalTo: coverImageView.widthAnchor),
 
-            titleLabel.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-
-            statsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-
-            actionsContainer.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 16),
-            actionsContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            actionsContainer.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            actionsContainer.heightAnchor.constraint(equalToConstant: 56),
-            actionsContainer.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -12),
-
-            playButton.trailingAnchor.constraint(equalTo: actionsContainer.trailingAnchor),
-            playButton.centerYAnchor.constraint(equalTo: actionsContainer.centerYAnchor),
+            playButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            playButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             playButton.widthAnchor.constraint(equalToConstant: 56),
             playButton.heightAnchor.constraint(equalToConstant: 56),
 
-            shuffleButton.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -16),
-            shuffleButton.centerYAnchor.constraint(equalTo: actionsContainer.centerYAnchor),
+            shuffleButton.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -20),
+            shuffleButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             shuffleButton.widthAnchor.constraint(equalToConstant: 44),
-            shuffleButton.heightAnchor.constraint(equalToConstant: 44)
+            shuffleButton.heightAnchor.constraint(equalToConstant: 44),
+
+            titleLabel.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: shuffleButton.leadingAnchor, constant: -12),
+
+            statsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
+            statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            statsLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
         ])
 
         tableView.tableHeaderView = headerView
