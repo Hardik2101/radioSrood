@@ -161,7 +161,7 @@ extension ArtistListViewController: UICollectionViewDelegate, UICollectionViewDa
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = collectionView.bounds.width > 0 ? collectionView.bounds.width : view.bounds.width
         let imageSize = itemWidth(for: width)
-        return CGSize(width: imageSize, height: imageSize + 30)
+        return CGSize(width: imageSize, height: imageSize + ArtistProfileGridCell.nameAreaHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

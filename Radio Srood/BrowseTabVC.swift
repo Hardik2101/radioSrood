@@ -715,7 +715,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         if let cell = tableView.registerAndGet(cell: RJTVTableViewCell.self) {
             cell.selectionStyle = .none
             
-            print("aaaaa====")
             return cell
         }
         return UITableViewCell()

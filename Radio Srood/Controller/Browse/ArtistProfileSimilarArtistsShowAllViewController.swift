@@ -150,8 +150,7 @@ extension ArtistProfileSimilarArtistsShowAllViewController: UICollectionViewDele
         let totalSpacing = (horizontalInset * 2) + (columnSpacing * (columns - 1))
         let width = floor((collectionView.bounds.width - totalSpacing) / columns)
         let imageHeight = width
-        let textHeight: CGFloat = 30
-        return CGSize(width: width, height: imageHeight + textHeight)
+        return CGSize(width: width, height: imageHeight + ArtistProfileGridCell.nameAreaHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -7,6 +7,9 @@ import UIKit
 
 final class ArtistProfileGridCell: UICollectionViewCell {
     static let reuseID = "ArtistProfileGridCell"
+    static let imageCornerRadius: CGFloat = 4
+    static let nameFontSize: CGFloat = 14
+    static let nameAreaHeight: CGFloat = 36
 
     private let imageContainer: UIView = {
         let view = UIView()
@@ -28,7 +31,8 @@ final class ArtistProfileGridCell: UICollectionViewCell {
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont(name: "Kohinoor Telugu Medium", size: 11) ?? .systemFont(ofSize: 11, weight: .medium)
+        label.font = UIFont(name: "Kohinoor Telugu Medium", size: ArtistProfileGridCell.nameFontSize)
+            ?? .systemFont(ofSize: ArtistProfileGridCell.nameFontSize, weight: .medium)
         label.textColor = .white.withAlphaComponent(0.92)
         label.textAlignment = .center
         label.numberOfLines = 2
@@ -47,10 +51,8 @@ final class ArtistProfileGridCell: UICollectionViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let radius = imageContainer.bounds.width / 2
-        guard radius > 0 else { return }
-        imageContainer.layer.cornerRadius = radius
-        imageView.layer.cornerRadius = radius
+        imageContainer.layer.cornerRadius = Self.imageCornerRadius
+        imageView.layer.cornerRadius = Self.imageCornerRadius
         imageContainer.layer.masksToBounds = true
         imageView.layer.masksToBounds = true
     }

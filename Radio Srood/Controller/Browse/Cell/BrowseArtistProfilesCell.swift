@@ -95,7 +95,7 @@ final class BrowseArtistProfilesCell: UITableViewCell {
 
         let width = collectionView.bounds.width > 0 ? collectionView.bounds.width : UIScreen.main.bounds.width
         let imageSize = itemWidth(for: width)
-        let itemHeight = imageSize + 30
+        let itemHeight = imageSize + ArtistProfileGridCell.nameAreaHeight
         let sectionInset: CGFloat = 12
         let height = sectionInset + (CGFloat(rows) * itemHeight) + (CGFloat(rows - 1) * lineSpacing)
         collectionHeightConstraint.constant = max(height, 0)
@@ -116,7 +116,7 @@ extension BrowseArtistProfilesCell: UICollectionViewDelegate, UICollectionViewDa
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = collectionView.bounds.width > 0 ? collectionView.bounds.width : UIScreen.main.bounds.width
         let imageSize = itemWidth(for: width)
-        return CGSize(width: imageSize, height: imageSize + 30)
+        return CGSize(width: imageSize, height: imageSize + ArtistProfileGridCell.nameAreaHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
