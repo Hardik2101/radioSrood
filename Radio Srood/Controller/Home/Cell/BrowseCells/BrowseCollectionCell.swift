@@ -63,8 +63,8 @@ class BrowseCollectionCell: UICollectionViewCell {
         lblSubtitle.text = nil
     }
     
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
+    override func layoutSubviews() {
+        super.layoutSubviews()
         itemImage.layer.cornerRadius = 4
         itemImage.clipsToBounds = true
     }
