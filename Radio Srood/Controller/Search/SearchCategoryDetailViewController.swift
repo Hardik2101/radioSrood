@@ -147,7 +147,7 @@ extension SearchCategoryDetailViewController: UICollectionViewDelegate, UICollec
         let columnSpacing: CGFloat = 16
         let contentWidth = collectionView.bounds.width > 0 ? collectionView.bounds.width : view.bounds.width
         let itemWidth = floor((contentWidth - horizontalInset - columnSpacing) / 2)
-        let textHeight: CGFloat = 56
+        let textHeight: CGFloat = 48
         return CGSize(width: itemWidth, height: itemWidth + textHeight)
     }
 
