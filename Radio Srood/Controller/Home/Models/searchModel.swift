@@ -16,6 +16,7 @@ struct SearchModel: Decodable {
     let playcounts: String
     let date_added: String
     let mediaPath: String
+    let hls_mediaPath: String?
     let artcover: String
     let artcover_200: String
 }
@@ -43,6 +44,7 @@ extension SearchModel {
         return PodcastObject(
             file: fileURL,
             mediaPath: mediaPath,
+            hlsMediaPath: hls_mediaPath,
             trackName: track,
             artistName: artist,
             imageURL: coverURL,
@@ -97,7 +99,7 @@ extension SearchModel {
             igLink: nil,            // SearchModel doesn't have this
             playlistid: nil,        // SearchModel doesn't have this
             lyric_synced: nil,      // SearchModel doesn't have this
-            hlsMediaPath: nil       // SearchModel doesn't have this
+            hlsMediaPath: hls_mediaPath
         )
     }
 }

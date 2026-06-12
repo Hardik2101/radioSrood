@@ -4,6 +4,7 @@ import UIKit
 class PodcastObject: NSObject, NSCoding {
     var file: URL?
     var mediaPath: String?
+    var hlsMediaPath: String?
     var trackName: String?
     var artistName: String?
     var image: UIImage?
@@ -37,6 +38,7 @@ class PodcastObject: NSObject, NSCoding {
     init(
         file: URL? = nil,
         mediaPath: String? = nil,
+        hlsMediaPath: String? = nil,
         trackName: String? = nil,
         artistName: String? = nil,
         image: UIImage? = nil,
@@ -67,6 +69,7 @@ class PodcastObject: NSObject, NSCoding {
     ) {
         self.file = file
         self.mediaPath = mediaPath
+        self.hlsMediaPath = hlsMediaPath
         self.trackName = trackName
         self.artistName = artistName
         self.image = image
@@ -100,6 +103,7 @@ class PodcastObject: NSObject, NSCoding {
     func encode(with coder: NSCoder) {
         coder.encode(file, forKey: "file")
         coder.encode(mediaPath, forKey: "mediaPath")
+        coder.encode(hlsMediaPath, forKey: "hlsMediaPath")
         coder.encode(trackName, forKey: "trackName")
         coder.encode(artistName, forKey: "artistName")
         coder.encode(image, forKey: "image")
@@ -132,6 +136,7 @@ class PodcastObject: NSObject, NSCoding {
     required init?(coder: NSCoder) {
         self.file = coder.decodeObject(forKey: "file") as? URL
         self.mediaPath = coder.decodeObject(forKey: "mediaPath") as? String
+        self.hlsMediaPath = coder.decodeObject(forKey: "hlsMediaPath") as? String
         self.trackName = coder.decodeObject(forKey: "trackName") as? String
         self.artistName = coder.decodeObject(forKey: "artistName") as? String
         self.image = coder.decodeObject(forKey: "image") as? UIImage
@@ -235,7 +240,7 @@ extension PodcastObject {
             igLink: igLink,
             playlistid: playlistid,
             lyric_synced: lyric_synced,
-            hlsMediaPath: nil
+            hlsMediaPath: hlsMediaPath
         )
     }
 }

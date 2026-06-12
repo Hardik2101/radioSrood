@@ -411,7 +411,7 @@ class DataHelper: NSObject {
                 case .success(let data):
                     completion(data.nateja.first)
                 case .failure(let error):
-                    print("Failed to fetch lyrics: \(error)")
+                    print("Lyrics not found: \(error)")
                     completion(nil)
                 }
             }

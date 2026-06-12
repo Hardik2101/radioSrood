@@ -1099,12 +1099,43 @@ extension MyMusicPlayerViewController: GADAdLoaderDelegate, GADUnifiedNativeAdLo
 extension MyMusicPlayerViewController {
 
     private func playbackURLs(for podcast: PodcastObject?) -> (primary: URL?, fallback: URL?) {
-        guard let podcast = podcast, let file = podcast.file else { return (nil, nil) }
+        guard let podcast = podcast else { return (nil, nil) }
+
+        var primaryURL: URL?
+        var fallbackURL: URL?
+
+        if let hls = podcast.hlsMediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !hls.isEmpty {
+            if let url = URL(string: hls), url.scheme != nil {
+                primaryURL = url
+            } else if let encoded = hls.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                      let url = URL(string: hlsSongPath + encoded) {
+                primaryURL = url
+            }
+        }
+
+        guard let file = podcast.file else {
+            if fallbackURL == nil,
+               let media = podcast.mediaPath?.trimmingCharacters(in: .whitespacesAndNewlines), !media.isEmpty {
+                fallbackURL = URL(string: media).flatMap { $0.scheme != nil ? $0 : nil }
+                    ?? media.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+                        .flatMap { URL(string: songPath + $0) }
+            }
+            return (primaryURL, fallbackURL)
+        }
+
         if file.isFileURL { return (nil, file) }
-        if file.pathExtension.lowercased() == "m3u8" { return (file, nil) }
-        let baseName = (file.lastPathComponent as NSString).deletingPathExtension
-        let primaryURL = URL(string: hlsSongPath + baseName + ".m3u8")
-        let fallbackURL = sanitizeStreamURL(file.absoluteString) ?? file
+        if file.pathExtension.lowercased() == "m3u8" && primaryURL == nil { return (file, nil) }
+
+        fallbackURL = sanitizeStreamURL(file.absoluteString) ?? file
+
+        if primaryURL == nil {
+            let decodedName = file.lastPathComponent.removingPercentEncoding ?? file.lastPathComponent
+            let baseName = (decodedName as NSString).deletingPathExtension
+            if let encoded = baseName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                primaryURL = URL(string: hlsSongPath + encoded + ".m3u8")
+            }
+        }
+
         return (primaryURL, fallbackURL)
     }
 

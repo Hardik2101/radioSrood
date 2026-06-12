@@ -40,6 +40,8 @@ struct SearchPlaylistInfo: Decodable {
 
 extension Track {
     func convertToPodcastModel() -> PodcastObject {
-        convertToSongModel().convertToPodcastModel()
+        let podcast = convertToSongModel().convertToPodcastModel()
+        podcast.hlsMediaPath = hlsMediaPath
+        return podcast
     }
 }
