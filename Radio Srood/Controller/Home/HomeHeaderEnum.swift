@@ -45,27 +45,30 @@ enum HomeHeader: Int, CaseIterable {
 
 enum Browseheader: Int, CaseIterable {
     case playlist
-    case newMusic
+    case artistProfiles
     case popularMusic
-    case currentRadio
+    case newMusic
     case rjtv
     case radio
+    case currentRadio
     case recentlyPlay
     
     var title: String {
         switch self {
         case .playlist:
-            return "PlayList"
+            return "Featured Playlists"
+        case .artistProfiles:
+            return "Artist Profiles"
         case .newMusic:
-            return "New Music"
+            return "Just For You"
         case .popularMusic:
             return "Popular Music"
         case .currentRadio:
             return "Currently Playing on Radio srood"
         case .rjtv:
-            return "SROOD TV"
+            return "Srood TV"
         case .radio:
-            return "Radio"
+            return "Srood Radio's"
         case .recentlyPlay:
             return "Recently Played"
         }
@@ -75,6 +78,8 @@ enum Browseheader: Int, CaseIterable {
         switch self {
         case .playlist:
             return .playlists
+        case .artistProfiles:
+            return nil
         case .newMusic:
             return .hotTrackes
         case .popularMusic:

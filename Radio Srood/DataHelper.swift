@@ -468,6 +468,82 @@ class DataHelper: NSObject {
             }
     }
 
+    static func getBrowseFeaturedPlaylists(completion: @escaping (_ response: BrowsePlaylistResponse?) -> Void) {
+        guard let url = URL(string: browseFeaturedPlaylistsURL) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseDecodable(of: BrowsePlaylistResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data)
+                case .failure(let error):
+                    print("Featured playlists API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
+    static func getArtistProfilesList(completion: @escaping (_ response: ArtistProfilesListResponse?) -> Void) {
+        guard let url = URL(string: artistProfilesListURL) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseDecodable(of: ArtistProfilesListResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data)
+                case .failure(let error):
+                    print("Artist profiles list API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
+    static func getArtistProfile(artistID: String, completion: @escaping (_ response: ArtistProfileDetailResponse?) -> Void) {
+        let urlString = artistProfileURL(artistID: artistID)
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseDecodable(of: ArtistProfileDetailResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data)
+                case .failure(let error):
+                    print("Artist profile API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
     static func getSearchResults(query: String, completion: @escaping (_ results: [SearchModel]?) -> Void) {
         let baseURL = searchBaseURL
         let apiKey = "SaReO9O0D45a03b-47c79ec2-fcc9775e78b2"

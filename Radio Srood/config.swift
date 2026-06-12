@@ -29,9 +29,15 @@ let featuredRadio = musicBaseUrl + "FeaturedRadio.json"
 let lyricsBaseURL = "https://lyric.srood.stream/jostojo"
 let searchBaseURL = "https://search.srood.stream/jostojo"
 let searchBrowseAllURL = musicBaseUrl + "playlists/Srood-Playlist-All-SgRtObOwDD5ptU3Z8efiVEj5EBWIoVklO9.json"
+let browseFeaturedPlaylistsURL = musicBaseUrl + "playlists/Srood-Playlist-Browse-YHe1olYrAiOdgqDI6xN.json"
+let artistProfilesListURL = musicBaseUrl + "artist_profiles/srood_artist_ids-SsRsOJOYDoPVw6RcgarlMpdh4UPK8Yask1kj1lxdoj25.json"
 
 func searchPlaylistURL(pid: String) -> String {
     musicBaseUrl + "playlists/\(pid).json"
+}
+
+func artistProfileURL(artistID: String) -> String {
+    musicBaseUrl + "artist_profiles/\(artistID).json"
 }
 
 let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"

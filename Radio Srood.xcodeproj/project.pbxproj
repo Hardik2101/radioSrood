@@ -133,6 +133,13 @@
 		88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */; };
 		88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */; };
 		88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */; };
+		88B001012FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */; };
+		88B001032FADF201009CB334 /* ArtistProfileModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001022FADF201009CB334 /* ArtistProfileModels.swift */; };
+		88B001052FADF201009CB334 /* ArtistProfileGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */; };
+		88B001072FADF201009CB334 /* BrowseArtistProfilesCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */; };
+		88B001092FADF201009CB334 /* ArtistListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001082FADF201009CB334 /* ArtistListViewController.swift */; };
+		88B0010B2FADF201009CB334 /* ArtistProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */; };
+		88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
@@ -347,6 +354,13 @@
 		88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailModel.swift; sourceTree = "<group>"; };
 		88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistTrackCell.swift; sourceTree = "<group>"; };
 		88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailViewController.swift; sourceTree = "<group>"; };
+		88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseFeaturedPlaylistModel.swift; sourceTree = "<group>"; };
+		88B001022FADF201009CB334 /* ArtistProfileModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileModels.swift; sourceTree = "<group>"; };
+		88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileGridCell.swift; sourceTree = "<group>"; };
+		88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseArtistProfilesCell.swift; sourceTree = "<group>"; };
+		88B001082FADF201009CB334 /* ArtistListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistListViewController.swift; sourceTree = "<group>"; };
+		88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileViewController.swift; sourceTree = "<group>"; };
+		88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseFeaturedPlaylistsShowAllViewController.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -808,6 +822,36 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
+		88B0010C2FADF201009CB334 /* Browse */ = {
+			isa = PBXGroup;
+			children = (
+				88B0010D2FADF201009CB334 /* Cell */,
+				88B0010E2FADF201009CB334 /* Models */,
+				88B001082FADF201009CB334 /* ArtistListViewController.swift */,
+				88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */,
+				88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */,
+			);
+			path = Browse;
+			sourceTree = "<group>";
+		};
+		88B0010D2FADF201009CB334 /* Cell */ = {
+			isa = PBXGroup;
+			children = (
+				88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */,
+				88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */,
+			);
+			path = Cell;
+			sourceTree = "<group>";
+		};
+		88B0010E2FADF201009CB334 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */,
+				88B001022FADF201009CB334 /* ArtistProfileModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		88A100102FADF001009CB334 /* Cell */ = {
 			isa = PBXGroup;
 			children = (
@@ -1012,6 +1056,7 @@
 		DC526B742970926400FFFBED /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				88B0010C2FADF201009CB334 /* Browse */,
 				8873A4882FADFC9F009CB334 /* Search */,
 				B7D03B452B31E3C8001FE09A /* IAPVC */,
 				DC377A012ADD99C400A6260B /* MusicOption */,
@@ -1411,6 +1456,13 @@
 				88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */,
 				88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */,
 				88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */,
+				88B001012FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift in Sources */,
+				88B001032FADF201009CB334 /* ArtistProfileModels.swift in Sources */,
+				88B001052FADF201009CB334 /* ArtistProfileGridCell.swift in Sources */,
+				88B001072FADF201009CB334 /* BrowseArtistProfilesCell.swift in Sources */,
+				88B001092FADF201009CB334 /* ArtistListViewController.swift in Sources */,
+				88B0010B2FADF201009CB334 /* ArtistProfileViewController.swift in Sources */,
+				88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */,
 				DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */,
 				3F9AD5D61EAF49BE009B1532 /* PlayerViewController.swift in Sources */,
 				3F9AB1491EAB3F68000D8FE3 /* config.swift in Sources */,
@@ -1628,14 +1680,14 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 786;
+				CURRENT_PROJECT_VERSION = 802;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 10.6;
+				MARKETING_VERSION = 10.9.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1657,14 +1709,14 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 786;
+				CURRENT_PROJECT_VERSION = 802;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 10.6;
+				MARKETING_VERSION = 10.9.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

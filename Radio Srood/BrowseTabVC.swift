@@ -50,8 +50,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     var groupID: Int?
     var timeObserver: Any?
     var playList: [PlayListModel] = []
-    var recenltPlayed: [SongModel] = []
-    var recenltPlayedindex: Int?
     var myPlayListindex: Int?
     var BrowseheaderArray: [String] = Browseheader.allCases.map({ $0.title })
     var bannerView: GADBannerView!
@@ -62,9 +60,12 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     
     var arrSearch: [SearchModel] = [] // Or whatever model type you're searching
     var isPlaylistLoaded = false
+    var isArtistProfilesLoaded = false
     var isNewMusicLoaded = false
     var isPopularMusicLoaded = false
     var isRadioLoaded = false
+    var featuredBrowsePlaylists: [BrowseFeaturedPlaylist] = []
+    var artistProfiles: [ArtistProfileSummary] = []
 
     
     var timer = Timer()
@@ -77,6 +78,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
 
         // ✅ Reset flags on first load only
         isPlaylistLoaded = false
+        isArtistProfilesLoaded = false
         isNewMusicLoaded = false
         isPopularMusicLoaded = false
         isRadioLoaded = false
@@ -89,6 +91,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         tblSearch.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
 
         loadFeaturedRadioData()
+        loadFeaturedPlaylists()
+        loadArtistProfiles()
 
         self.tblSearch.isHidden = true
         self.tblBrowse.isHidden = false
@@ -116,6 +120,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         // Fully reload Browse tab data when connection is restored.
         loadRedioHomeData()
         loadFeaturedRadioData()
+        loadFeaturedPlaylists()
+        loadArtistProfiles()
         loadBannerAds()
         handleTableView()
         tblBrowse.reloadData()
@@ -156,8 +162,14 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         if !isPlaylistLoaded || !isNewMusicLoaded || !isPopularMusicLoaded {
             loadRedioHomeData()
         }
+        if !isArtistProfilesLoaded {
+            loadArtistProfiles()
+        }
         if !isRadioLoaded {
             loadFeaturedRadioData()
+        }
+        if featuredBrowsePlaylists.isEmpty {
+            loadFeaturedPlaylists()
         }
     }
 
@@ -212,9 +224,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                    let collectionView = browseCell.playlistCollectionView,
                    let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
                     animateScaleEffect(for: collectionView, at: collectionIndexPath)
-                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
                 }
-                
+
             case Browseheader.newMusic.title:
                 if let browseCell = tableCell as? BrowseTableCell,
                    let collectionView = browseCell.playlistCollectionView,
@@ -231,21 +242,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                     showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
                 }
                 
-            case Browseheader.recentlyPlay.title:
-                if let recentlyPlayedCell = tableCell as? RecentlyPlayedCell,
-                   let collectionView = recentlyPlayedCell.recentlyPlayedCollectionView,
-                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
-                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
-                    
-                    guard collectionIndexPath.row < recenltPlayed.count else { return }
-                    let track = recenltPlayed[collectionIndexPath.row].convertToPodcastModel().convertToTrackModel()
-                    
-                    guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else { return }
-                    optionsVC.track = track
-                    optionsVC.delegate = self
-                    optionsVC.modalPresentationStyle = .overFullScreen
-                    present(optionsVC, animated: true)
-                }
             default:
                 print("Long press on unhandled section: \(sectionTitle)")
             }
@@ -320,23 +316,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                 return // Wait for async data
             }
             
-        case Browseheader.playlist.title:
-            if index >= 0, index < homeMusic?.playlists.count ?? 0,
-               let groupID = homeMusic?.playlists[index].playlistid {
-                dataHelper.getPlaylistData { [weak self] resp in
-                    guard let self = self, let resp = resp else { return }
-                    if let tracks = resp.trendingPlaylist.first(where: { $0.id == groupID })?.tracks,
-                       !tracks.isEmpty {
-                        selectedTrack = tracks[0]
-                        self.presentOptionsVC(optionsVC, track: selectedTrack)
-                    } else {
-                        print("Error: No tracks found for playlistID \(groupID)")
-                        self.presentOptionsVC(optionsVC, track: nil)
-                    }
-                }
-                return // Wait for async data
-            }
-            
         case Browseheader.popularMusic.title:
             if index >= 0, index < homeMusic?.popularTracks.count ?? 0,
                let groupID = homeMusic?.popularTracks[index].popularTrackID {
@@ -381,7 +360,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
 
     private func handleTableView() {
         playList = UserDefaultsManager.shared.playListsData
-        fetchRecentlyPlayed()
         handleBrowseheaderArrayValue()
     
     }
@@ -389,9 +367,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     private func handleBrowseheaderArrayValue() {
         BrowseheaderArray = Browseheader.allCases.map({ $0.title })
         BrowseheaderArray.removeAll(where: { $0 == Browseheader.currentRadio.title })
-        if recenltPlayed.count <= 0 {
-            BrowseheaderArray.removeAll(where: { $0 == Browseheader.recentlyPlay.title })
-        }
+        BrowseheaderArray.removeAll(where: { $0 == Browseheader.recentlyPlay.title })
 //        if playList.count <= 0 {
 //            BrowseheaderArray.remove(at: 0)
 //        }
@@ -532,13 +508,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         self.present(navVC, animated: true)
     }
 
-    func fetchRecentlyPlayed() {
-        let savedTracks = UserDefaultsManager.shared.localTracksData
-        recenltPlayed = savedTracks.filter({$0.isRecentlyPlayed})
-        recenltPlayed = recenltPlayed.reversed()
-        tblBrowse.reloadData()
-    }
-    
     func loadBannerAds() {
         guard !IAPHandler.shared.isGetPurchase() else {
             return
@@ -566,7 +535,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             guard let self = self else { return }
             if let resp = resp {
                 self.homeMusic = resp
-                self.isPlaylistLoaded = true
                 self.isNewMusicLoaded = true
                 self.isPopularMusicLoaded = true
                 DispatchQueue.main.async {
@@ -575,12 +543,31 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             }
         }
     }
-    
-    func playlistsShowAll() {
-        let showAllVC = storyboard.vc(BrowseShowAllVC.self)
-        showAllVC.parentVC = self
-        showAllVC.playlist = homeMusic?.playlists ?? []
-        self.navigationController?.pushViewController(showAllVC, animated: true)
+
+    private func loadFeaturedPlaylists() {
+        DataHelper.getBrowseFeaturedPlaylists { [weak self] response in
+            guard let self = self else { return }
+            if let playlists = response?.browsePlaylist {
+                self.featuredBrowsePlaylists = playlists
+                self.isPlaylistLoaded = true
+                DispatchQueue.main.async {
+                    self.tblBrowse.reloadData()
+                }
+            }
+        }
+    }
+
+    private func loadArtistProfiles() {
+        DataHelper.getArtistProfilesList { [weak self] response in
+            guard let self = self else { return }
+            if let artists = response?.artistProfilesList {
+                self.artistProfiles = artists
+                self.isArtistProfilesLoaded = true
+                DispatchQueue.main.async {
+                    self.tblBrowse.reloadData()
+                }
+            }
+        }
     }
     
     func newReleasesShowAll() {
@@ -604,20 +591,19 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         self.navigationController?.pushViewController(showAllVC, animated: true)
     }
     
-    func recentlyPlayedShowAll() {
-        let showAllVC = storyboard.vc(BrowseShowAllVC.self)
-        showAllVC.parentVC = self
-        showAllVC.recenltPlayed = self.recenltPlayed
-        self.navigationController?.pushViewController(showAllVC, animated: true)
+    func featuredPlaylistsShowAll() {
+        let showAllVC = BrowseFeaturedPlaylistsShowAllViewController()
+        showAllVC.playlists = featuredBrowsePlaylists
+        navigationController?.pushViewController(showAllVC, animated: true)
     }
-    
+
     func onClickShowAll(type: String) {
         switch type {
-        case Browseheader.playlist.title:       playlistsShowAll()
+        case Browseheader.playlist.title:       featuredPlaylistsShowAll()
+        case Browseheader.artistProfiles.title: openArtistList()
         case Browseheader.newMusic.title:       newReleasesShowAll()
         case Browseheader.popularMusic.title:   popularTracksShowAll()
         case Browseheader.radio.title:          browseRadioShowAll()
-        case Browseheader.recentlyPlay.title:   recentlyPlayedShowAll()
         default:
             let vc = self.storyboard.vc(RadioWithRecentViewController.self)
             self.navigationController?.pushViewController(vc, animated: true)
@@ -688,12 +674,24 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         if let cell = tableView.registerAndGet(cell: BrowseTableCell.self),
            isPlaylistLoaded {
             cell.selectionStyle = .none
-            if let playlists = homeMusic?.playlists {
-                cell.presentViewBrowse = self
-                cell.playlist = playlists
-                cell.newReleases.removeAll()
-                cell.reloadCollectionView()
-            }
+            cell.presentViewBrowse = self
+            cell.featuredBrowsePlaylists = featuredBrowsePlaylists
+            cell.playlist.removeAll()
+            cell.newReleases.removeAll()
+            cell.reloadCollectionView()
+            return cell
+        }
+        return UITableViewCell()
+    }
+
+    func artistProfilesCell(with tableView: UITableView) -> UITableViewCell {
+        tableView.register(BrowseArtistProfilesCell.self, forCellReuseIdentifier: BrowseArtistProfilesCell.reuseID)
+        if let cell = tableView.dequeueReusableCell(withIdentifier: BrowseArtistProfilesCell.reuseID) as? BrowseArtistProfilesCell,
+           isArtistProfilesLoaded {
+            cell.selectionStyle = .none
+            cell.presentViewBrowse = self
+            cell.artists = artistProfiles
+            cell.reloadCollectionView()
             return cell
         }
         return UITableViewCell()
@@ -712,18 +710,6 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         return UITableViewCell()
     }
 
-    func recentlyPlayedCell(with tableView: UITableView) -> UITableViewCell {//
-        let recentTracks = self.recenltPlayed.map { $0.convertToPodcastModel() }
-        if let cell = tableView.registerAndGet(cell: RecentlyPlayedCell.self), recentTracks.count > 0 {
-            cell.selectionStyle = .none
-            cell.presentViewBrowse = self
-            cell.trackData = recentTracks
-            cell.reloadCollectionView()
-            return cell
-        }
-        return UITableViewCell()
-    }
-    
     func rjTvCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: RJTVTableViewCell.self) {
             cell.selectionStyle = .none
@@ -804,13 +790,24 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         navigationController?.pushViewController(vc, animated: true) // Alternative: push instead of present//        AppPlayer.miniPlayerInfo = BasicDetail(
     }
 
-    func openMyMusicPlayerViewController(index: Int) {
-        let recentTracks = self.recenltPlayed.map { $0.convertToPodcastModel() }
-        let vc = self.storyboard?.instantiateViewController(withIdentifier: "MyMusicPlayerViewController") as! MyMusicPlayerViewController
-        vc.selectedIndex = index
-        vc.tempTrack = recentTracks
-        vc.track = recentTracks
-        self.navigationController?.pushViewController(vc, animated: true)
+    func openFeaturedPlaylist(_ playlist: BrowseFeaturedPlaylist) {
+        let detailVC = SearchPlaylistDetailViewController()
+        detailVC.playlistPID = playlist.pid
+        detailVC.fallbackPlaylist = playlist.toSearchSubPlaylist()
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+
+    func openArtistList() {
+        let listVC = ArtistListViewController()
+        listVC.allArtists = artistProfiles
+        navigationController?.pushViewController(listVC, animated: true)
+    }
+
+    func openArtistProfile(artistID: String, summary: ArtistProfileSummary) {
+        let profileVC = ArtistProfileViewController()
+        profileVC.artistID = artistID
+        profileVC.fallbackSummary = summary
+        navigationController?.pushViewController(profileVC, animated: true)
     }
     
     let avPlayerViewController = AVPlayerViewController()
@@ -963,19 +960,20 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.playlist.title:
             if !isPlaylistLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return playlistsCell(with: tableView)
-        case Browseheader.newMusic.title:
-            if !isNewMusicLoaded { return skeletonCell(for: tableView, at: indexPath) }
-            return newReleasesCell(with: tableView)
+        case Browseheader.artistProfiles.title:
+            if !isArtistProfilesLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return artistProfilesCell(with: tableView)
         case Browseheader.popularMusic.title:
             if !isPopularMusicLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return popularTracksCell(with: tableView)
+        case Browseheader.newMusic.title:
+            if !isNewMusicLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return newReleasesCell(with: tableView)
+        case Browseheader.rjtv.title:
+            return rjTvCell(with: tableView)
         case Browseheader.radio.title:
             if !isRadioLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return browseRadioCell(with: tableView)
-        case Browseheader.rjtv.title:
-            return rjTvCell(with: tableView)
-        case Browseheader.recentlyPlay.title:
-            return recentlyPlayedCell(with: tableView)
         default:
             let cell = UITableViewCell()
             cell.selectionStyle = .none
@@ -1003,13 +1001,13 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
 
         switch BrowseheaderArray[section] {
-        case Browseheader.playlist.title:     return setHeaderData(headerTitle: Browseheader.playlist.title)
-        case Browseheader.newMusic.title:     return setHeaderData(headerTitle: Browseheader.newMusic.title)
-        case Browseheader.popularMusic.title: return setHeaderData(headerTitle: Browseheader.popularMusic.title)
-        case Browseheader.rjtv.title:         return setHeaderData(headerTitle: Browseheader.rjtv.title, isShowShowAll: false)
-        case Browseheader.radio.title:        return setHeaderData(headerTitle: Browseheader.radio.title)
-        case Browseheader.recentlyPlay.title: return setHeaderData(headerTitle: Browseheader.recentlyPlay.title)
-        default:                              return nil
+        case Browseheader.playlist.title:       return setHeaderData(headerTitle: Browseheader.playlist.title)
+        case Browseheader.artistProfiles.title: return setHeaderData(headerTitle: Browseheader.artistProfiles.title)
+        case Browseheader.popularMusic.title:   return setHeaderData(headerTitle: Browseheader.popularMusic.title)
+        case Browseheader.newMusic.title:       return setHeaderData(headerTitle: Browseheader.newMusic.title)
+        case Browseheader.rjtv.title:           return setHeaderData(headerTitle: Browseheader.rjtv.title, isShowShowAll: false)
+        case Browseheader.radio.title:          return setHeaderData(headerTitle: Browseheader.radio.title)
+        default:                                return nil
         }
     }
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -1018,10 +1016,12 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         switch BrowseheaderArray[indexPath.section] {
         case Browseheader.playlist.title:
             return isPlaylistLoaded ? UITableView.automaticDimension : 180
-        case Browseheader.newMusic.title:
-            return isNewMusicLoaded ? UITableView.automaticDimension : 180
+        case Browseheader.artistProfiles.title:
+            return isArtistProfilesLoaded ? UITableView.automaticDimension : 520
         case Browseheader.popularMusic.title:
             return isPopularMusicLoaded ? UITableView.automaticDimension : 180
+        case Browseheader.newMusic.title:
+            return isNewMusicLoaded ? UITableView.automaticDimension : 180
         case Browseheader.radio.title:
             return isRadioLoaded ? UITableView.automaticDimension : 180
         default:
@@ -1036,11 +1036,11 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
 
         switch BrowseheaderArray[section] {
         case Browseheader.playlist.title:       return 27
-        case Browseheader.newMusic.title:       return 27
+        case Browseheader.artistProfiles.title: return 27
         case Browseheader.popularMusic.title:   return 27
+        case Browseheader.newMusic.title:       return 27
         case Browseheader.rjtv.title:           return 27
         case Browseheader.radio.title:          return 27
-        case Browseheader.recentlyPlay.title:   return 27
         default:                                return 0
         }
     }
@@ -1113,12 +1113,10 @@ extension BrowseTabVC: GADInterstitialDelegate {
         switch browseheader {
         case .playlist, .newMusic, .popularMusic:
             openMusicPlayerViewController()
+        case .artistProfiles:
+            break
         case .radio:
             openRadioWithRecentViewController()
-        case .recentlyPlay:
-            if let recenltPlayedindex = recenltPlayedindex {
-                openMyMusicPlayerViewController(index: recenltPlayedindex)
-            }
 //        case .myPlaylist:
 //            if let myPlayListindex = myPlayListindex {
 //                openMyPlayList(index: myPlayListindex)
@@ -1128,6 +1126,8 @@ extension BrowseTabVC: GADInterstitialDelegate {
 
         case .currentRadio:
             openRadioWithRecentViewController()
+        case .recentlyPlay:
+            break
         }
     }
     

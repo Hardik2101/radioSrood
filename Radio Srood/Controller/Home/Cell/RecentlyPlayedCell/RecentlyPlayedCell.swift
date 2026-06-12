@@ -47,15 +47,6 @@ extension RecentlyPlayedCell: UICollectionViewDelegate, UICollectionViewDataSour
                 presentView.openMyMusicPlayerViewController(index: indexPath.row)
             }
         }
-        else if let presentView = presentViewBrowse {
-            presentView.browseheader = .recentlyPlay
-            if presentView.interstitial != nil {
-                presentView.recenltPlayedindex = indexPath.row
-                presentView.interstitial.present(fromRootViewController: presentView)
-            } else {
-                presentView.openMyMusicPlayerViewController(index: indexPath.row)
-            }
-        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

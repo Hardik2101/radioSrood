@@ -36,6 +36,18 @@ class BrowseCollectionCell: UICollectionViewCell {
             }
         }
     }
+
+    var featuredBrowsePlaylist: BrowseFeaturedPlaylist? {
+        didSet {
+            if let featuredBrowsePlaylist = featuredBrowsePlaylist {
+                if let url = URL(string: featuredBrowsePlaylist.coverURL) {
+                    itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                }
+                lblTitle.text = featuredBrowsePlaylist.title
+                lblSubtitle.text = "\(featuredBrowsePlaylist.likesCount) Likes"
+            }
+        }
+    }
     
     override func awakeFromNib() {
         super.awakeFromNib()

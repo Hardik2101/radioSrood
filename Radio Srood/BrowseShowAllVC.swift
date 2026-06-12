@@ -149,15 +149,6 @@ extension BrowseShowAllVC: UITableViewDelegate, UITableViewDataSource {
         case !radioModels.isEmpty:
             parentVC.onClickRadio(at: indexPath.row)
             return
-        case !recenltPlayed.isEmpty:
-            parentVC.browseheader =  .recentlyPlay
-            if parentVC.interstitial != nil {
-                parentVC.recenltPlayedindex = indexPath.row
-                parentVC.interstitial.present(fromRootViewController: parentVC)
-            } else {
-                parentVC.openMyMusicPlayerViewController(index: indexPath.row)
-            }
-            return
         default: 
             return
         }
