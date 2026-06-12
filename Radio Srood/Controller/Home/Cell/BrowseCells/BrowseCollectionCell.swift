@@ -52,6 +52,16 @@ class BrowseCollectionCell: UICollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
     }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        playlist = nil
+        newRelease = nil
+        featuredBrowsePlaylist = nil
+        itemImage.image = nil
+        lblTitle.text = nil
+        lblSubtitle.text = nil
+    }
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)

@@ -1,12 +1,18 @@
 //
-//  ArtistProfileGridCell.swift
+//  ArtistProfileSroodArtistCell.swift
 //  Radio Srood
 //
 
 import UIKit
 
-final class ArtistProfileGridCell: UICollectionViewCell {
-    static let reuseID = "ArtistProfileGridCell"
+final class ArtistProfileSroodArtistCell: UICollectionViewCell {
+    static let reuseID = "ArtistProfileSroodArtistCell"
+    static let imageDiameter: CGFloat = 100
+    static let nameAreaHeight: CGFloat = 32
+
+    static var itemHeight: CGFloat {
+        imageDiameter + nameAreaHeight + 6
+    }
 
     private let imageContainer: UIView = {
         let view = UIView()
@@ -21,7 +27,6 @@ final class ArtistProfileGridCell: UICollectionViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.backgroundColor = .clear
         return imageView
     }()
 
@@ -47,8 +52,7 @@ final class ArtistProfileGridCell: UICollectionViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let radius = imageContainer.bounds.width / 2
-        guard radius > 0 else { return }
+        let radius = Self.imageDiameter / 2
         imageContainer.layer.cornerRadius = radius
         imageView.layer.cornerRadius = radius
         imageContainer.layer.masksToBounds = true
@@ -68,37 +72,32 @@ final class ArtistProfileGridCell: UICollectionViewCell {
 
         NSLayoutConstraint.activate([
             imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
+            imageContainer.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            imageContainer.widthAnchor.constraint(equalToConstant: Self.imageDiameter),
+            imageContainer.heightAnchor.constraint(equalToConstant: Self.imageDiameter),
 
             imageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
             imageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
-            nameLabel.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: 5),
-            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 1),
-            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -1),
+            nameLabel.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: 6),
+            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             nameLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor)
         ])
     }
 
-    func configure(with artist: ArtistProfileSummary) {
-        nameLabel.text = artist.artist
-        loadPhoto(from: artist.artistPhoto)
-    }
-
     func configure(with artist: SimilarArtist) {
         nameLabel.text = artist.artist
-        loadPhoto(from: artist.artistPhoto)
-    }
-
-    private func loadPhoto(from urlString: String) {
-        if let url = URL(string: urlString) {
-            imageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+        if let url = URL(string: artist.artistPhoto) {
+            imageView.af_setImage(
+                withURL: url,
+                placeholderImage: UIImage(named: "Lav_Radio_Logo.png")
+            )
         } else {
             imageView.image = UIImage(named: "Lav_Radio_Logo.png")
         }
+        setNeedsLayout()
     }
 }

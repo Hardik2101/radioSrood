@@ -28,6 +28,13 @@ class BrowseTableCell: UITableViewCell {
             layout.sectionInset = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
         }
     }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        playlist.removeAll()
+        featuredBrowsePlaylists.removeAll()
+        newReleases.removeAll()
+    }
     
     func reloadCollectionView() {
         playlistCollectionView.reloadData()

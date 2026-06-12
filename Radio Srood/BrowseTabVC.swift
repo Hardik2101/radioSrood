@@ -646,6 +646,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             cell.selectionStyle = .none
             if let newReleases = homeMusic?.newReleases {
                 cell.presentViewBrowse = self
+                cell.featuredBrowsePlaylists.removeAll()
                 cell.playlist.removeAll()
                 cell.newReleases = newReleases
                 cell.reloadCollectionView()

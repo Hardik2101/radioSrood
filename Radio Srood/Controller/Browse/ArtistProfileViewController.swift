@@ -9,14 +9,15 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     var artistID: String = ""
     var fallbackSummary: ArtistProfileSummary?
 
-    private var tracks: [Track] = []
-    private var profileData: ArtistProfileData?
+    private var profilePage: ArtistProfilePage?
+    private var playbackTracks: [Track] = []
+    private var isShuffle = false
 
     private var tableBottomConstraint: NSLayoutConstraint?
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
     private lazy var tableView: UITableView = {
-        let table = UITableView(frame: .zero, style: .plain)
+        let table = UITableView(frame: .zero, style: .grouped)
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = .black
         table.separatorStyle = .none
@@ -24,12 +25,24 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         table.delegate = self
         table.dataSource = self
         table.rowHeight = 88
+        table.estimatedRowHeight = 88
+        table.sectionHeaderHeight = UITableView.automaticDimension
+        table.estimatedSectionHeaderHeight = 44
+        table.sectionFooterHeight = UITableView.automaticDimension
+        table.estimatedSectionFooterHeight = 52
         table.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
+        table.register(
+            ArtistProfileSimilarArtistsTableCell.self,
+            forCellReuseIdentifier: ArtistProfileSimilarArtistsTableCell.reuseID
+        )
+        if #available(iOS 15.0, *) {
+            table.sectionHeaderTopPadding = 0
+        }
         return table
     }()
 
     private lazy var headerView: UIView = {
-        UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 320))
+        UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 420))
     }()
 
     private lazy var backButton: UIButton = {
@@ -49,7 +62,6 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 70
         imageView.backgroundColor = UIColor(white: 0.12, alpha: 1)
         return imageView
     }()
@@ -57,9 +69,8 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 26, weight: .bold)
+        label.font = .systemFont(ofSize: 28, weight: .bold)
         label.textColor = .white
-        label.textAlignment = .center
         label.numberOfLines = 2
         return label
     }()
@@ -67,20 +78,38 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     private let statsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.font = .systemFont(ofSize: 12, weight: .semibold)
         label.textColor = UIColor(white: 0.55, alpha: 1)
-        label.textAlignment = .center
         label.numberOfLines = 2
         return label
     }()
 
-    private let sectionTitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Top Tracks"
-        label.font = UIFont(name: "Kohinoor Telugu Medium", size: 18) ?? .systemFont(ofSize: 18, weight: .semibold)
-        label.textColor = .white.withAlphaComponent(0.85)
-        return label
+    private lazy var shuffleButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .white
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        button.setImage(UIImage(systemName: "shuffle", withConfiguration: config), for: .normal)
+        button.addTarget(self, action: #selector(shuffleTapped), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var playButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = UIColor(red: 0.90, green: 0.10, blue: 0.15, alpha: 1)
+        button.tintColor = .white
+        button.layer.cornerRadius = 28
+        let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .bold)
+        button.setImage(UIImage(systemName: "play.fill", withConfiguration: config), for: .normal)
+        button.addTarget(self, action: #selector(playTapped), for: .touchUpInside)
+        return button
+    }()
+
+    private let actionsContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
     override func viewDidLoad() {
@@ -88,6 +117,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         view.backgroundColor = .black
         applyFallbackSummary()
         setupUI()
+        setupLongPress()
         fetchArtistProfile()
     }
 
@@ -100,8 +130,13 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if isMovingFromParent {
-            navigationController?.setNavigationBarHidden(false, animated: animated)
+            navigationController?.setNavigationBarHidden(true, animated: animated)
         }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        resizeHeaderIfNeeded()
     }
 
     override func fixMiniplayerSpace() {
@@ -111,6 +146,10 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
     func didUpdateTrackMetadata() {
         tableView.reloadData()
+    }
+
+    private var mainStoryboard: UIStoryboard {
+        UIStoryboard(name: "Main", bundle: nil)
     }
 
     private func setupUI() {
@@ -124,25 +163,40 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         headerView.addSubview(coverImageView)
         headerView.addSubview(titleLabel)
         headerView.addSubview(statsLabel)
-        headerView.addSubview(sectionTitleLabel)
+        headerView.addSubview(actionsContainer)
+        actionsContainer.addSubview(shuffleButton)
+        actionsContainer.addSubview(playButton)
 
+        let coverWidth = UIScreen.main.bounds.width - 32
         NSLayoutConstraint.activate([
-            coverImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 12),
+            coverImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 52),
             coverImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            coverImageView.widthAnchor.constraint(equalToConstant: 140),
-            coverImageView.heightAnchor.constraint(equalToConstant: 140),
+            coverImageView.widthAnchor.constraint(equalToConstant: coverWidth),
+            coverImageView.heightAnchor.constraint(equalTo: coverImageView.widthAnchor),
 
             titleLabel.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
 
             statsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
-            statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
 
-            sectionTitleLabel.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 20),
-            sectionTitleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 15),
-            sectionTitleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8)
+            actionsContainer.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 16),
+            actionsContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            actionsContainer.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            actionsContainer.heightAnchor.constraint(equalToConstant: 56),
+            actionsContainer.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -12),
+
+            playButton.trailingAnchor.constraint(equalTo: actionsContainer.trailingAnchor),
+            playButton.centerYAnchor.constraint(equalTo: actionsContainer.centerYAnchor),
+            playButton.widthAnchor.constraint(equalToConstant: 56),
+            playButton.heightAnchor.constraint(equalToConstant: 56),
+
+            shuffleButton.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -16),
+            shuffleButton.centerYAnchor.constraint(equalTo: actionsContainer.centerYAnchor),
+            shuffleButton.widthAnchor.constraint(equalToConstant: 44),
+            shuffleButton.heightAnchor.constraint(equalToConstant: 44)
         ])
 
         tableView.tableHeaderView = headerView
@@ -164,13 +218,43 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+
+        view.bringSubviewToFront(backButton)
+    }
+
+    private func setupLongPress() {
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.3
+        longPress.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(longPress)
+    }
+
+    private func resizeHeaderIfNeeded() {
+        guard let header = tableView.tableHeaderView else { return }
+        let targetWidth = tableView.bounds.width
+        guard targetWidth > 0 else { return }
+
+        header.frame.size.width = targetWidth
+        header.setNeedsLayout()
+        header.layoutIfNeeded()
+
+        let height = header.systemLayoutSizeFitting(
+            CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        ).height
+
+        if abs(header.frame.height - height) > 1 {
+            header.frame.size.height = height
+            tableView.tableHeaderView = header
+        }
     }
 
     private func applyFallbackSummary() {
         guard let fallbackSummary else { return }
         titleLabel.text = fallbackSummary.artist
         if let playcounts = fallbackSummary.playcountsTotal {
-            statsLabel.text = "\(playcounts) Plays"
+            statsLabel.text = "\(playcounts.uppercased()) PLAYS"
         }
         if let url = URL(string: fallbackSummary.artistPhoto) {
             coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
@@ -181,39 +265,39 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         guard !artistID.isEmpty else { return }
         activityIndicator.startAnimating()
 
-        DataHelper.getArtistProfile(artistID: artistID) { [weak self] response in
+        DataHelper.getArtistProfilePage(artistID: artistID) { [weak self] page in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
-                guard let detail = response?.detail else { return }
+                guard let page else { return }
 
-                self.profileData = detail.artistProfileData
-                self.titleLabel.text = detail.artistProfileData.artist
-
-                let plays = detail.artistProfileData.playcountsTotal ?? ""
-                let tracksTotal = detail.artistProfileData.tracksTotal ?? ""
-                let likes = detail.artistProfileData.likesTotal ?? ""
-                self.statsLabel.text = [plays.isEmpty ? nil : "\(plays) Plays",
-                                        tracksTotal.isEmpty ? nil : "\(tracksTotal) Tracks",
-                                        likes.isEmpty ? nil : "\(likes) Likes"]
-                    .compactMap { $0 }
-                    .joined(separator: " · ")
-
-                let photoURL = detail.artistProfileData.artistPhoto700
-                    ?? detail.artistProfileData.artistPhoto
-                    ?? detail.artistProfileData.artistPhoto200
-                if let photoURL, let url = URL(string: photoURL) {
-                    self.coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-                }
-
-                var mergedTracks = detail.artistTopTracks ?? []
-                if let latest = detail.artistLatestTrack,
-                   !mergedTracks.contains(where: { $0.trackid == latest.trackid }) {
-                    mergedTracks.insert(latest, at: 0)
-                }
-                self.tracks = mergedTracks
+                self.profilePage = page
+                self.playbackTracks = page.playbackTracks
+                self.applyProfileData(page.profileData)
                 self.tableView.reloadData()
+                self.resizeHeaderIfNeeded()
             }
+        }
+    }
+
+    private func applyProfileData(_ data: ArtistProfileData) {
+        titleLabel.text = data.artist
+
+        var statParts: [String] = []
+        if let tracksTotal = data.tracksTotal, !tracksTotal.isEmpty {
+            statParts.append("\(tracksTotal.uppercased()) TRACKS")
+        }
+        if let likesTotal = data.likesTotal, !likesTotal.isEmpty {
+            statParts.append("\(likesTotal.uppercased()) LIKES")
+        }
+        if let playcountsTotal = data.playcountsTotal, !playcountsTotal.isEmpty {
+            statParts.append("\(playcountsTotal.uppercased()) PLAYS")
+        }
+        statsLabel.text = statParts.joined(separator: " • ")
+
+        let photoURL = data.artistPhoto700 ?? data.artistPhoto ?? data.artistPhoto200
+        if let photoURL, let url = URL(string: photoURL) {
+            coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
     }
 
@@ -228,35 +312,241 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         navigationController?.popViewController(animated: true)
     }
 
+    @objc private func playTapped() {
+        guard !podcastTracks.isEmpty else { return }
+        isShuffle = false
+        openPlayer(at: 0, tracks: playbackTracks)
+    }
+
+    @objc private func shuffleTapped() {
+        guard !podcastTracks.isEmpty else { return }
+        isShuffle = true
+        let randomIndex = Int.random(in: 0..<playbackTracks.count)
+        openPlayer(at: randomIndex, tracks: playbackTracks)
+    }
+
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began, let indexPath = tableView.indexPathForRow(at: gesture.location(in: tableView)) else {
+            return
+        }
+        guard let track = track(at: indexPath) else { return }
+        presentOptions(for: track)
+    }
+
+    @objc private func moreTapped(_ sender: UIButton) {
+        let sectionIndex = sender.tag
+        guard let sections = profilePage?.sections, sectionIndex < sections.count else { return }
+        let section = sections[sectionIndex]
+
+        if let tracks = section.tracks {
+            let vc = ArtistProfileSectionShowAllViewController()
+            vc.sectionTitle = section.title
+            vc.tracks = tracks
+            navigationController?.pushViewController(vc, animated: true)
+            return
+        }
+
+        if let artists = section.similarArtists {
+            let vc = ArtistProfileSimilarArtistsShowAllViewController()
+            vc.artists = artists
+            navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+
+    private func presentOptions(for track: Track) {
+        guard let optionsVC = mainStoryboard.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            return
+        }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
+    }
+
     private var podcastTracks: [PodcastObject] {
-        tracks.map { $0.convertToPodcastModel() }
+        playbackTracks.map { $0.convertToPodcastModel() }
+    }
+
+    private func openPlayer(at index: Int, tracks: [Track]) {
+        guard index >= 0, index < tracks.count else { return }
+        let podcasts = tracks.map { $0.convertToPodcastModel() }
+        let vc = mainStoryboard.instantiateViewController(withIdentifier: "MyMusicPlayerViewController") as! MyMusicPlayerViewController
+        vc.selectedIndex = index
+        vc.tempTrack = podcasts
+        vc.track = podcasts
+        vc.isShuffle = isShuffle
+        vc.isShowOptionList = true
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func track(at indexPath: IndexPath) -> Track? {
+        guard let section = profilePage?.sections[indexPath.section] else { return nil }
+        guard let tracks = section.tracks else { return nil }
+        return tracks[indexPath.row]
+    }
+
+    private func tracks(for section: ArtistProfileSection) -> [Track] {
+        let tracks = section.tracks ?? []
+        return Array(tracks.prefix(ArtistProfilePage.previewLimit))
+    }
+
+    private func similarArtists(for section: ArtistProfileSection) -> [SimilarArtist] {
+        let artists = section.similarArtists ?? []
+        return Array(artists.prefix(ArtistProfilePage.previewLimit))
+    }
+
+    private func configure(cell: SearchSongCell, with track: Track) {
+        let coverURL = track.thumbnailArtCoverURL?.absoluteString ?? track.artcover_200 ?? track.artcover ?? ""
+        if let url = URL(string: coverURL) {
+            cell.imgArtist.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+        }
+        cell.lblSongName.text = track.track
+        cell.lblArtistName.text = track.artist
+    }
+
+    private func makeSectionHeader(title: String) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .black
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = title
+        label.font = UIFont(name: "Kohinoor Telugu Medium", size: 18) ?? .systemFont(ofSize: 18, weight: .semibold)
+        label.textColor = .white.withAlphaComponent(0.92)
+        container.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 15),
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -15),
+            label.topAnchor.constraint(equalTo: container.topAnchor, constant: 14),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6)
+        ])
+
+        return container
+    }
+
+    private func makeMoreFooter(sectionIndex: Int) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .black
+
+        let button = makeMoreButton(sectionIndex: sectionIndex)
+        container.addSubview(button)
+
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: container.topAnchor, constant: 4),
+            button.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 15),
+            button.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -15),
+            button.heightAnchor.constraint(equalToConstant: 42),
+            button.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -10)
+        ])
+
+        return container
+    }
+
+    private func makeMoreButton(sectionIndex: Int) -> UIButton {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("More", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        button.backgroundColor = UIColor(white: 0.16, alpha: 1)
+        button.layer.cornerRadius = 10
+        button.tag = sectionIndex
+        button.addTarget(self, action: #selector(moreTapped(_:)), for: .touchUpInside)
+        return button
+    }
+
+    private func openArtistProfile(_ artist: SimilarArtist) {
+        let vc = ArtistProfileViewController()
+        vc.artistID = artist.artistProfileid
+        vc.fallbackSummary = ArtistProfileSummary(
+            artistid: artist.artistProfileid,
+            artist: artist.artist,
+            artistDari: artist.artistDari,
+            playcountsTotal: nil,
+            artistPhoto: artist.artistPhoto
+        )
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 
 extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        profilePage?.sections.count ?? 0
+    }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tracks.count
+        guard let profileSection = profilePage?.sections[section] else { return 0 }
+        if profileSection.similarArtists != nil {
+            return 1
+        }
+        return tracks(for: profileSection).count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let profileSection = profilePage?.sections[indexPath.section] else {
+            return UITableViewCell()
+        }
+
+        if profileSection.similarArtists != nil {
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ArtistProfileSimilarArtistsTableCell.reuseID,
+                for: indexPath
+            ) as! ArtistProfileSimilarArtistsTableCell
+            cell.delegate = self
+            cell.configure(with: similarArtists(for: profileSection))
+            return cell
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
         cell.selectionStyle = .none
-        let track = tracks[indexPath.row]
-        if let url = URL(string: track.artcover_200 ?? track.artcover ?? "") {
-            cell.imgArtist.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-            cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+        if let track = tracks(for: profileSection)[safe: indexPath.row] {
+            configure(cell: cell, with: track)
         }
-        cell.lblArtistName.text = track.artist
-        cell.lblSongName.text = track.track
         return cell
     }
 
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let profileSection = profilePage?.sections[section] else { return nil }
+        return makeSectionHeader(title: profileSection.title)
+    }
+
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        guard let profileSection = profilePage?.sections[section] else { return nil }
+        guard profileSection.hasMoreItems else { return nil }
+        return makeMoreFooter(sectionIndex: section)
+    }
+
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        guard let profileSection = profilePage?.sections[section] else { return .leastNormalMagnitude }
+        return profileSection.hasMoreItems ? UITableView.automaticDimension : .leastNormalMagnitude
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        guard let profileSection = profilePage?.sections[indexPath.section] else { return 88 }
+        if profileSection.similarArtists != nil {
+            return ArtistProfileSimilarArtistsTableCell.rowHeight
+        }
+        return 88
+    }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let vc = storyboard?.instantiateViewController(withIdentifier: "MyMusicPlayerViewController") as! MyMusicPlayerViewController
-        vc.selectedIndex = indexPath.row
-        vc.tempTrack = podcastTracks
-        vc.track = podcastTracks
-        vc.isShowOptionList = true
-        navigationController?.pushViewController(vc, animated: true)
+        guard let profileSection = profilePage?.sections[indexPath.section],
+              let tracks = profileSection.tracks else { return }
+        isShuffle = false
+        openPlayer(at: indexPath.row, tracks: tracks)
+    }
+}
+
+extension ArtistProfileViewController: ArtistProfileSimilarArtistsTableCellDelegate {
+    func similarArtistsCell(_ cell: ArtistProfileSimilarArtistsTableCell, didSelect artist: SimilarArtist) {
+        openArtistProfile(artist)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

@@ -140,6 +140,10 @@
 		88B001092FADF201009CB334 /* ArtistListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001082FADF201009CB334 /* ArtistListViewController.swift */; };
 		88B0010B2FADF201009CB334 /* ArtistProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */; };
 		88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */; };
+		88B001122FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001132FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift */; };
+		88B001142FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */; };
+		88B001162FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */; };
+		88B001182FADF201009CB334 /* ArtistProfileSroodArtistCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
@@ -361,6 +365,10 @@
 		88B001082FADF201009CB334 /* ArtistListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistListViewController.swift; sourceTree = "<group>"; };
 		88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileViewController.swift; sourceTree = "<group>"; };
 		88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseFeaturedPlaylistsShowAllViewController.swift; sourceTree = "<group>"; };
+		88B001132FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSectionShowAllViewController.swift; sourceTree = "<group>"; };
+		88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSimilarArtistsTableCell.swift; sourceTree = "<group>"; };
+		88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSimilarArtistsShowAllViewController.swift; sourceTree = "<group>"; };
+		88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSroodArtistCell.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -829,6 +837,8 @@
 				88B0010E2FADF201009CB334 /* Models */,
 				88B001082FADF201009CB334 /* ArtistListViewController.swift */,
 				88B0010A2FADF201009CB334 /* ArtistProfileViewController.swift */,
+				88B001132FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift */,
+				88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */,
 				88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */,
 			);
 			path = Browse;
@@ -838,6 +848,8 @@
 			isa = PBXGroup;
 			children = (
 				88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */,
+				88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */,
+				88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */,
 				88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */,
 			);
 			path = Cell;
@@ -1462,6 +1474,10 @@
 				88B001072FADF201009CB334 /* BrowseArtistProfilesCell.swift in Sources */,
 				88B001092FADF201009CB334 /* ArtistListViewController.swift in Sources */,
 				88B0010B2FADF201009CB334 /* ArtistProfileViewController.swift in Sources */,
+				88B001122FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift in Sources */,
+				88B001142FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift in Sources */,
+				88B001162FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift in Sources */,
+				88B001182FADF201009CB334 /* ArtistProfileSroodArtistCell.swift in Sources */,
 				88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */,
 				DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */,
 				3F9AD5D61EAF49BE009B1532 /* PlayerViewController.swift in Sources */,

@@ -544,6 +544,37 @@ class DataHelper: NSObject {
             }
     }
 
+    static func getArtistProfilePage(artistID: String, completion: @escaping (_ page: ArtistProfilePage?) -> Void) {
+        let urlString = artistProfileURL(artistID: artistID)
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseData { response in
+                switch response.result {
+                case .success(let data):
+                    do {
+                        completion(try ArtistProfilePage.parse(from: data))
+                    } catch {
+                        print("Artist profile parse error: \(error)")
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    print("Artist profile API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
     static func getSearchResults(query: String, completion: @escaping (_ results: [SearchModel]?) -> Void) {
         let baseURL = searchBaseURL
         let apiKey = "SaReO9O0D45a03b-47c79ec2-fcc9775e78b2"
