@@ -130,6 +130,9 @@
 		88A100042FADF001009CB334 /* SearchBrowseCategoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100032FADF001009CB334 /* SearchBrowseCategoryCell.swift */; };
 		88A100062FADF001009CB334 /* SearchSubPlaylistCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100052FADF001009CB334 /* SearchSubPlaylistCell.swift */; };
 		88A100082FADF001009CB334 /* SearchCategoryDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100072FADF001009CB334 /* SearchCategoryDetailViewController.swift */; };
+		88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */; };
+		88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */; };
+		88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
@@ -341,6 +344,9 @@
 		88A100032FADF001009CB334 /* SearchBrowseCategoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBrowseCategoryCell.swift; sourceTree = "<group>"; };
 		88A100052FADF001009CB334 /* SearchSubPlaylistCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSubPlaylistCell.swift; sourceTree = "<group>"; };
 		88A100072FADF001009CB334 /* SearchCategoryDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCategoryDetailViewController.swift; sourceTree = "<group>"; };
+		88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailModel.swift; sourceTree = "<group>"; };
+		88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistTrackCell.swift; sourceTree = "<group>"; };
+		88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailViewController.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -797,6 +803,7 @@
 				88A100112FADF001009CB334 /* Models */,
 				8873A4892FADFCB0009CB334 /* SearchViewController.swift */,
 				88A100072FADF001009CB334 /* SearchCategoryDetailViewController.swift */,
+				88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -806,6 +813,7 @@
 			children = (
 				88A100032FADF001009CB334 /* SearchBrowseCategoryCell.swift */,
 				88A100052FADF001009CB334 /* SearchSubPlaylistCell.swift */,
+				88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -814,6 +822,7 @@
 			isa = PBXGroup;
 			children = (
 				88A100012FADF001009CB334 /* SearchPlaylistCategoryModel.swift */,
+				88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1399,6 +1408,9 @@
 				88A100042FADF001009CB334 /* SearchBrowseCategoryCell.swift in Sources */,
 				88A100062FADF001009CB334 /* SearchSubPlaylistCell.swift in Sources */,
 				88A100082FADF001009CB334 /* SearchCategoryDetailViewController.swift in Sources */,
+				88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */,
+				88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */,
+				88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */,
 				DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */,
 				3F9AD5D61EAF49BE009B1532 /* PlayerViewController.swift in Sources */,
 				3F9AB1491EAB3F68000D8FE3 /* config.swift in Sources */,

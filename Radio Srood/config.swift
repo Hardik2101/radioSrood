@@ -30,6 +30,10 @@ let lyricsBaseURL = "https://lyric.srood.stream/jostojo"
 let searchBaseURL = "https://search.srood.stream/jostojo"
 let searchBrowseAllURL = musicBaseUrl + "playlists/Srood-Playlist-All-SgRtObOwDD5ptU3Z8efiVEj5EBWIoVklO9.json"
 
+func searchPlaylistURL(pid: String) -> String {
+    musicBaseUrl + "playlists/\(pid).json"
+}
+
 let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"
 let GOOGLE_ADMOB_INTER               =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/5635919690"
 let GOOGLE_ADMOB_NATIVE              =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/7385126578"

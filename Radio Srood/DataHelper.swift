@@ -417,6 +417,32 @@ class DataHelper: NSObject {
             }
     }
     
+    static func getSearchPlaylistData(pid: String, completion: @escaping (_ response: SearchPlaylistDetailResponse?) -> Void) {
+        let urlString = searchPlaylistURL(pid: pid)
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+
+        AF.request(request)
+            .validate()
+            .responseDecodable(of: SearchPlaylistDetailResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data)
+                case .failure(let error):
+                    print("Playlist API error: \(error)")
+                    completion(nil)
+                }
+            }
+    }
+
     static func getSearchBrowseAllData(completion: @escaping (_ response: SearchBrowseAllResponse?) -> Void) {
         guard let url = URL(string: searchBrowseAllURL) else {
             completion(nil)

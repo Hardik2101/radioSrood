@@ -152,6 +152,10 @@ extension SearchCategoryDetailViewController: UICollectionViewDelegate, UICollec
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // Playlist track playback can be wired here when pid JSON endpoint is integrated.
+        let playlist = subPlaylists[indexPath.item]
+        let detailVC = SearchPlaylistDetailViewController()
+        detailVC.playlistPID = playlist.pid
+        detailVC.fallbackPlaylist = playlist
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
