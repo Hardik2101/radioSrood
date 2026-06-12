@@ -94,6 +94,7 @@ class SearchViewController: UI_VC {
         view.addSubview(lblBrowseAll)
         view.addSubview(collectionView)
 
+        tfSearch.translatesAutoresizingMaskIntoConstraints = false
         styleSearchField()
         setupSearchTable()
 
@@ -105,19 +106,20 @@ class SearchViewController: UI_VC {
             lblTitle.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             lblTitle.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            collectionBottom,
+
             tfSearch.topAnchor.constraint(equalTo: lblTitle.bottomAnchor, constant: 16),
-            tfSearch.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tfSearch.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tfSearch.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
+            tfSearch.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             tfSearch.heightAnchor.constraint(equalToConstant: 44),
 
             lblBrowseAll.topAnchor.constraint(equalTo: tfSearch.bottomAnchor, constant: 24),
-            lblBrowseAll.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            lblBrowseAll.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            lblBrowseAll.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
+            lblBrowseAll.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
 
-            collectionView.topAnchor.constraint(equalTo: lblBrowseAll.bottomAnchor, constant: 12),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionBottom
+            collectionView.topAnchor.constraint(equalTo: lblBrowseAll.bottomAnchor, constant: 12)
         ])
     }
 
@@ -149,13 +151,7 @@ class SearchViewController: UI_VC {
         tfSearch.leftView = leftContainer
         tfSearch.leftViewMode = .always
 
-        let clearButton = UIButton(type: .custom)
-        clearButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        clearButton.tintColor = UIColor.white.withAlphaComponent(0.45)
-        clearButton.frame = CGRect(x: 0, y: 0, width: 36, height: 20)
-        clearButton.addTarget(self, action: #selector(clearSearch), for: .touchUpInside)
-        tfSearch.rightView = clearButton
-        tfSearch.rightViewMode = .whileEditing
+        tfSearch.clearButtonMode = .whileEditing
     }
 
     private func setupSearchTable() {
@@ -169,8 +165,8 @@ class SearchViewController: UI_VC {
         tblSearch.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             tblSearch.topAnchor.constraint(equalTo: tfSearch.bottomAnchor, constant: 12),
-            tblSearch.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            tblSearch.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            tblSearch.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
+            tblSearch.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             tblSearch.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
