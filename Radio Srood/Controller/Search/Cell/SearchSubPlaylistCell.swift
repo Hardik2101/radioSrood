@@ -93,7 +93,7 @@ final class SearchSubPlaylistCell: UICollectionViewCell {
     func configure(with playlist: SearchSubPlaylist) {
         titleLabel.text = playlist.title
 
-        subtitleLabel.text = "\(playlist.likesCount) likes"
+        subtitleLabel.text = "\(playlist.likesCount) Likes · \(playlist.tracksCount) Tracks"
 
         if let url = URL(string: playlist.cover) {
             coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
