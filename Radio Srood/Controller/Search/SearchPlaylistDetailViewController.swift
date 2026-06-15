@@ -15,6 +15,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     private var tableBottomConstraint: NSLayoutConstraint?
     private let activityIndicator = UIActivityIndicatorView(style: .large)
+    private let headerGradientLayer = CAGradientLayer()
 
     private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -31,7 +32,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     private lazy var headerView: UIView = {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 460))
-        view.backgroundColor = .black
+        view.backgroundColor = .clear
         return view
     }()
 
@@ -99,6 +100,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        setupHeaderGradient()
         setupTableView()
         setupHeaderView()
         setupLongPress()
@@ -122,6 +124,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         resizeHeaderIfNeeded()
+        updateGradientFrames()
     }
 
     override func fixMiniplayerSpace() {
@@ -135,6 +138,14 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     private var mainStoryboard: UIStoryboard {
         UIStoryboard(name: "Main", bundle: nil)
+    }
+
+    private func setupHeaderGradient() {
+        applyHeaderGradient(topColor: UIColor(white: 0.14, alpha: 1), animated: false)
+
+        headerGradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        headerGradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        headerView.layer.insertSublayer(headerGradientLayer, at: 0)
     }
 
     private func setupTableView() {
@@ -236,7 +247,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
         titleLabel.text = fallbackPlaylist.title
         statsLabel.text = "\(fallbackPlaylist.likesCount) Likes · \(fallbackPlaylist.tracksCount) Tracks"
         if let url = URL(string: fallbackPlaylist.cover) {
-            coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            loadCoverImage(from: url)
         }
     }
 
@@ -256,7 +267,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
                 self.statsLabel.text = "\(playlist.info.likesCount) Likes · \(playlist.info.tracksCount) Tracks"
 
                 if let url = URL(string: playlist.info.cover) {
-                    self.coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                    self.loadCoverImage(from: url)
                 }
 
                 self.tableView.reloadData()
@@ -274,6 +285,57 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
         tableBottomConstraint?.constant = -miniPlayerInset
         tableView.contentInset.bottom = miniPlayerInset
         view.layoutIfNeeded()
+    }
+
+    private func loadCoverImage(from url: URL) {
+        let placeholder = UIImage(named: "Lav_Radio_Logo.png")
+        coverImageView.af_setImage(
+            withURL: url,
+            placeholderImage: placeholder,
+            filter: nil,
+            imageTransition: .crossDissolve(0.25),
+            completion: { [weak self] response in
+                guard let self, let image = response.value else { return }
+                self.updateHeaderGradient(from: image)
+            }
+        )
+    }
+
+    private func updateHeaderGradient(from image: UIImage) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let topColor = image.playlistGradientColor()
+            DispatchQueue.main.async {
+                self?.applyHeaderGradient(topColor: topColor, animated: true)
+            }
+        }
+    }
+
+    private func applyHeaderGradient(topColor: UIColor, animated: Bool) {
+        let midColor = topColor.withBrightnessMultiplier(0.55)
+        let colors = [
+            topColor.cgColor,
+            midColor.cgColor,
+            UIColor.black.cgColor
+        ]
+
+        let apply = {
+            self.headerGradientLayer.colors = colors
+            self.headerGradientLayer.locations = [0, 0.45, 1]
+        }
+
+        guard animated else {
+            apply()
+            return
+        }
+
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.35)
+        apply()
+        CATransaction.commit()
+    }
+
+    private func updateGradientFrames() {
+        headerGradientLayer.frame = headerView.bounds
     }
 
     @objc private func popBack() {

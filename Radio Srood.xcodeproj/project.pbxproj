@@ -133,6 +133,7 @@
 		88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */; };
 		88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */; };
 		88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */; };
+		88A1001B2FADF202009CB334 /* UIImage+DominantColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A1001A2FADF202009CB334 /* UIImage+DominantColor.swift */; };
 		88B001012FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */; };
 		88B001032FADF201009CB334 /* ArtistProfileModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001022FADF201009CB334 /* ArtistProfileModels.swift */; };
 		88B001052FADF201009CB334 /* ArtistProfileGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */; };
@@ -358,6 +359,7 @@
 		88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailModel.swift; sourceTree = "<group>"; };
 		88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistTrackCell.swift; sourceTree = "<group>"; };
 		88A1000D2FADF101009CB334 /* SearchPlaylistDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlaylistDetailViewController.swift; sourceTree = "<group>"; };
+		88A1001A2FADF202009CB334 /* UIImage+DominantColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+DominantColor.swift"; sourceTree = "<group>"; };
 		88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseFeaturedPlaylistModel.swift; sourceTree = "<group>"; };
 		88B001022FADF201009CB334 /* ArtistProfileModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileModels.swift; sourceTree = "<group>"; };
 		88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileGridCell.swift; sourceTree = "<group>"; };
@@ -1124,6 +1126,7 @@
 				43709A6329FF608800DEA464 /* String.swift */,
 				B7CD496D2B3368FE00B07DB5 /* Date + Extension.swift */,
 				B7CD496F2B33692D00B07DB5 /* UIView + Extension.swift */,
+				88A1001A2FADF202009CB334 /* UIImage+DominantColor.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -1468,6 +1471,7 @@
 				88A1000A2FADF101009CB334 /* SearchPlaylistDetailModel.swift in Sources */,
 				88A1000C2FADF101009CB334 /* SearchPlaylistTrackCell.swift in Sources */,
 				88A1000E2FADF101009CB334 /* SearchPlaylistDetailViewController.swift in Sources */,
+				88A1001B2FADF202009CB334 /* UIImage+DominantColor.swift in Sources */,
 				88B001012FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift in Sources */,
 				88B001032FADF201009CB334 /* ArtistProfileModels.swift in Sources */,
 				88B001052FADF201009CB334 /* ArtistProfileGridCell.swift in Sources */,
