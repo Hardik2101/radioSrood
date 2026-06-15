@@ -34,9 +34,9 @@ final class BrowseFeaturedPlaylistsShowAllViewController: UI_VC {
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 8
-        layout.minimumLineSpacing = 14
-        layout.sectionInset = UIEdgeInsets(top: 8, left: 14, bottom: 20, right: 14)
+        layout.minimumInteritemSpacing = 16
+        layout.minimumLineSpacing = 20
+        layout.sectionInset = UIEdgeInsets(top: 8, left: 16, bottom: 24, right: 16)
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +44,7 @@ final class BrowseFeaturedPlaylistsShowAllViewController: UI_VC {
         collectionView.showsVerticalScrollIndicator = false
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(UINib(nibName: "BrowseCollectionCell", bundle: nil), forCellWithReuseIdentifier: "BrowseCollectionCell")
+        collectionView.register(SearchSubPlaylistCell.self, forCellWithReuseIdentifier: SearchSubPlaylistCell.reuseID)
         return collectionView
     }()
 
@@ -121,18 +121,18 @@ extension BrowseFeaturedPlaylistsShowAllViewController: UICollectionViewDelegate
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "BrowseCollectionCell", for: indexPath) as! BrowseCollectionCell
-        cell.featuredBrowsePlaylist = playlists[indexPath.item]
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchSubPlaylistCell.reuseID, for: indexPath) as! SearchSubPlaylistCell
+        cell.configure(with: playlists[indexPath.item].toSearchSubPlaylist())
         return cell
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let horizontalInset: CGFloat = 28
-        let columnSpacing: CGFloat = 8
-        let columns: CGFloat = 2
-        let width = collectionView.bounds.width > 0 ? collectionView.bounds.width : view.bounds.width
-        let itemWidth = floor((width - horizontalInset - columnSpacing) / columns)
-        return CGSize(width: itemWidth, height: itemWidth + 44)
+        let horizontalInset: CGFloat = 32
+        let columnSpacing: CGFloat = 16
+        let contentWidth = collectionView.bounds.width > 0 ? collectionView.bounds.width : view.bounds.width
+        let itemWidth = floor((contentWidth - horizontalInset - columnSpacing) / 2)
+        let textHeight: CGFloat = 48
+        return CGSize(width: itemWidth, height: itemWidth + textHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
