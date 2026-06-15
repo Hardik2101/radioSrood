@@ -29,12 +29,18 @@ public extension NSNotification.Name {
 var player: PlayObserver? {
     get { AppPlayer.musicData }
     set {
+        if let old = AppPlayer.musicData, old !== newValue {
+            old.pause()
+        }
         AppPlayer.musicData = newValue
     }
 }
 var radio: RadioObserver {
     get { AppPlayer.radioData }
     set {
+        if AppPlayer.radioData !== newValue {
+            AppPlayer.radioData.pause()
+        }
         AppPlayer.radioData = newValue
     }
 }
@@ -44,6 +50,33 @@ struct AppPlayer {
     fileprivate static var radioData = RadioObserver()
     
     fileprivate static var musicData: PlayObserver? = nil
+
+    static func pauseMusic() {
+        musicData?.pause()
+    }
+
+    static func pauseMusic(except observer: PlayObserver) {
+        if let current = musicData, current !== observer {
+            current.pause()
+        }
+    }
+
+    static func pauseRadio() {
+        radioData.pause()
+    }
+
+    private static var isCoordinationConfigured = false
+
+    static func configurePlaybackCoordination() {
+        guard !isCoordinationConfigured else { return }
+        isCoordinationConfigured = true
+        NotificationCenter.default.addObserver(
+            forName: .pauseMusic, object: nil, queue: .main
+        ) { _ in pauseMusic() }
+        NotificationCenter.default.addObserver(
+            forName: .pauseRadio, object: nil, queue: .main
+        ) { _ in pauseRadio() }
+    }
     
     
     /// Set player(music/radio) first

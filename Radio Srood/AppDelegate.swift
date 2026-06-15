@@ -57,6 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
+        AppPlayer.configurePlaybackCoordination()
         
         GADMobileAds.sharedInstance().start(completionHandler: nil)
         

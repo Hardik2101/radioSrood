@@ -15,6 +15,8 @@ class PlayObserver: AVPlayer {
 
     override func play() {
         NotificationCenter.default.post(name: .pauseRadio, object: nil, userInfo: nil)
+        AppPlayer.pauseRadio()
+        AppPlayer.pauseMusic(except: self)
         super.play()
     }
 
@@ -85,6 +87,7 @@ class RadioObserver: AVPlayer {
 
     override func play() {
         NotificationCenter.default.post(name: .pauseMusic, object: nil, userInfo: nil)
+        AppPlayer.pauseMusic()
         super.play()
     }
 

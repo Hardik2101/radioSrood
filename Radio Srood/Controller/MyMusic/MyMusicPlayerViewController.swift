@@ -198,8 +198,7 @@ class MyMusicPlayerViewController: UIViewController, GADBannerViewDelegate {
                     object: currentItem
                 )
             }
-            // ✅ Don't call p.pause() here — it creates an audible gap
-            // The old player gets deallocated naturally when player = nil below
+            p.pause()
         }
 
         timeObserver = nil
