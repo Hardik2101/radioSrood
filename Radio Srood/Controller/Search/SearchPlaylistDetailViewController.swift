@@ -16,6 +16,13 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
     private var tableBottomConstraint: NSLayoutConstraint?
     private let activityIndicator = UIActivityIndicatorView(style: .large)
     private let headerGradientLayer = CAGradientLayer()
+    private let headerTopSpacer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        return view
+    }()
+    private var headerTopSpacerHeightConstraint: NSLayoutConstraint?
 
     private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -25,6 +32,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
         table.showsVerticalScrollIndicator = false
         table.delegate = self
         table.dataSource = self
+        table.contentInsetAdjustmentBehavior = .never
         table.rowHeight = 88
         table.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
         return table
@@ -123,6 +131,7 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        headerTopSpacerHeightConstraint?.constant = view.safeAreaInsets.top
         resizeHeaderIfNeeded()
         updateGradientFrames()
     }
@@ -178,14 +187,23 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
     }
 
     private func setupHeaderView() {
+        headerView.addSubview(headerTopSpacer)
         headerView.addSubview(coverImageView)
         headerView.addSubview(titleLabel)
         headerView.addSubview(statsLabel)
         headerView.addSubview(shuffleButton)
         headerView.addSubview(playButton)
 
+        let spacerHeight = headerTopSpacer.heightAnchor.constraint(equalToConstant: 0)
+        headerTopSpacerHeightConstraint = spacerHeight
+
         NSLayoutConstraint.activate([
-            coverImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 52),
+            headerTopSpacer.topAnchor.constraint(equalTo: headerView.topAnchor),
+            headerTopSpacer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            headerTopSpacer.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            spacerHeight,
+
+            coverImageView.topAnchor.constraint(equalTo: headerTopSpacer.bottomAnchor, constant: 8),
             coverImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             coverImageView.widthAnchor.constraint(equalToConstant: 270),
             coverImageView.heightAnchor.constraint(equalToConstant: 270),
@@ -312,15 +330,15 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     private func applyHeaderGradient(topColor: UIColor, animated: Bool) {
         let midColor = topColor.withBrightnessMultiplier(0.55)
-        let colors = [
-            topColor.cgColor,
-            midColor.cgColor,
-            UIColor.black.cgColor
-        ]
 
         let apply = {
-            self.headerGradientLayer.colors = colors
-            self.headerGradientLayer.locations = [0, 0.45, 1]
+            self.headerGradientLayer.colors = [
+                topColor.cgColor,
+                topColor.cgColor,
+                midColor.cgColor,
+                UIColor.black.cgColor
+            ]
+            self.updateGradientLocations()
         }
 
         guard animated else {
@@ -336,6 +354,25 @@ final class SearchPlaylistDetailViewController: UI_VC, OptionsViewControllerDele
 
     private func updateGradientFrames() {
         headerGradientLayer.frame = headerView.bounds
+        updateGradientLocations()
+    }
+
+    private func updateGradientLocations() {
+        guard headerGradientLayer.colors?.count == 4 else { return }
+
+        let height = headerView.bounds.height
+        guard height > 0 else { return }
+
+        let safeRatio = min(view.safeAreaInsets.top / height, 0.18)
+        let fadeStart = min(safeRatio + 0.05, 0.22)
+        let fadeEnd = min(fadeStart + 0.4, 0.92)
+
+        headerGradientLayer.locations = [
+            0,
+            NSNumber(value: Float(fadeStart)),
+            NSNumber(value: Float(fadeEnd)),
+            1
+        ]
     }
 
     @objc private func popBack() {
