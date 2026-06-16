@@ -52,6 +52,21 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
     }()
 
     private var collectionViewBottomConstraint: NSLayoutConstraint?
+    private var tfSearchTrailingToCloseButton: NSLayoutConstraint?
+    private var tfSearchTrailingToEdge: NSLayoutConstraint?
+    private var btnCloseWidthConstraint: NSLayoutConstraint?
+
+    private let btnCloseSearch: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.tintColor = .white
+        button.backgroundColor = UIColor(white: 0.18, alpha: 1)
+        button.layer.cornerRadius = 22
+        button.clipsToBounds = true
+        button.accessibilityLabel = "Clear search"
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -93,13 +108,20 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
         view.addSubview(lblTitle)
         view.addSubview(lblBrowseAll)
         view.addSubview(collectionView)
+        view.addSubview(btnCloseSearch)
 
         tfSearch.translatesAutoresizingMaskIntoConstraints = false
         styleSearchField()
         setupSearchTable()
 
+        btnCloseSearch.addTarget(self, action: #selector(cancelSearch), for: .touchUpInside)
+
         let collectionBottom = collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         collectionViewBottomConstraint = collectionBottom
+
+        btnCloseWidthConstraint = btnCloseSearch.widthAnchor.constraint(equalToConstant: 0)
+        tfSearchTrailingToCloseButton = tfSearch.trailingAnchor.constraint(equalTo: btnCloseSearch.leadingAnchor, constant: -12)
+        tfSearchTrailingToEdge = tfSearch.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor)
 
         NSLayoutConstraint.activate([
             lblTitle.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
@@ -112,8 +134,12 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
 
             tfSearch.topAnchor.constraint(equalTo: lblTitle.bottomAnchor, constant: 16),
             tfSearch.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
-            tfSearch.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             tfSearch.heightAnchor.constraint(equalToConstant: 44),
+
+            btnCloseSearch.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor),
+            btnCloseSearch.centerYAnchor.constraint(equalTo: tfSearch.centerYAnchor),
+            btnCloseSearch.heightAnchor.constraint(equalToConstant: 44),
+            btnCloseWidthConstraint!,
 
             lblBrowseAll.topAnchor.constraint(equalTo: tfSearch.bottomAnchor, constant: 24),
             lblBrowseAll.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor),
@@ -121,6 +147,9 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
 
             collectionView.topAnchor.constraint(equalTo: lblBrowseAll.bottomAnchor, constant: 12)
         ])
+
+        tfSearchTrailingToEdge?.isActive = true
+        btnCloseSearch.isHidden = true
     }
 
     private func styleSearchField() {
@@ -128,10 +157,10 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
         tfSearch.backgroundColor = UIColor(white: 0.15, alpha: 1.0)
         tfSearch.textColor = .white
         tfSearch.font = .systemFont(ofSize: 15)
-        tfSearch.layer.cornerRadius = 8
+        tfSearch.layer.cornerRadius = 22
         tfSearch.clipsToBounds = true
         tfSearch.attributedPlaceholder = NSAttributedString(
-            string: "Search,Artist,Song or Albums...",
+            string: "Artists, Songs, Lyrics, and More",
             attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.45)]
         )
         tfSearch.delegate = self
@@ -139,6 +168,7 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
         tfSearch.returnKeyType = .search
         tfSearch.autocorrectionType = .no
         tfSearch.autocapitalizationType = .none
+        tfSearch.clearButtonMode = .never
 
         let iconView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
         iconView.tintColor = UIColor.white.withAlphaComponent(0.55)
@@ -151,7 +181,23 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
         tfSearch.leftView = leftContainer
         tfSearch.leftViewMode = .always
 
-        tfSearch.clearButtonMode = .whileEditing
+        let rightPadding = UIView(frame: CGRect(x: 0, y: 0, width: 8, height: 20))
+        tfSearch.rightView = rightPadding
+        tfSearch.rightViewMode = .always
+    }
+
+    private func updateCloseButtonVisibility() {
+        let hasText = !(tfSearch.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let shouldShow = isSearching || hasText || tfSearch.isFirstResponder
+
+        btnCloseSearch.isHidden = !shouldShow
+        btnCloseWidthConstraint?.constant = shouldShow ? 44 : 0
+        tfSearchTrailingToCloseButton?.isActive = shouldShow
+        tfSearchTrailingToEdge?.isActive = !shouldShow
+
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     private func setupSearchTable() {
@@ -191,10 +237,13 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
         tblSearch.isHidden = !searching
         collectionView.isHidden = searching
         lblBrowseAll.isHidden = searching
+        updateCloseButtonVisibility()
     }
 
     @objc private func searchTextChanged() {
         guard let query = tfSearch.text?.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
+
+        updateCloseButtonVisibility()
 
         if query.isEmpty {
             cancelSearch()
@@ -203,29 +252,32 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
 
         setSearching(true)
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
-        perform(#selector(performSearch), with: query, afterDelay: 0.4)
+        perform(#selector(performSearch), with: query, afterDelay: 0.5)
     }
 
     @objc private func performSearch(_ query: String) {
         DataHelper.getSearchResults(query: query) { [weak self] results in
-            guard let self else { return }
+            guard let self = self else { return }
             DispatchQueue.main.async {
-                self.searchResults = results ?? []
+                if let results = results {
+                    self.searchResults = results
+                } else {
+                    self.searchResults = []
+                    print("No results found for: \(query)")
+                }
                 self.tblSearch.reloadData()
             }
         }
     }
 
-    @objc private func clearSearch() {
-        cancelSearch()
-    }
-
-    private func cancelSearch() {
+    @objc private func cancelSearch() {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
         tfSearch.text = ""
         tfSearch.resignFirstResponder()
         searchResults.removeAll()
         tblSearch.reloadData()
         setSearching(false)
+        updateCloseButtonVisibility()
     }
 
     func didUpdateTrackMetadata() {
@@ -301,8 +353,32 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
 // MARK: - UITableView
 
 extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        1
+    }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         searchResults.count
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        70
+    }
+
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        0
+    }
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        nil
+    }
+
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        .leastNonzeroMagnitude
+    }
+
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        nil
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -331,11 +407,16 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: - UITextFieldDelegate
 
 extension SearchViewController: UITextFieldDelegate {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        updateCloseButtonVisibility()
+    }
+
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        updateCloseButtonVisibility()
+    }
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
-        if let query = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty {
-            performSearch(query)
-        }
         return true
     }
 }
