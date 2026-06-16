@@ -34,7 +34,7 @@ final class ArtistListViewController: UI_VC {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Artist Profiles"
+        label.text = "Popular Artists"
         label.font = UIFont(name: "Kohinoor Telugu Medium", size: 22) ?? .systemFont(ofSize: 22, weight: .bold)
         label.textColor = .white
         label.textAlignment = .center

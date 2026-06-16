@@ -832,6 +832,25 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
+		88A100102FADF001009CB334 /* Cell */ = {
+			isa = PBXGroup;
+			children = (
+				88A100032FADF001009CB334 /* SearchBrowseCategoryCell.swift */,
+				88A100052FADF001009CB334 /* SearchSubPlaylistCell.swift */,
+				88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */,
+			);
+			path = Cell;
+			sourceTree = "<group>";
+		};
+		88A100112FADF001009CB334 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				88A100012FADF001009CB334 /* SearchPlaylistCategoryModel.swift */,
+				88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		88B0010C2FADF201009CB334 /* Browse */ = {
 			isa = PBXGroup;
 			children = (
@@ -862,25 +881,6 @@
 			children = (
 				88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */,
 				88B001022FADF201009CB334 /* ArtistProfileModels.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		88A100102FADF001009CB334 /* Cell */ = {
-			isa = PBXGroup;
-			children = (
-				88A100032FADF001009CB334 /* SearchBrowseCategoryCell.swift */,
-				88A100052FADF001009CB334 /* SearchSubPlaylistCell.swift */,
-				88A1000B2FADF101009CB334 /* SearchPlaylistTrackCell.swift */,
-			);
-			path = Cell;
-			sourceTree = "<group>";
-		};
-		88A100112FADF001009CB334 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				88A100012FADF001009CB334 /* SearchPlaylistCategoryModel.swift */,
-				88A100092FADF101009CB334 /* SearchPlaylistDetailModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1700,14 +1700,14 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 802;
+				CURRENT_PROJECT_VERSION = 804;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 10.9.2;
+				MARKETING_VERSION = 10.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1729,14 +1729,14 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 802;
+				CURRENT_PROJECT_VERSION = 804;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 10.9.2;
+				MARKETING_VERSION = 10.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.developer.radiosrood;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

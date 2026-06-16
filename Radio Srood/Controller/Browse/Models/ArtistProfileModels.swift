@@ -263,9 +263,9 @@ extension Track {
         if let dateAdded, !dateAdded.isEmpty {
             parts.append(ArtistProfileTrackFormatting.displayDate(from: dateAdded))
         }
-        if let playcounts, !playcounts.isEmpty {
-            parts.append("\(playcounts.uppercased()) PLAYS")
-        }
+//        if let playcounts, !playcounts.isEmpty {
+//            parts.append("\(playcounts.uppercased()) PLAYS")
+//        }
         return parts.joined(separator: " · ")
     }
 }

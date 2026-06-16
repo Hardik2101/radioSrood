@@ -44,7 +44,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
                 lblTitle.text = featuredBrowsePlaylist.title
-                lblSubtitle.text = "\(featuredBrowsePlaylist.likesCount) Likes"
+                lblSubtitle.text = "\(featuredBrowsePlaylist.tracksCount) Tracks"
             }
         }
     }

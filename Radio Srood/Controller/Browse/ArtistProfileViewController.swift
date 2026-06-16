@@ -241,9 +241,9 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     private func applyFallbackSummary() {
         guard let fallbackSummary else { return }
         titleLabel.text = fallbackSummary.artist
-        if let playcounts = fallbackSummary.playcountsTotal {
-            statsLabel.text = "\(playcounts.uppercased()) PLAYS"
-        }
+//        if let playcounts = fallbackSummary.playcountsTotal {
+//            statsLabel.text = "\(playcounts.uppercased()) PLAYS"
+//        }
         if let url = URL(string: fallbackSummary.artistPhoto) {
             coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         }
@@ -273,14 +273,14 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
         var statParts: [String] = []
         if let tracksTotal = data.tracksTotal, !tracksTotal.isEmpty {
-            statParts.append("\(tracksTotal.uppercased()) TRACKS")
+            statParts.append("\(tracksTotal.uppercased()) Tracks")
         }
         if let likesTotal = data.likesTotal, !likesTotal.isEmpty {
-            statParts.append("\(likesTotal.uppercased()) LIKES")
+            statParts.append("\(likesTotal.uppercased()) Likes")
         }
-        if let playcountsTotal = data.playcountsTotal, !playcountsTotal.isEmpty {
-            statParts.append("\(playcountsTotal.uppercased()) PLAYS")
-        }
+//        if let playcountsTotal = data.playcountsTotal, !playcountsTotal.isEmpty {
+//            statParts.append("\(playcountsTotal.uppercased()) PLAYS")
+//        }
         statsLabel.text = statParts.joined(separator: " • ")
 
         let photoURL = data.artistPhoto700 ?? data.artistPhoto ?? data.artistPhoto200

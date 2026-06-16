@@ -58,7 +58,7 @@ enum Browseheader: Int, CaseIterable {
         case .playlist:
             return "Featured Playlists"
         case .artistProfiles:
-            return "Artist Profiles"
+            return "Popular Artists"
         case .newMusic:
             return "Just For You"
         case .popularMusic:
