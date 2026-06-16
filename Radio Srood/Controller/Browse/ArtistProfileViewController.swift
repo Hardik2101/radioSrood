@@ -15,6 +15,14 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
     private var tableBottomConstraint: NSLayoutConstraint?
     private let activityIndicator = UIActivityIndicatorView(style: .large)
+    private let headerGradientLayer = CAGradientLayer()
+    private let headerTopSpacer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        return view
+    }()
+    private var headerTopSpacerHeightConstraint: NSLayoutConstraint?
 
     private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
@@ -24,6 +32,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         table.showsVerticalScrollIndicator = false
         table.delegate = self
         table.dataSource = self
+        table.contentInsetAdjustmentBehavior = .never
         table.rowHeight = 88
         table.estimatedRowHeight = 88
         table.sectionHeaderHeight = UITableView.automaticDimension
@@ -42,7 +51,9 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     }()
 
     private lazy var headerView: UIView = {
-        UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 420))
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 420))
+        view.backgroundColor = .clear
+        return view
     }()
 
     private lazy var backButton: UIButton = {
@@ -109,6 +120,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        setupHeaderGradient()
         applyFallbackSummary()
         setupUI()
         setupLongPress()
@@ -130,7 +142,9 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        headerTopSpacerHeightConstraint?.constant = view.safeAreaInsets.top
         resizeHeaderIfNeeded()
+        updateGradientFrames()
     }
 
     override func fixMiniplayerSpace() {
@@ -146,6 +160,14 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         UIStoryboard(name: "Main", bundle: nil)
     }
 
+    private func setupHeaderGradient() {
+        applyHeaderGradient(topColor: UIColor(white: 0.14, alpha: 1), animated: false)
+
+        headerGradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        headerGradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        headerView.layer.insertSublayer(headerGradientLayer, at: 0)
+    }
+
     private func setupUI() {
         view.addSubview(tableView)
         view.addSubview(backButton)
@@ -154,15 +176,24 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.color = .white
 
+        headerView.addSubview(headerTopSpacer)
         headerView.addSubview(coverImageView)
         headerView.addSubview(shuffleButton)
         headerView.addSubview(playButton)
         headerView.addSubview(titleLabel)
         headerView.addSubview(statsLabel)
 
+        let spacerHeight = headerTopSpacer.heightAnchor.constraint(equalToConstant: 0)
+        headerTopSpacerHeightConstraint = spacerHeight
+
         let coverWidth = UIScreen.main.bounds.width - 32
         NSLayoutConstraint.activate([
-            coverImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 52),
+            headerTopSpacer.topAnchor.constraint(equalTo: headerView.topAnchor),
+            headerTopSpacer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            headerTopSpacer.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            spacerHeight,
+
+            coverImageView.topAnchor.constraint(equalTo: headerTopSpacer.bottomAnchor, constant: 8),
             coverImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             coverImageView.widthAnchor.constraint(equalToConstant: coverWidth),
             coverImageView.heightAnchor.constraint(equalTo: coverImageView.widthAnchor),
@@ -245,7 +276,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 //            statsLabel.text = "\(playcounts.uppercased()) PLAYS"
 //        }
         if let url = URL(string: fallbackSummary.artistPhoto) {
-            coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            loadCoverImage(from: url)
         }
     }
 
@@ -285,8 +316,78 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
         let photoURL = data.artistPhoto700 ?? data.artistPhoto ?? data.artistPhoto200
         if let photoURL, let url = URL(string: photoURL) {
-            coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+            loadCoverImage(from: url)
         }
+    }
+
+    private func loadCoverImage(from url: URL) {
+        let placeholder = UIImage(named: "Lav_Radio_Logo.png")
+        coverImageView.af_setImage(
+            withURL: url,
+            placeholderImage: placeholder,
+            filter: nil,
+            imageTransition: .crossDissolve(0.25),
+            completion: { [weak self] response in
+                guard let self, let image = response.value else { return }
+                self.updateHeaderGradient(from: image)
+            }
+        )
+    }
+
+    private func updateHeaderGradient(from image: UIImage) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let topColor = image.playlistGradientColor()
+            DispatchQueue.main.async {
+                self?.applyHeaderGradient(topColor: topColor, animated: true)
+            }
+        }
+    }
+
+    private func applyHeaderGradient(topColor: UIColor, animated: Bool) {
+        let midColor = topColor.withBrightnessMultiplier(0.55)
+
+        let apply = {
+            self.headerGradientLayer.colors = [
+                topColor.cgColor,
+                topColor.cgColor,
+                midColor.cgColor,
+                UIColor.black.cgColor
+            ]
+            self.updateGradientLocations()
+        }
+
+        guard animated else {
+            apply()
+            return
+        }
+
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.35)
+        apply()
+        CATransaction.commit()
+    }
+
+    private func updateGradientFrames() {
+        headerGradientLayer.frame = headerView.bounds
+        updateGradientLocations()
+    }
+
+    private func updateGradientLocations() {
+        guard headerGradientLayer.colors?.count == 4 else { return }
+
+        let height = headerView.bounds.height
+        guard height > 0 else { return }
+
+        let safeRatio = min(view.safeAreaInsets.top / height, 0.18)
+        let fadeStart = min(safeRatio + 0.05, 0.22)
+        let fadeEnd = min(fadeStart + 0.4, 0.92)
+
+        headerGradientLayer.locations = [
+            0,
+            NSNumber(value: Float(fadeStart)),
+            NSNumber(value: Float(fadeEnd)),
+            1
+        ]
     }
 
     private func updateBottomInset() {
