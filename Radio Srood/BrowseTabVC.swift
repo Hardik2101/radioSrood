@@ -412,38 +412,38 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         tfSearchBar.autocorrectionType = .no
         
 
-        let cancelButton = UIButton(type: .system)
-        cancelButton.setImage(UIImage(systemName: "xmark"), for: .normal)
-        cancelButton.tintColor = .lightGray
-        cancelButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
-        cancelButton.addTarget(self, action: #selector(cancelSearch), for: .touchUpInside)
-        cancelButton.isEnabled = true
+//        let cancelButton = UIButton(type: .system)
+//        cancelButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+//        cancelButton.tintColor = .lightGray
+//        cancelButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
+//        cancelButton.addTarget(self, action: #selector(cancelSearch), for: .touchUpInside)
+//        cancelButton.isEnabled = true
+//
+//        let padding: CGFloat = 8 // Adjust this value for more/less spacing
+//        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: cancelButton.frame.width + padding, height: cancelButton.frame.height))
+//
+//        // 3. Add the button to the container
+//        containerView.addSubview(cancelButton)
+//
+//        // 4. Set the container as the rightView
+//        tfSearchBar.rightView = containerView
+//        tfSearchBar.rightViewMode = .whileEditing
+//        tfSearchBar.rightViewMode = .always
+//        tfSearchBar.placeholder = "Search, Artist, Song or Album..."
 
-        let padding: CGFloat = 8 // Adjust this value for more/less spacing
-        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: cancelButton.frame.width + padding, height: cancelButton.frame.height))
-
-        // 3. Add the button to the container
-        containerView.addSubview(cancelButton)
-
-        // 4. Set the container as the rightView
-        tfSearchBar.rightView = containerView
-        tfSearchBar.rightViewMode = .whileEditing
-        tfSearchBar.rightViewMode = .always
-        tfSearchBar.placeholder = "Search, Artist, Song or Album..."
-
-        if let image = UIImage(systemName: "magnifyingglass") {
-            let imageView = UIImageView(image: image)
-            imageView.tintColor = .gray // Optional: Set tint if using SF Symbols
-            imageView.contentMode = .scaleAspectFit
-            imageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
-
-            let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 36, height: 24))
-            paddingView.addSubview(imageView)
-            imageView.center = paddingView.center
-
-            tfSearchBar.leftView = paddingView
-            tfSearchBar.leftViewMode = .always
-        }
+//        if let image = UIImage(systemName: "magnifyingglass") {
+//            let imageView = UIImageView(image: image)
+//            imageView.tintColor = .gray // Optional: Set tint if using SF Symbols
+//            imageView.contentMode = .scaleAspectFit
+//            imageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+//
+//            let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 36, height: 24))
+//            paddingView.addSubview(imageView)
+//            imageView.center = paddingView.center
+//
+//            tfSearchBar.leftView = paddingView
+//            tfSearchBar.leftViewMode = .always
+//        }
 
 //        vwAds.isHidden = true
 //        imgAdClose.isHidden = true
