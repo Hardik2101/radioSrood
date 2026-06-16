@@ -40,10 +40,6 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         table.sectionFooterHeight = UITableView.automaticDimension
         table.estimatedSectionFooterHeight = 52
         table.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
-        table.register(
-            ArtistProfileSimilarArtistsTableCell.self,
-            forCellReuseIdentifier: ArtistProfileSimilarArtistsTableCell.reuseID
-        )
         if #available(iOS 15.0, *) {
             table.sectionHeaderTopPadding = 0
         }
@@ -449,11 +445,36 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     }
 
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began, let indexPath = tableView.indexPathForRow(at: gesture.location(in: tableView)) else {
+        guard gesture.state == .began else { return }
+
+        let touchPoint = gesture.location(in: tableView)
+        guard let indexPath = tableView.indexPathForRow(at: touchPoint),
+              let profileSection = profilePage?.sections[indexPath.section] else {
             return
         }
-        guard let track = track(at: indexPath) else { return }
-        presentOptions(for: track)
+
+        switch profileSection.layout {
+        case .carouselTracks:
+            guard let browseCell = tableView.cellForRow(at: indexPath) as? BrowseTableCell,
+                  let tracks = profileSection.tracks else { return }
+
+            let collectionPoint = gesture.location(in: browseCell.playlistCollectionView)
+            guard let collectionIndexPath = browseCell.playlistCollectionView.indexPathForItem(at: collectionPoint),
+                  collectionIndexPath.item < tracks.count else { return }
+
+            let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+            feedbackGenerator.prepare()
+            feedbackGenerator.impactOccurred()
+
+            presentOptions(for: tracks[collectionIndexPath.item])
+
+        case .latestRelease, .listTracks:
+            guard let track = track(at: indexPath) else { return }
+            presentOptions(for: track)
+
+        case .similarArtists:
+            break
+        }
     }
 
     @objc private func moreTapped(_ sender: UIButton) {
@@ -510,12 +531,19 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
     private func tracks(for section: ArtistProfileSection) -> [Track] {
         let tracks = section.tracks ?? []
-        return Array(tracks.prefix(ArtistProfilePage.previewLimit))
+        switch section.layout {
+        case .carouselTracks, .latestRelease:
+            return tracks
+        case .listTracks:
+            return Array(tracks.prefix(ArtistProfilePage.listPreviewLimit))
+        case .similarArtists:
+            return []
+        }
     }
 
     private func similarArtists(for section: ArtistProfileSection) -> [SimilarArtist] {
         let artists = section.similarArtists ?? []
-        return Array(artists.prefix(ArtistProfilePage.previewLimit))
+        return Array(artists.prefix(ArtistProfilePage.similarArtistsLimit))
     }
 
     private func configure(cell: SearchSongCell, with track: Track) {
@@ -601,10 +629,12 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let profileSection = profilePage?.sections[section] else { return 0 }
-        if profileSection.similarArtists != nil {
+        switch profileSection.layout {
+        case .carouselTracks, .similarArtists:
             return 1
+        case .latestRelease, .listTracks:
+            return tracks(for: profileSection).count
         }
-        return tracks(for: profileSection).count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -612,22 +642,51 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
             return UITableViewCell()
         }
 
-        if profileSection.similarArtists != nil {
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: ArtistProfileSimilarArtistsTableCell.reuseID,
-                for: indexPath
-            ) as! ArtistProfileSimilarArtistsTableCell
-            cell.delegate = self
-            cell.configure(with: similarArtists(for: profileSection))
+        switch profileSection.layout {
+        case .carouselTracks:
+            guard let cell = tableView.registerAndGet(cell: BrowseTableCell.self) else {
+                return UITableViewCell()
+            }
+            cell.selectionStyle = .none
+            cell.backgroundColor = .black
+            cell.contentView.backgroundColor = .black
+            cell.presentView = nil
+            cell.presentViewBrowse = nil
+            cell.featuredBrowsePlaylists = []
+            cell.playlist = []
+            cell.newReleases = []
+            cell.similarArtists = []
+            cell.browseDelegate = self
+            cell.artistProfileTracks = profileSection.tracks ?? []
+            cell.reloadCollectionView()
+            return cell
+
+        case .similarArtists:
+            guard let cell = tableView.registerAndGet(cell: BrowseTableCell.self) else {
+                return UITableViewCell()
+            }
+            cell.selectionStyle = .none
+            cell.backgroundColor = .black
+            cell.contentView.backgroundColor = .black
+            cell.presentView = nil
+            cell.presentViewBrowse = nil
+            cell.featuredBrowsePlaylists = []
+            cell.playlist = []
+            cell.newReleases = []
+            cell.artistProfileTracks = []
+            cell.browseDelegate = self
+            cell.similarArtists = similarArtists(for: profileSection)
+            cell.reloadCollectionView()
+            return cell
+
+        case .latestRelease, .listTracks:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
+            cell.selectionStyle = .none
+            if let track = tracks(for: profileSection)[safe: indexPath.row] {
+                configure(cell: cell, with: track)
+            }
             return cell
         }
-
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
-        cell.selectionStyle = .none
-        if let track = tracks(for: profileSection)[safe: indexPath.row] {
-            configure(cell: cell, with: track)
-        }
-        return cell
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -648,23 +707,32 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let profileSection = profilePage?.sections[indexPath.section] else { return 88 }
-        if profileSection.similarArtists != nil {
-            return ArtistProfileSimilarArtistsTableCell.rowHeight
+        switch profileSection.layout {
+        case .carouselTracks, .similarArtists:
+            return 245
+        case .latestRelease, .listTracks:
+            return 88
         }
-        return 88
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let profileSection = profilePage?.sections[indexPath.section],
               let tracks = profileSection.tracks else { return }
+        guard profileSection.layout == .latestRelease || profileSection.layout == .listTracks else { return }
         isShuffle = false
         openPlayer(at: indexPath.row, tracks: tracks)
     }
 }
 
-extension ArtistProfileViewController: ArtistProfileSimilarArtistsTableCellDelegate {
-    func similarArtistsCell(_ cell: ArtistProfileSimilarArtistsTableCell, didSelect artist: SimilarArtist) {
-        openArtistProfile(artist)
+extension ArtistProfileViewController: BrowseTableCellDelegate {
+    func browseTableCell(_ cell: BrowseTableCell, didSelectTrackAt index: Int, tracks: [Track]) {
+        isShuffle = false
+        openPlayer(at: index, tracks: tracks)
+    }
+
+    func browseTableCell(_ cell: BrowseTableCell, didSelectSimilarArtistAt index: Int, artists: [SimilarArtist]) {
+        guard index >= 0, index < artists.count else { return }
+        openArtistProfile(artists[index])
     }
 }
 

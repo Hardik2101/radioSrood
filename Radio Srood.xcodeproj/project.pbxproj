@@ -145,6 +145,8 @@
 		88B001142FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */; };
 		88B001162FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */; };
 		88B001182FADF201009CB334 /* ArtistProfileSroodArtistCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */; };
+		88B0011B2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0011A2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift */; };
+		88B0011D2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0011C2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
@@ -371,6 +373,8 @@
 		88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSimilarArtistsTableCell.swift; sourceTree = "<group>"; };
 		88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSimilarArtistsShowAllViewController.swift; sourceTree = "<group>"; };
 		88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSroodArtistCell.swift; sourceTree = "<group>"; };
+		88B0011A2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileHorizontalCardCell.swift; sourceTree = "<group>"; };
+		88B0011C2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileCarouselTableCell.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -869,6 +873,8 @@
 			isa = PBXGroup;
 			children = (
 				88B001042FADF201009CB334 /* ArtistProfileGridCell.swift */,
+				88B0011C2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift */,
+				88B0011A2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift */,
 				88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */,
 				88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */,
 				88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */,
@@ -1482,6 +1488,8 @@
 				88B001142FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift in Sources */,
 				88B001162FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift in Sources */,
 				88B001182FADF201009CB334 /* ArtistProfileSroodArtistCell.swift in Sources */,
+				88B0011B2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift in Sources */,
+				88B0011D2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift in Sources */,
 				88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */,
 				DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */,
 				3F9AD5D61EAF49BE009B1532 /* PlayerViewController.swift in Sources */,
@@ -1700,7 +1708,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 804;
+				CURRENT_PROJECT_VERSION = 805;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";
@@ -1729,7 +1737,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Radio Srood/Radio Srood.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 804;
+				CURRENT_PROJECT_VERSION = 805;
 				DEVELOPMENT_TEAM = SAA73LP9PJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Radio Srood/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Radio Srood";

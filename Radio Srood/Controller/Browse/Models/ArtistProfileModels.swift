@@ -99,6 +99,10 @@ struct ArtistProfileSection {
     let title: String
     let content: ArtistProfileSectionContent
 
+    var layout: ArtistProfileSectionLayout {
+        ArtistProfileSectionLayout.layout(for: key)
+    }
+
     var tracks: [Track]? {
         if case .tracks(let items) = content { return items }
         return nil
@@ -117,12 +121,40 @@ struct ArtistProfileSection {
     }
 
     var hasMoreItems: Bool {
-        itemCount > ArtistProfilePage.previewLimit
+        switch layout {
+        case .listTracks:
+            return itemCount > ArtistProfilePage.listPreviewLimit
+        case .latestRelease, .carouselTracks, .similarArtists:
+            return false
+        }
+    }
+}
+
+enum ArtistProfileSectionLayout {
+    case latestRelease
+    case carouselTracks
+    case listTracks
+    case similarArtists
+
+    static func layout(for key: String) -> ArtistProfileSectionLayout {
+        switch key {
+        case "artist_latest_track":
+            return .latestRelease
+        case "artist_top_tracks", "artist_trending_tracks", "artist_recent_tracks":
+            return .carouselTracks
+        case "artist_featured_tracks", "artist_all_tracks":
+            return .listTracks
+        case "similar_artist":
+            return .similarArtists
+        default:
+            return .listTracks
+        }
     }
 }
 
 struct ArtistProfilePage {
-    static let previewLimit = 4
+    static let listPreviewLimit = 5
+    static let similarArtistsLimit = 10
 
     private static let apiSectionOrder = [
         "artist_latest_track",

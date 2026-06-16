@@ -45,6 +45,28 @@ class BrowseCollectionCell: UICollectionViewCell {
                 }
                 lblTitle.text = featuredBrowsePlaylist.title
                 lblSubtitle.text = "\(featuredBrowsePlaylist.tracksCount) Tracks"
+                lblSubtitle.isHidden = false
+            }
+        }
+    }
+
+    var similarArtist: SimilarArtist? {
+        didSet {
+            if let similarArtist = similarArtist {
+                if let url = URL(string: similarArtist.artistPhoto) {
+                    itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
+                } else {
+                    itemImage.image = UIImage(named: "Lav_Radio_Logo.png")
+                }
+                lblTitle.text = similarArtist.artist
+                let dari = similarArtist.artistDari?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !dari.isEmpty, dari.caseInsensitiveCompare(similarArtist.artist) != .orderedSame {
+                    lblSubtitle.text = dari
+                    lblSubtitle.isHidden = false
+                } else {
+                    lblSubtitle.text = nil
+                    lblSubtitle.isHidden = true
+                }
             }
         }
     }
@@ -58,6 +80,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         playlist = nil
         newRelease = nil
         featuredBrowsePlaylist = nil
+        similarArtist = nil
         itemImage.image = nil
         lblTitle.text = nil
         lblSubtitle.text = nil

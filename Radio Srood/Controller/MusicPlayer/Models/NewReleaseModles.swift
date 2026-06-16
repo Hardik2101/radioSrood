@@ -154,4 +154,17 @@ extension Track {
         }
         return nil
     }
+
+    func asNewRelease() -> NewRelease {
+        NewRelease(
+            newReleasesArtist: artist ?? "",
+            newReleasesTrack: track ?? "",
+            newReleasesTrackID: trackid ?? 0,
+            newReleasesPlayCounts: playcounts ?? "0",
+            allowDownload: allowDownload ?? false,
+            newReleasesCover: artcover_200 ?? artcover ?? "",
+            newReleasesMP3Path: mediaPath ?? "",
+            shomara: 0
+        )
+    }
 }

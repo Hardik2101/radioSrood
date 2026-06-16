@@ -646,6 +646,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             cell.selectionStyle = .none
             if let newReleases = homeMusic?.newReleases {
                 cell.presentViewBrowse = self
+                cell.artistProfileTracks.removeAll()
+                cell.similarArtists.removeAll()
                 cell.featuredBrowsePlaylists.removeAll()
                 cell.playlist.removeAll()
                 cell.newReleases = newReleases
@@ -676,6 +678,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
            isPlaylistLoaded {
             cell.selectionStyle = .none
             cell.presentViewBrowse = self
+            cell.artistProfileTracks.removeAll()
+            cell.similarArtists.removeAll()
             cell.featuredBrowsePlaylists = featuredBrowsePlaylists
             cell.playlist.removeAll()
             cell.newReleases.removeAll()
