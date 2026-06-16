@@ -86,6 +86,25 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         return label
     }()
 
+    private let dariNameLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 18, weight: .semibold)
+        label.textColor = UIColor(white: 0.72, alpha: 1)
+        label.numberOfLines = 2
+        label.isHidden = true
+        return label
+    }()
+
+    private lazy var namesStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, dariNameLabel])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 4
+        return stack
+    }()
+
     private let statsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -180,7 +199,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         headerView.addSubview(coverImageView)
         headerView.addSubview(shuffleButton)
         headerView.addSubview(playButton)
-        headerView.addSubview(titleLabel)
+        headerView.addSubview(namesStackView)
         headerView.addSubview(statsLabel)
 
         let spacerHeight = headerTopSpacer.heightAnchor.constraint(equalToConstant: 0)
@@ -199,20 +218,20 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
             coverImageView.heightAnchor.constraint(equalTo: coverImageView.widthAnchor),
 
             playButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            playButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            playButton.centerYAnchor.constraint(equalTo: namesStackView.centerYAnchor),
             playButton.widthAnchor.constraint(equalToConstant: 56),
             playButton.heightAnchor.constraint(equalToConstant: 56),
 
             shuffleButton.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -20),
-            shuffleButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            shuffleButton.centerYAnchor.constraint(equalTo: namesStackView.centerYAnchor),
             shuffleButton.widthAnchor.constraint(equalToConstant: 44),
             shuffleButton.heightAnchor.constraint(equalToConstant: 44),
 
-            titleLabel.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: shuffleButton.leadingAnchor, constant: -12),
+            namesStackView.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 20),
+            namesStackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            namesStackView.trailingAnchor.constraint(lessThanOrEqualTo: shuffleButton.leadingAnchor, constant: -12),
 
-            statsLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
+            statsLabel.topAnchor.constraint(equalTo: namesStackView.bottomAnchor, constant: 2),
             statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             statsLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
@@ -271,10 +290,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
 
     private func applyFallbackSummary() {
         guard let fallbackSummary else { return }
-        titleLabel.text = fallbackSummary.artist
-//        if let playcounts = fallbackSummary.playcountsTotal {
-//            statsLabel.text = "\(playcounts.uppercased()) PLAYS"
-//        }
+        applyArtistNames(english: fallbackSummary.artist, dari: fallbackSummary.artistDari)
         if let url = URL(string: fallbackSummary.artistPhoto) {
             loadCoverImage(from: url)
         }
@@ -300,7 +316,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     }
 
     private func applyProfileData(_ data: ArtistProfileData) {
-        titleLabel.text = data.artist
+        applyArtistNames(english: data.artist, dari: data.artistDari)
 
         var statParts: [String] = []
         if let tracksTotal = data.tracksTotal, !tracksTotal.isEmpty {
@@ -317,6 +333,24 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
         let photoURL = data.artistPhoto700 ?? data.artistPhoto ?? data.artistPhoto200
         if let photoURL, let url = URL(string: photoURL) {
             loadCoverImage(from: url)
+        }
+
+        resizeHeaderIfNeeded()
+    }
+
+    private func applyArtistNames(english: String, dari: String?) {
+        titleLabel.text = english
+
+        let trimmedDari = dari?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let shouldShowDari = !trimmedDari.isEmpty
+            && trimmedDari.caseInsensitiveCompare(english) != .orderedSame
+
+        if shouldShowDari {
+            dariNameLabel.text = trimmedDari
+            dariNameLabel.isHidden = false
+        } else {
+            dariNameLabel.text = nil
+            dariNameLabel.isHidden = true
         }
     }
 
