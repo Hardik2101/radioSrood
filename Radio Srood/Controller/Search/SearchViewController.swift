@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SearchViewController: UI_VC {
+class SearchViewController: UI_VC, OptionsViewControllerDelegate {
     @IBOutlet private weak var tfSearch: UITextField!
     @IBOutlet private weak var tblSearch: UITableView!
 
@@ -162,6 +162,10 @@ class SearchViewController: UI_VC {
         tblSearch.isHidden = true
         tblSearch.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
 
+        let longPressSearch = UILongPressGestureRecognizer(target: self, action: #selector(handleSearchLongPress(_:)))
+        longPressSearch.minimumPressDuration = 0.3
+        tblSearch.addGestureRecognizer(longPressSearch)
+
         tblSearch.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             tblSearch.topAnchor.constraint(equalTo: tfSearch.bottomAnchor, constant: 12),
@@ -222,6 +226,44 @@ class SearchViewController: UI_VC {
         searchResults.removeAll()
         tblSearch.reloadData()
         setSearching(false)
+    }
+
+    func didUpdateTrackMetadata() {
+        tblSearch.reloadData()
+    }
+
+    @objc private func handleSearchLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+
+        let point = gesture.location(in: tblSearch)
+        guard let indexPath = tblSearch.indexPathForRow(at: point),
+              indexPath.row < searchResults.count else { return }
+
+        let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
+
+        if let cell = tblSearch.cellForRow(at: indexPath) {
+            cell.isUserInteractionEnabled = false
+            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                cell.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+            }) { _ in
+                UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+                    cell.transform = .identity
+                    cell.isUserInteractionEnabled = true
+                })
+            }
+        }
+
+        let track = searchResults[indexPath.row].convertToTrack()
+        guard let optionsVC = storyboard?.instantiateViewController(withIdentifier: "OptionsViewController") as? OptionsViewController else {
+            print("Error: Could not instantiate OptionsViewController")
+            return
+        }
+        optionsVC.track = track
+        optionsVC.delegate = self
+        optionsVC.modalPresentationStyle = .overFullScreen
+        present(optionsVC, animated: true)
     }
 }
 
