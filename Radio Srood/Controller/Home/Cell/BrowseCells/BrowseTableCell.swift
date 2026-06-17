@@ -19,6 +19,8 @@ class BrowseTableCell: UITableViewCell {
     var newReleases: [NewRelease] = []
     var artistProfileTracks: [Track] = []
     var similarArtists: [SimilarArtist] = []
+    var homeTrendingTracks: [TrendingTrack] = []
+    var homePopularTracks: [PopularTrack] = []
     var presentView: HomeViewController?
     var presentViewBrowse: BrowseTabVC?
     
@@ -42,6 +44,8 @@ class BrowseTableCell: UITableViewCell {
         newReleases.removeAll()
         artistProfileTracks.removeAll()
         similarArtists.removeAll()
+        homeTrendingTracks.removeAll()
+        homePopularTracks.removeAll()
     }
     
     func reloadCollectionView() {
@@ -65,6 +69,8 @@ extension BrowseTableCell: UICollectionViewDelegate, UICollectionViewDataSource 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if !artistProfileTracks.isEmpty { return artistProfileTracks.count }
         if !similarArtists.isEmpty { return similarArtists.count }
+        if !homeTrendingTracks.isEmpty { return homeTrendingTracks.count }
+        if !homePopularTracks.isEmpty { return homePopularTracks.count }
         if !featuredBrowsePlaylists.isEmpty { return featuredBrowsePlaylists.count }
         return !playlist.isEmpty ? playlist.count : newReleases.count
     }
@@ -75,6 +81,10 @@ extension BrowseTableCell: UICollectionViewDelegate, UICollectionViewDataSource 
                 cell.newRelease = artistProfileTracks[indexPath.row].asNewRelease()
             } else if !similarArtists.isEmpty {
                 cell.similarArtist = similarArtists[indexPath.row]
+            } else if !homeTrendingTracks.isEmpty {
+                cell.newRelease = homeTrendingTracks[indexPath.row].asNewRelease()
+            } else if !homePopularTracks.isEmpty {
+                cell.newRelease = homePopularTracks[indexPath.row].asNewRelease()
             } else if !featuredBrowsePlaylists.isEmpty {
                 cell.featuredBrowsePlaylist = featuredBrowsePlaylists[indexPath.row]
             } else if !playlist.isEmpty {
@@ -95,6 +105,28 @@ extension BrowseTableCell: UICollectionViewDelegate, UICollectionViewDataSource 
 
         if !similarArtists.isEmpty {
             browseDelegate?.browseTableCell(self, didSelectSimilarArtistAt: indexPath.row, artists: similarArtists)
+            return
+        }
+
+        if !homeTrendingTracks.isEmpty, let presentView = presentView {
+            presentView.groupID = homeTrendingTracks[indexPath.row].trendingTrackID
+            presentView.homeHeader = .trending
+            if presentView.interstitial != nil {
+                presentView.interstitial.present(fromRootViewController: presentView)
+            } else {
+                presentView.openMusicPlayerViewController()
+            }
+            return
+        }
+
+        if !homePopularTracks.isEmpty, let presentView = presentView {
+            presentView.groupID = homePopularTracks[indexPath.row].popularTrackID
+            presentView.homeHeader = .popularTracks
+            if presentView.interstitial != nil {
+                presentView.interstitial.present(fromRootViewController: presentView)
+            } else {
+                presentView.openMusicPlayerViewController()
+            }
             return
         }
 

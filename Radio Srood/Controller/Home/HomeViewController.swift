@@ -63,9 +63,9 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             || !isRecentlyAddedLoaded
     }
     
-    var isPlaylistsLoaded = false
     var isFeaturedArtistLoaded = false
     
+    private static let browseCarouselRowHeight: CGFloat = 245
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -76,7 +76,6 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         isTrendingLoaded = false
         isTodayTopPicLoaded = false
         isRecentlyAddedLoaded = false
-        isPlaylistsLoaded = false
         isFeaturedArtistLoaded = false
 
         prepareView()
@@ -237,12 +236,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
                 }
                 
             case "Playlists":
-                if let playlistCell = tableCell as? PlaylistCell,
-                   let collectionView = playlistCell.playlistCollectionView,
-                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
-                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
-                    showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
-                }
+                break
                 
             case "Hot Tracks":
                 if let releasesCell = tableCell as? NewReleasesCell,
@@ -253,10 +247,11 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
                 }
                 
             case "Trending", "Popular Tracks":
-                if let trackCell = tableCell as? TrackCell,
-                   let collectionView = trackCell.trackCollectionView,
-                   let collectionIndexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) {
-                    animateScaleEffect(for: collectionView, at: collectionIndexPath)
+                if let browseCell = tableCell as? BrowseTableCell,
+                   let collectionIndexPath = browseCell.playlistCollectionView.indexPathForItem(
+                    at: gesture.location(in: browseCell.playlistCollectionView)
+                   ) {
+                    animateScaleEffect(for: browseCell.playlistCollectionView, at: collectionIndexPath)
                     showLongPressAlert(for: collectionIndexPath.row, section: sectionTitle)
                 }
                 
@@ -510,19 +505,18 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     private func handleHomeHeaderArrayValue() {
-        homeHeaderArray = HomeHeader.allCases.map({ $0.title })
+        homeHeaderArray = HomeHeader.allCases
+            .map({ $0.title })
+            .filter { $0 != HomeHeader.playlists.title }
+
         if recenltPlayed.count <= 0 {
-            homeHeaderArray.remove(at: 9)
+            homeHeaderArray.removeAll { $0 == HomeHeader.recentlyPlayed.title }
         }
         if playList.count <= 0 {
-            homeHeaderArray.remove(at: 8)
+            homeHeaderArray.removeAll { $0 == HomeHeader.myPlaylist.title }
         }
-//        if nativeAd.count > 0 {
-            homeHeaderArray.insert("Native Ad First", at: 5)
-//            if nativeAd.count >= 2 {
-                homeHeaderArray.insert("Native Ad Second", at: homeHeaderArray.count-1)
-//            }
-//        }
+        homeHeaderArray.insert("Native Ad First", at: 5)
+        homeHeaderArray.insert("Native Ad Second", at: homeHeaderArray.count - 1)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -668,7 +662,6 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
                 self.isHotTracksLoaded = true
                 self.isPopularTracksLoaded = true
                 self.isTrendingLoaded = true
-                self.isPlaylistsLoaded = true
                 self.isFeaturedArtistLoaded = true
                 DispatchQueue.main.async {
                     self.radiosroodTableView.reloadData()
@@ -832,49 +825,41 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func trendingCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: TrackCell.self),
-           isTrendingLoaded {
-            cell.selectionStyle = .none
-            if let trendingTracks = homeMusic?.trendingTracks {
-                cell.presentView = self
-                cell.trendingTracks = trendingTracks
-                cell.reloadCollectionView()
-            }
-            return cell
+        guard let cell = tableView.registerAndGet(cell: BrowseTableCell.self), isTrendingLoaded else {
+            return UITableViewCell()
         }
-        return UITableViewCell()
+        configureBrowseCarouselCell(cell)
+        cell.homePopularTracks = []
+        cell.homeTrendingTracks = homeMusic?.trendingTracks ?? []
+        cell.reloadCollectionView()
+        return cell
     }
 
-    
     func popularTracksCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: TrackCell.self),
-           isPopularTracksLoaded {
-            cell.selectionStyle = .none
-            if let popularTracks = homeMusic?.popularTracks {
-                cell.presentView = self
-                cell.trendingTracks.removeAll()
-                cell.popularTracks = popularTracks
-                cell.reloadCollectionView()
-            }
-            return cell
+        guard let cell = tableView.registerAndGet(cell: BrowseTableCell.self), isPopularTracksLoaded else {
+            return UITableViewCell()
         }
-        return UITableViewCell()
+        configureBrowseCarouselCell(cell)
+        cell.homeTrendingTracks = []
+        cell.homePopularTracks = homeMusic?.popularTracks ?? []
+        cell.reloadCollectionView()
+        return cell
     }
 
-    
-    func playlistsCell(with tableView: UITableView) -> UITableViewCell {
-        if let cell = tableView.registerAndGet(cell: PlaylistCell.self),
-           isPlaylistsLoaded {
-            cell.selectionStyle = .none
-            if let playlists = homeMusic?.playlists {
-                cell.presentView = self
-                cell.playlist = playlists
-                cell.reloadCollectionView()
-            }
-            return cell
-        }
-        return UITableViewCell()
+    private func configureBrowseCarouselCell(_ cell: BrowseTableCell) {
+        cell.selectionStyle = .none
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+        cell.presentView = self
+        cell.presentViewBrowse = nil
+        cell.browseDelegate = nil
+        cell.featuredBrowsePlaylists = []
+        cell.playlist = []
+        cell.newReleases = []
+        cell.artistProfileTracks = []
+        cell.similarArtists = []
     }
+
     
     func recentlyPlayedCell(with tableView: UITableView) -> UITableViewCell {
         let recentTracks = self.recenltPlayed.map { $0.convertToPodcastModel() }
@@ -1117,9 +1102,6 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         case "Popular Tracks":
             if !isPopularTracksLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return popularTracksCell(with: tableView)
-        case "Playlists":
-            if !isPlaylistsLoaded { return skeletonCell(for: tableView, at: indexPath) }
-            return playlistsCell(with: tableView)
         case "Featured Artist":
             if !isFeaturedArtistLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return featuredArtistCell(with: tableView)
@@ -1187,8 +1169,6 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
             return setHeaderData(headerTitle: HomeHeader.trending.title)
         case "Popular Tracks":
             return setHeaderData(headerTitle: HomeHeader.popularTracks.title)
-        case "Playlists":
-            return setHeaderData(headerTitle: HomeHeader.playlists.title)
         case "My Playlist":
             return setHeaderData(headerTitle: HomeHeader.myPlaylist.title)
         case "Recently Played":
@@ -1217,8 +1197,6 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         case "Trending":
             return 27
         case "Popular Tracks":
-            return 27
-        case "Playlists":
             return 27
         case "My Playlist":
             return 27
@@ -1256,11 +1234,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         case "Hot Tracks":
             return isHotTracksLoaded ? UITableView.automaticDimension : 180
         case "Trending":
-            return isTrendingLoaded ? UITableView.automaticDimension : 180
+            return isTrendingLoaded ? Self.browseCarouselRowHeight : 180
         case "Popular Tracks":
-            return isPopularTracksLoaded ? UITableView.automaticDimension : 180
-        case "Playlists":
-            return isPlaylistsLoaded ? UITableView.automaticDimension : 180
+            return isPopularTracksLoaded ? Self.browseCarouselRowHeight : 180
         case "Featured Artist":
             return isFeaturedArtistLoaded ? UITableView.automaticDimension : 180
         default:

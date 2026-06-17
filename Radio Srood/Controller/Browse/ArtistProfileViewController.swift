@@ -85,7 +85,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
     private let dariNameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 18, weight: .semibold)
+        label.font = .systemFont(ofSize: 26, weight: .semibold)
         label.textColor = UIColor(white: 0.72, alpha: 1)
         label.numberOfLines = 2
         label.isHidden = true
@@ -227,7 +227,7 @@ final class ArtistProfileViewController: UI_VC, OptionsViewControllerDelegate {
             namesStackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             namesStackView.trailingAnchor.constraint(lessThanOrEqualTo: shuffleButton.leadingAnchor, constant: -12),
 
-            statsLabel.topAnchor.constraint(equalTo: namesStackView.bottomAnchor, constant: 2),
+            statsLabel.topAnchor.constraint(equalTo: namesStackView.bottomAnchor, constant: 10),
             statsLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             statsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             statsLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
@@ -656,6 +656,8 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
             cell.playlist = []
             cell.newReleases = []
             cell.similarArtists = []
+            cell.homeTrendingTracks = []
+            cell.homePopularTracks = []
             cell.browseDelegate = self
             cell.artistProfileTracks = profileSection.tracks ?? []
             cell.reloadCollectionView()
@@ -674,6 +676,8 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
             cell.playlist = []
             cell.newReleases = []
             cell.artistProfileTracks = []
+            cell.homeTrendingTracks = []
+            cell.homePopularTracks = []
             cell.browseDelegate = self
             cell.similarArtists = similarArtists(for: profileSection)
             cell.reloadCollectionView()

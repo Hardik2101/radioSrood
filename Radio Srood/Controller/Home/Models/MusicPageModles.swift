@@ -217,3 +217,33 @@ enum RadioCurrentSongMapper {
         return ["currentTrackInfo": mapped] as NSDictionary
     }
 }
+
+extension TrendingTrack {
+    func asNewRelease() -> NewRelease {
+        NewRelease(
+            newReleasesArtist: trendingArtist,
+            newReleasesTrack: trendingTrack,
+            newReleasesTrackID: trendingTrackID,
+            newReleasesPlayCounts: trendingPlayCounts,
+            allowDownload: allowDownload,
+            newReleasesCover: trendingCover,
+            newReleasesMP3Path: "",
+            shomara: shomara
+        )
+    }
+}
+
+extension PopularTrack {
+    func asNewRelease() -> NewRelease {
+        NewRelease(
+            newReleasesArtist: popularArtist,
+            newReleasesTrack: popularTrack,
+            newReleasesTrackID: popularTrackID,
+            newReleasesPlayCounts: popularPlayCounts,
+            allowDownload: allowDownload,
+            newReleasesCover: popularCover,
+            newReleasesMP3Path: "",
+            shomara: shomara
+        )
+    }
+}

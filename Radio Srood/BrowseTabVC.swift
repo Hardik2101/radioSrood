@@ -648,6 +648,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
                 cell.presentViewBrowse = self
                 cell.artistProfileTracks.removeAll()
                 cell.similarArtists.removeAll()
+                cell.homeTrendingTracks.removeAll()
+                cell.homePopularTracks.removeAll()
                 cell.featuredBrowsePlaylists.removeAll()
                 cell.playlist.removeAll()
                 cell.newReleases = newReleases
@@ -680,6 +682,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             cell.presentViewBrowse = self
             cell.artistProfileTracks.removeAll()
             cell.similarArtists.removeAll()
+            cell.homeTrendingTracks.removeAll()
+            cell.homePopularTracks.removeAll()
             cell.featuredBrowsePlaylists = featuredBrowsePlaylists
             cell.playlist.removeAll()
             cell.newReleases.removeAll()
