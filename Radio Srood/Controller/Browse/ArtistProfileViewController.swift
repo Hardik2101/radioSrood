@@ -647,9 +647,7 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
             guard let cell = tableView.registerAndGet(cell: BrowseTableCell.self) else {
                 return UITableViewCell()
             }
-            cell.selectionStyle = .none
-            cell.backgroundColor = .black
-            cell.contentView.backgroundColor = .black
+            cell.applyCompactCarouselLayout(backgroundColor: .black)
             cell.presentView = nil
             cell.presentViewBrowse = nil
             cell.featuredBrowsePlaylists = []
@@ -670,6 +668,7 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
             cell.selectionStyle = .none
             cell.backgroundColor = .black
             cell.contentView.backgroundColor = .black
+            cell.applyCarouselLayout(.artists)
             cell.presentView = nil
             cell.presentViewBrowse = nil
             cell.featuredBrowsePlaylists = []
@@ -712,8 +711,10 @@ extension ArtistProfileViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let profileSection = profilePage?.sections[indexPath.section] else { return 88 }
         switch profileSection.layout {
-        case .carouselTracks, .similarArtists:
-            return 245
+        case .carouselTracks:
+            return BrowseTableCell.Layout.homeTrackRowHeight
+        case .similarArtists:
+            return BrowseTableCell.Layout.artistRowHeight
         case .latestRelease, .listTracks:
             return 88
         }

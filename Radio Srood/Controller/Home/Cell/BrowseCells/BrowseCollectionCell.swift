@@ -19,6 +19,11 @@ class BrowseCollectionCell: UICollectionViewCell {
     private weak var contentStackView: UIStackView?
     private var usesCircularImage = false
     private let defaultImageHeight: CGFloat = 180
+    static let subtitleBottomPadding: CGFloat = 12
+    static let titleLineHeight: CGFloat = 19
+    static let subtitleLineHeight: CGFloat = 16
+    static let trackContentHeight: CGFloat = 180 + titleLineHeight + subtitleLineHeight + subtitleBottomPadding
+    static let artistContentHeight: CGFloat = 158 + 18 + 14
     private static let titleFontSize: CGFloat = 16
     private static let subtitleFontSize: CGFloat = 13
     private static let artistTitleFontSize: CGFloat = 15
@@ -95,7 +100,34 @@ class BrowseCollectionCell: UICollectionViewCell {
         super.awakeFromNib()
         imageHeightConstraint = itemImage.constraints.first { $0.firstAttribute == .height }
         contentStackView = contentView.subviews.first { $0 is UIStackView } as? UIStackView
+        lblTitle.numberOfLines = 1
+        lblSubtitle.numberOfLines = 1
+        applyTrackImageLayout()
         applyTypography()
+    }
+
+    private func applyTrackImageLayout() {
+        guard let stackView = contentStackView else { return }
+
+        stackView.constraints
+            .filter { ($0.firstItem as? UILabel) === lblTitle && ($0.secondItem as? UILabel) === lblSubtitle && $0.firstAttribute == .height }
+            .forEach { $0.isActive = false }
+
+        contentView.constraints
+            .filter {
+                let involvesStack = ($0.firstItem as? UIStackView) === stackView || ($0.secondItem as? UIStackView) === stackView
+                return involvesStack && ($0.firstAttribute == .bottom || $0.secondAttribute == .bottom || $0.firstAttribute == .top || $0.secondAttribute == .top)
+            }
+            .forEach { $0.isActive = false }
+
+        stackView.spacing = 2
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Self.subtitleBottomPadding)
+        ])
     }
 
     override func prepareForReuse() {

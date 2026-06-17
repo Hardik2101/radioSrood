@@ -65,7 +65,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     var isFeaturedArtistLoaded = false
     
-    private static let browseCarouselRowHeight: CGFloat = 245
+    private static let browseCarouselRowHeight: CGFloat = BrowseTableCell.Layout.homeTrackRowHeight
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -847,9 +847,7 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
 
     private func configureBrowseCarouselCell(_ cell: BrowseTableCell) {
-        cell.selectionStyle = .none
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .clear
+        cell.applyCompactCarouselLayout()
         cell.presentView = self
         cell.presentViewBrowse = nil
         cell.browseDelegate = nil

@@ -643,9 +643,11 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     func newReleasesCell(with tableView: UITableView) -> UITableViewCell {
         if let cell = tableView.registerAndGet(cell: BrowseTableCell.self),
            isNewMusicLoaded {
-            cell.selectionStyle = .none
+            cell.applyCompactCarouselLayout()
             if let newReleases = homeMusic?.newReleases {
+                cell.presentView = nil
                 cell.presentViewBrowse = self
+                cell.browseDelegate = nil
                 cell.artistProfileTracks.removeAll()
                 cell.similarArtists.removeAll()
                 cell.homeTrendingTracks.removeAll()
@@ -1029,7 +1031,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         case Browseheader.popularMusic.title:
             return isPopularMusicLoaded ? UITableView.automaticDimension : 180
         case Browseheader.newMusic.title:
-            return isNewMusicLoaded ? UITableView.automaticDimension : 180
+            return isNewMusicLoaded ? BrowseTableCell.Layout.homeTrackRowHeight : 180
         case Browseheader.radio.title:
             return isRadioLoaded ? UITableView.automaticDimension : 180
         default:
