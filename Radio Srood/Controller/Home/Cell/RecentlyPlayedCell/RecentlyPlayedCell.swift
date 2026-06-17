@@ -31,6 +31,7 @@ extension RecentlyPlayedCell: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let cell = collectionView.registerAndGet(MusicCell.self, indexPath: indexPath) {
+            cell.usesCompactTypography = true
             cell.podcastObject = trackData[indexPath.row]
             return cell
         }

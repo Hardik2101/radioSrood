@@ -19,7 +19,7 @@ class BrowseCollectionCell: UICollectionViewCell {
     private weak var contentStackView: UIStackView?
     private var usesCircularImage = false
     private let defaultImageHeight: CGFloat = 180
-    private static let titleFontSize: CGFloat = 17
+    private static let titleFontSize: CGFloat = 16
     private static let subtitleFontSize: CGFloat = 13
     private static let artistTitleFontSize: CGFloat = 15
     private static let artistSubtitleFontSize: CGFloat = 11
