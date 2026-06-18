@@ -23,7 +23,12 @@ class BrowseCollectionCell: UICollectionViewCell {
     static let titleLineHeight: CGFloat = 19
     static let subtitleLineHeight: CGFloat = 16
     static let trackContentHeight: CGFloat = 180 + titleLineHeight + subtitleLineHeight + subtitleBottomPadding
-    static let artistContentHeight: CGFloat = 158 + 18 + 14
+    static let artistImageSize: CGFloat = 150
+    static let artistImageToNameSpacing: CGFloat = 8
+    static let artistSubtitleBottomPadding: CGFloat = 12
+    static let artistTitleLineHeight: CGFloat = 18
+    static let artistSubtitleLineHeight: CGFloat = 14
+    static let artistContentHeight: CGFloat = artistImageSize + artistImageToNameSpacing + artistTitleLineHeight + artistSubtitleLineHeight + artistSubtitleBottomPadding
     private static let titleFontSize: CGFloat = 16
     private static let subtitleFontSize: CGFloat = 13
     private static let artistTitleFontSize: CGFloat = 15
@@ -40,6 +45,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                 lblSubtitle.text = playlist.playlistName ?? playlist.playlist
             }
             applyTypography(forArtist: false)
+            applyStackLayout(isArtist: false)
         }
     }
     
@@ -54,6 +60,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                 lblSubtitle.text = newRelease.newReleasesArtist
             }
             applyTypography(forArtist: false)
+            applyStackLayout(isArtist: false)
         }
     }
 
@@ -69,6 +76,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                 lblSubtitle.isHidden = false
             }
             applyTypography(forArtist: false)
+            applyStackLayout(isArtist: false)
         }
     }
 
@@ -84,7 +92,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                 }
                 lblTitle.text = similarArtist.artist
                 let dari = similarArtist.artistDari?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                if !dari.isEmpty, dari.caseInsensitiveCompare(similarArtist.artist) != .orderedSame {
+                if !dari.isEmpty {
                     lblSubtitle.text = dari
                     lblSubtitle.isHidden = false
                 } else {
@@ -93,6 +101,7 @@ class BrowseCollectionCell: UICollectionViewCell {
                 }
             }
             applyTypography(forArtist: similarArtist != nil)
+            applyStackLayout(isArtist: similarArtist != nil)
         }
     }
     
@@ -102,11 +111,11 @@ class BrowseCollectionCell: UICollectionViewCell {
         contentStackView = contentView.subviews.first { $0 is UIStackView } as? UIStackView
         lblTitle.numberOfLines = 1
         lblSubtitle.numberOfLines = 1
-        applyTrackImageLayout()
+        applyStackLayout(isArtist: false)
         applyTypography()
     }
 
-    private func applyTrackImageLayout() {
+    private func applyStackLayout(isArtist: Bool) {
         guard let stackView = contentStackView else { return }
 
         stackView.constraints
@@ -120,13 +129,15 @@ class BrowseCollectionCell: UICollectionViewCell {
             }
             .forEach { $0.isActive = false }
 
+        stackView.setCustomSpacing(isArtist ? Self.artistImageToNameSpacing : UIStackView.spacingUseDefault, after: itemImage)
         stackView.spacing = 2
 
+        let bottomPadding = isArtist ? Self.artistSubtitleBottomPadding : Self.subtitleBottomPadding
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Self.subtitleBottomPadding)
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -bottomPadding)
         ])
     }
 
@@ -137,6 +148,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         imageHeightConstraint?.constant = defaultImageHeight
         applyTypography()
         applyArtistLayout(isArtist: false)
+        applyStackLayout(isArtist: false)
         playlist = nil
         newRelease = nil
         featuredBrowsePlaylist = nil
@@ -144,6 +156,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         itemImage.image = nil
         lblTitle.text = nil
         lblSubtitle.text = nil
+        lblSubtitle.isHidden = false
     }
     
     override func layoutSubviews() {

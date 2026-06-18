@@ -24,12 +24,14 @@ class BrowseTableCell: UITableViewCell {
         static let compactTopOffset: CGFloat = 4
         static let horizontalInset: CGFloat = 10
         static let trackItemWidth: CGFloat = 150
-        static let artistItemWidth: CGFloat = 158
+        static let artistItemWidth: CGFloat = 150
+        static let artistLineSpacing: CGFloat = 12
         static let trackItemHeight: CGFloat = BrowseCollectionCell.trackContentHeight
         static let artistItemHeight: CGFloat = BrowseCollectionCell.artistContentHeight
 
         static var trackRowHeight: CGFloat { trackItemHeight + topInset + bottomInset }
         static var homeTrackRowHeight: CGFloat { trackItemHeight }
+        static var homeArtistRowHeight: CGFloat { artistItemHeight }
         static var artistRowHeight: CGFloat { artistItemHeight + topInset + bottomInset }
 
         static func rowHeight(for style: CarouselStyle, topInset: CGFloat, bottomInset: CGFloat) -> CGFloat {
@@ -93,6 +95,19 @@ class BrowseTableCell: UITableViewCell {
         clipsToBounds = false
         contentView.clipsToBounds = false
         collectionTopConstraint?.constant = -Layout.compactTopOffset
+    }
+
+    func applyArtistCarouselLayout(backgroundColor: UIColor = .black) {
+        selectionStyle = .none
+        self.backgroundColor = backgroundColor
+        contentView.backgroundColor = backgroundColor
+        applyCarouselLayout(.artists, topInset: 0, bottomInset: 0)
+        clipsToBounds = false
+        contentView.clipsToBounds = false
+        collectionTopConstraint?.constant = -Layout.compactTopOffset
+        if let layout = playlistCollectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.minimumLineSpacing = Layout.artistLineSpacing
+        }
     }
 
     override func prepareForReuse() {
