@@ -13,6 +13,7 @@ class BrowseCollectionCell: UICollectionViewCell {
     @IBOutlet private weak var lblTitle: UILabel!
     @IBOutlet private weak var lblSubtitle: UILabel!
 
+    private var stackBottomConstraint: NSLayoutConstraint?
     private var imageHeightConstraint: NSLayoutConstraint?
     private var titleWidthConstraint: NSLayoutConstraint?
     private var subtitleWidthConstraint: NSLayoutConstraint?
@@ -20,9 +21,11 @@ class BrowseCollectionCell: UICollectionViewCell {
     private var usesCircularImage = false
     private let defaultImageHeight: CGFloat = 180
     static let subtitleBottomPadding: CGFloat = 12
+    static let trackImageToTitleSpacing: CGFloat = -10
+    static let trackTitleSubtitleSpacing: CGFloat = 2
     static let titleLineHeight: CGFloat = 19
-    static let subtitleLineHeight: CGFloat = 16
-    static let trackContentHeight: CGFloat = 180 + titleLineHeight + subtitleLineHeight + subtitleBottomPadding
+    static let subtitleLineHeight: CGFloat = 18
+    static let trackContentHeight: CGFloat = 180 + trackImageToTitleSpacing + titleLineHeight + trackTitleSubtitleSpacing + subtitleLineHeight + subtitleBottomPadding
     static let artistImageSize: CGFloat = 150
     static let artistImageToNameSpacing: CGFloat = 8
     static let artistSubtitleBottomPadding: CGFloat = 12
@@ -38,6 +41,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         didSet {
             usesCircularImage = false
             if let playlist = playlist {
+                itemImage.contentMode = .scaleAspectFit
                 if let url = URL(string: playlist.playlistCover) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -53,6 +57,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         didSet {
             usesCircularImage = false
             if let newRelease = newRelease {
+                itemImage.contentMode = .scaleAspectFit
                 if let url = URL(string: newRelease.newReleasesCover) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -68,6 +73,7 @@ class BrowseCollectionCell: UICollectionViewCell {
         didSet {
             usesCircularImage = false
             if let featuredBrowsePlaylist = featuredBrowsePlaylist {
+                itemImage.contentMode = .scaleAspectFit
                 if let url = URL(string: featuredBrowsePlaylist.coverURL) {
                     itemImage.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
                 }
@@ -111,6 +117,8 @@ class BrowseCollectionCell: UICollectionViewCell {
         contentStackView = contentView.subviews.first { $0 is UIStackView } as? UIStackView
         lblTitle.numberOfLines = 1
         lblSubtitle.numberOfLines = 1
+        lblTitle.setContentCompressionResistancePriority(.required, for: .vertical)
+        lblSubtitle.setContentCompressionResistancePriority(.required, for: .vertical)
         applyStackLayout(isArtist: false)
         applyTypography()
     }
@@ -129,16 +137,34 @@ class BrowseCollectionCell: UICollectionViewCell {
             }
             .forEach { $0.isActive = false }
 
-        stackView.setCustomSpacing(isArtist ? Self.artistImageToNameSpacing : UIStackView.spacingUseDefault, after: itemImage)
-        stackView.spacing = 2
+        stackBottomConstraint?.isActive = false
+        stackBottomConstraint = nil
 
-        let bottomPadding = isArtist ? Self.artistSubtitleBottomPadding : Self.subtitleBottomPadding
+        stackView.setCustomSpacing(
+            isArtist ? Self.artistImageToNameSpacing : Self.trackImageToTitleSpacing,
+            after: itemImage
+        )
+        stackView.spacing = isArtist ? 2 : Self.trackTitleSubtitleSpacing
+
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -bottomPadding)
+            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         ])
+
+        let bottomPadding = isArtist ? Self.artistSubtitleBottomPadding : Self.subtitleBottomPadding
+        if isArtist {
+            stackBottomConstraint = stackView.bottomAnchor.constraint(
+                equalTo: contentView.bottomAnchor,
+                constant: -bottomPadding
+            )
+        } else {
+            stackBottomConstraint = stackView.bottomAnchor.constraint(
+                equalTo: contentView.bottomAnchor,
+                constant: -bottomPadding
+            )
+        }
+        stackBottomConstraint?.isActive = true
     }
 
     override func prepareForReuse() {
