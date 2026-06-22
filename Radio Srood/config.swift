@@ -40,13 +40,64 @@ func artistProfileURL(artistID: String) -> String {
     musicBaseUrl + "artist_profiles/\(artistID).json"
 }
 
-let GOOGLE_ADMOB_KEY                 =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/4747855668"
-let GOOGLE_ADMOB_INTER               =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/5635919690"
-let GOOGLE_ADMOB_NATIVE              =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/7385126578"
-let GOOGLE_ADMOB_ForMiniPlayer       =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/5977355028"
-let GOOGLE_ADMOB_ForMusicPlayer      =    IAPHandler.shared.isGetPurchase() ? "" :  "ca-app-pub-7049872613588191/7260832328"
-let ONESIGNAL_APP_KEY                =     "cc867855-4271-4909-aa4b-24a48b4319f7"
 let SHOW_BANNER_ADMOB                =     true // true - show ads, false - not
+
+// MARK: - AdMob (DEBUG = Google test units, RELEASE = production units)
+
+enum AdMobUnit {
+    case bannerKey
+    case interstitial
+    case native
+    case miniPlayer
+    case musicPlayer
+
+    fileprivate static var isEnabled: Bool {
+        SHOW_BANNER_ADMOB && !IAPHandler.shared.isGetPurchase()
+    }
+
+    var adUnitID: String {
+        guard AdMobUnit.isEnabled else { return "" }
+        #if DEBUG
+        return debugAdUnitID
+        #else
+        return releaseAdUnitID
+        #endif
+    }
+
+    private var debugAdUnitID: String {
+        switch self {
+        case .bannerKey, .miniPlayer, .musicPlayer:
+            return "ca-app-pub-3940256099942544/2934735716"
+        case .interstitial:
+            return "ca-app-pub-3940256099942544/4411468910"
+        case .native:
+            return "ca-app-pub-3940256099942544/2247696110"
+        }
+    }
+
+    private var releaseAdUnitID: String {
+        switch self {
+        case .bannerKey:
+            return "ca-app-pub-7049872613588191/4747855668"
+        case .interstitial:
+            return "ca-app-pub-7049872613588191/5635919690"
+        case .native:
+            return "ca-app-pub-7049872613588191/7385126578"
+        case .miniPlayer:
+            return "ca-app-pub-7049872613588191/5977355028"
+        case .musicPlayer:
+            return "ca-app-pub-3940256099942544/2435281174"
+        }
+    }
+}
+
+var GOOGLE_ADMOB_KEY: String { AdMobUnit.bannerKey.adUnitID }
+var GOOGLE_ADMOB_INTER: String { AdMobUnit.interstitial.adUnitID }
+var GOOGLE_ADMOB_NATIVE: String { AdMobUnit.native.adUnitID }
+var GOOGLE_ADMOB_ForMiniPlayer: String { AdMobUnit.miniPlayer.adUnitID }
+var GOOGLE_ADMOB_ForMusicPlayer: String { AdMobUnit.musicPlayer.adUnitID }
+
+let ONESIGNAL_APP_KEY                =     "cc867855-4271-4909-aa4b-24a48b4319f7"
 let SECONDS_BEFORE_SHOW_INTERSTITIAL =     10
 let SHOW_PODCAST                     =     true    // true - show modules , false - hide module
 let SHOW_ABOUT                       =     true

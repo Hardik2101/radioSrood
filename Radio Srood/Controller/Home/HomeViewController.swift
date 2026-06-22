@@ -66,6 +66,14 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     var isFeaturedArtistLoaded = false
     
     private static let browseCarouselRowHeight: CGFloat = BrowseTableCell.Layout.homeTrackRowHeight
+    private static let bannerAdFirstReuseID = "BannerAdCellFirst"
+    private static let bannerAdSecondReuseID = "BannerAdCellSecond"
+    private static let bannerAdRowHeight: CGFloat = 89
+    private static let miniPlayerAdHeight: CGFloat = 50
+    private static let maxBannerAdRetries = 3
+
+    private var bannerRetryCounts: [ObjectIdentifier: Int] = [:]
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -82,7 +90,9 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         self.vwAds.isHidden = true
         self.imgAdClose.isHidden = true
         self.heightOfAdsView.constant = 0
-        radiosroodTableView.register(UINib(nibName: "BannerAdCell", bundle: nil), forCellReuseIdentifier: "BannerAdCell")
+        let bannerNib = UINib(nibName: "BannerAdCell", bundle: nil)
+        radiosroodTableView.register(bannerNib, forCellReuseIdentifier: Self.bannerAdFirstReuseID)
+        radiosroodTableView.register(bannerNib, forCellReuseIdentifier: Self.bannerAdSecondReuseID)
         loadBannerAds()
 
         pageView.numberOfPages = featuredTop?.count ?? 0
@@ -91,6 +101,26 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPressGesture.minimumPressDuration = 0.3
         radiosroodTableView.addGestureRecognizer(longPressGesture)
+
+        let playbackNotifications: [Notification.Name] = [
+            .MiniPlayerVisibilityChanged,
+            .musicDidPlay,
+            .musicDidPause,
+            .radioDidPlay,
+            .radioDidPause
+        ]
+        for name in playbackNotifications {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(updateMiniPlayerAdVisibility),
+                name: name,
+                object: nil
+            )
+        }
+    }
+
+    @objc private func updateMiniPlayerAdVisibility() {
+        configureCurrentPlayingSong()
     }
 
     
@@ -104,7 +134,6 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.configureCurrentPlayingSong()
         loadCurrentLyricData()
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
         navigationController?.navigationBar.shadowImage = UIImage()
@@ -125,20 +154,8 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         handleTableView()
 
         NotificationCenter.default.addObserver(self, selector: #selector(handleIAPPurchase), name: .PurchaseSuccess, object: nil)
-
-        let purchase = IAPHandler.shared.isGetPurchase()
-        if purchase || isPurchaseSuccess {
-            self.vwAds.isHidden = true
-            self.imgAdClose.isHidden = true
-            self.heightOfAdsView.constant = 0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
-            if purchase || self.isPurchaseSuccess {
-                self.vwAds.isHidden = true
-                self.imgAdClose.isHidden = true
-                self.heightOfAdsView.constant = 0
-            }
-        })
+        configureCurrentPlayingSong()
+        refreshBannerAdsIfNeeded()
 
         // ✅ Only fetch if not already loaded — skeleton only shows on first launch
         if !isFeaturedLoaded { getFeaturedData() }
@@ -500,8 +517,9 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
 
     private func handleTableView() {
         playList = UserDefaultsManager.shared.playListsData
-        fetchRecentlyPlayed()
+        updateRecentlyPlayedData()
         handleHomeHeaderArrayValue()
+        radiosroodTableView.reloadData()
     }
     
     private func handleHomeHeaderArrayValue() {
@@ -516,7 +534,14 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
             homeHeaderArray.removeAll { $0 == HomeHeader.myPlaylist.title }
         }
         homeHeaderArray.insert("Native Ad First", at: 5)
-        homeHeaderArray.insert("Native Ad Second", at: homeHeaderArray.count - 1)
+
+        if let recentlyPlayedIndex = homeHeaderArray.firstIndex(of: HomeHeader.recentlyPlayed.title) {
+            homeHeaderArray.insert("Native Ad Second", at: recentlyPlayedIndex + 1)
+        } else if let featuredArtistIndex = homeHeaderArray.firstIndex(of: HomeHeader.featuredArtist.title) {
+            homeHeaderArray.insert("Native Ad Second", at: featuredArtistIndex)
+        } else {
+            homeHeaderArray.append("Native Ad Second")
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -557,30 +582,65 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func fetchRecentlyPlayed() {
-        let savedTracks = UserDefaultsManager.shared.localTracksData
-        recenltPlayed = savedTracks.filter({$0.isRecentlyPlayed})
-        recenltPlayed = recenltPlayed.reversed()
+        updateRecentlyPlayedData()
+        handleHomeHeaderArrayValue()
         radiosroodTableView.reloadData()
+    }
+
+    private func updateRecentlyPlayedData() {
+        let savedTracks = UserDefaultsManager.shared.localTracksData
+        recenltPlayed = savedTracks.filter({ $0.isRecentlyPlayed }).reversed()
     }
     
     func loadBannerAds() {
         guard !IAPHandler.shared.isGetPurchase() else {
             return
         }
-        
-        let adView1 = GADBannerView(adSize: kGADAdSizeBanner)
-        adView1.adUnitID = GOOGLE_ADMOB_ForMusicPlayer
-        adView1.rootViewController = self
-        adView1.delegate = self
-        adView1.load(GADRequest())
-        
-        let adView2 = GADBannerView(adSize: kGADAdSizeBanner)
-        adView2.adUnitID = GOOGLE_ADMOB_ForMiniPlayer
-        adView2.rootViewController = self
-        adView2.delegate = self
-        adView2.load(GADRequest())
-        
+
+        let adView1 = makeBannerView(adUnitID: GOOGLE_ADMOB_ForMusicPlayer)
+        let adView2 = makeBannerView(adUnitID: GOOGLE_ADMOB_KEY)
         bannerAdViews = [adView1, adView2]
+    }
+
+    private func makeBannerView(adUnitID: String) -> GADBannerView {
+        let bannerView = GADBannerView(adSize: kGADAdSizeBanner)
+        bannerView.adUnitID = adUnitID
+        bannerView.rootViewController = self
+        bannerView.delegate = self
+        bannerView.load(GADRequest())
+        return bannerView
+    }
+
+    private func scheduleBannerRetry(for bannerView: GADBannerView) {
+        let key = ObjectIdentifier(bannerView)
+        let attempt = bannerRetryCounts[key, default: 0]
+        guard attempt < Self.maxBannerAdRetries else { return }
+
+        bannerRetryCounts[key] = attempt + 1
+        let delay = Double(attempt + 1) * 5.0
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak bannerView] in
+            guard let self, let bannerView, !IAPHandler.shared.isGetPurchase() else { return }
+            bannerView.load(GADRequest())
+        }
+    }
+
+    private func resetBannerRetry(for bannerView: GADBannerView) {
+        bannerRetryCounts[ObjectIdentifier(bannerView)] = 0
+    }
+
+    private func refreshBannerAdsIfNeeded() {
+        guard !IAPHandler.shared.isGetPurchase(), !isPurchaseSuccess else { return }
+
+        if bannerAdViews.isEmpty {
+            loadBannerAds()
+        }
+
+        if bannerView == nil {
+            loadBannerAd()
+        } else {
+            attachStickyBannerIfNeeded()
+        }
     }
     
     
@@ -742,37 +802,33 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func configureCurrentPlayingSong() {
-        if !(player?.isPlaying ?? false){
-            //self.heightMiniPlayer.constant = 0
-            self.heightOfAdsView.constant = 0
-            self.vwAds.isHidden = true
-            self.imgAdClose.isHidden = true
-            
-        } else {
-            //self.heightMiniPlayer.constant = 60
-            let purchase = IAPHandler.shared.isGetPurchase()
-            
-            if !purchase {
-                self.heightOfAdsView.constant = 40
-                self.vwAds.isHidden = false
-                self.imgAdClose.isHidden = false
-            } else {
-                if purchase || self.isPurchaseSuccess {
-                    self.heightOfAdsView.constant = 0
-                    self.vwAds.isHidden = true
-                    self.imgAdClose.isHidden = true
-                }
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-                if purchase || self.isPurchaseSuccess {
-                    self.heightOfAdsView.constant = 0
-                    self.vwAds.isHidden = true
-                    self.imgAdClose.isHidden = true
-                }
-            })
+        let purchase = IAPHandler.shared.isGetPurchase() || isPurchaseSuccess
+        guard !purchase else {
+            heightOfAdsView.constant = 0
+            vwAds.isHidden = true
+            imgAdClose.isHidden = true
+            return
         }
-        //(self.tabBarController as? TabbarVC)?.miniPlayer.refreshMiniplayer()
+
+        let shouldShowAd = TabbarVC.isMiniPlayerVisible
+            || (player?.isPlaying ?? false)
+            || radio.isPlaying
+
+        if shouldShowAd {
+            heightOfAdsView.constant = Self.miniPlayerAdHeight
+            vwAds.isHidden = false
+            imgAdClose.isHidden = false
+            attachStickyBannerIfNeeded()
+        } else {
+            heightOfAdsView.constant = 0
+            vwAds.isHidden = true
+            imgAdClose.isHidden = true
+        }
+    }
+
+    private func attachStickyBannerIfNeeded() {
+        guard let bannerView else { return }
+        attachBanner(bannerView, to: vwAds)
     }
     
     func newFeaturedCell(with tableView: UITableView) -> UITableViewCell {
@@ -910,39 +966,23 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     }
     
     func bannerAdCell(with tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
+        let sectionTitle = homeHeaderArray[indexPath.section]
+        let reuseID = sectionTitle == "Native Ad Second" ? Self.bannerAdSecondReuseID : Self.bannerAdFirstReuseID
 
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "BannerAdCell", for: indexPath) as? BannerAdCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: reuseID, for: indexPath) as? BannerAdCell else {
             return UITableViewCell()
-        }
-
-        // Remove old banner views
-        for subview in cell.vwMain.subviews {
-            subview.removeFromSuperview()
         }
 
         if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess {
             cell.vwMain.isHidden = true
             cell.heightOfVw.constant = 0
         } else {
-
             cell.vwMain.isHidden = false
             cell.heightOfVw.constant = 65
 
-            let bannerIndex = indexPath.section
-
-            if bannerAdViews.indices.contains(bannerIndex) {
-
-                let bannerView = bannerAdViews[bannerIndex]
-
-                cell.vwMain.addSubview(bannerView)
-                bannerView.translatesAutoresizingMaskIntoConstraints = false
-
-                NSLayoutConstraint.activate([
-                    bannerView.leadingAnchor.constraint(equalTo: cell.vwMain.leadingAnchor),
-                    bannerView.trailingAnchor.constraint(equalTo: cell.vwMain.trailingAnchor),
-                    bannerView.topAnchor.constraint(equalTo: cell.vwMain.topAnchor),
-                    bannerView.bottomAnchor.constraint(equalTo: cell.vwMain.bottomAnchor)
-                ])
+            if let bannerIndex = bannerAdIndex(for: sectionTitle),
+               bannerAdViews.indices.contains(bannerIndex) {
+                attachBanner(bannerAdViews[bannerIndex], to: cell.vwMain)
             }
         }
 
@@ -950,6 +990,29 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
         cell.backgroundColor = .clear
 
         return cell
+    }
+
+    private func attachBanner(_ bannerView: GADBannerView, to container: UIView) {
+        guard bannerView.superview !== container else { return }
+
+        bannerView.removeFromSuperview()
+        container.addSubview(bannerView)
+        bannerView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            bannerView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            bannerView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            bannerView.topAnchor.constraint(equalTo: container.topAnchor),
+            bannerView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+    }
+
+    private func bannerAdIndex(for sectionTitle: String) -> Int? {
+        switch sectionTitle {
+        case "Native Ad First": return 0
+        case "Native Ad Second": return 1
+        default: return nil
+        }
     }
     
     func openRadioWithRecentViewController() {
@@ -1023,33 +1086,16 @@ class HomeViewController: UI_VC, OptionsViewControllerDelegate {
     // Update the loadBannerAd function to add the banner to vwAds
     func loadBannerAd() {
         guard !IAPHandler.shared.isGetPurchase() else {
-            // Skip loading the ad if the purchase is made
             return
         }
-        
-        // Create the banner view
-        bannerView = GADBannerView(adSize: kGADAdSizeBanner)
-        bannerView.adUnitID = GOOGLE_ADMOB_ForMiniPlayer
-        bannerView.rootViewController = self
-        bannerView.delegate = self
-        bannerView.load(GADRequest())
-        
-        // Set the banner view frame
-        bannerView.frame =  self.vwAds.bounds        // Remove any existing subviews from vwAds
+
+        bannerView = makeBannerView(adUnitID: GOOGLE_ADMOB_ForMiniPlayer)
+
         for subview in vwAds.subviews {
             subview.removeFromSuperview()
         }
-        
-        // Add the banner to vwAds
-        vwAds.addSubview(bannerView)
-        
-        bannerView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            bannerView.leadingAnchor.constraint(equalTo: vwAds.leadingAnchor),
-            bannerView.trailingAnchor.constraint(equalTo: vwAds.trailingAnchor),
-            bannerView.topAnchor.constraint(equalTo: vwAds.topAnchor),
-            bannerView.bottomAnchor.constraint(equalTo: vwAds.bottomAnchor)
-        ])
+
+        attachStickyBannerIfNeeded()
     }
     
     deinit {
@@ -1111,9 +1157,22 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
             return recentlyPlayedCell(with: tableView)
         case "Native Ad First":
             return bannerAdCell(with: tableView, indexPath: indexPath)
+        case "Native Ad Second":
+            return bannerAdCell(with: tableView, indexPath: indexPath)
 
         default:
             return bannerAdCell(with: tableView, indexPath: indexPath)        }
+    }
+
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard !IAPHandler.shared.isGetPurchase(), !isPurchaseSuccess,
+              let bannerCell = cell as? BannerAdCell,
+              let bannerIndex = bannerAdIndex(for: homeHeaderArray[indexPath.section]),
+              bannerAdViews.indices.contains(bannerIndex) else { return }
+
+        bannerCell.vwMain.isHidden = false
+        bannerCell.heightOfVw.constant = 65
+        attachBanner(bannerAdViews[bannerIndex], to: bannerCell.vwMain)
     }
 
     // MARK: - Skeleton cell helper
@@ -1202,7 +1261,7 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
             return 27
         case "Featured Artist":
             return 27
-        case "Native Ad First":
+        case "Native Ad First", "Native Ad Second":
             return 0
         default:
             return 0
@@ -1237,6 +1296,9 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
             return isPopularTracksLoaded ? Self.browseCarouselRowHeight : 180
         case "Featured Artist":
             return isFeaturedArtistLoaded ? UITableView.automaticDimension : 180
+        case "Native Ad First", "Native Ad Second":
+            if IAPHandler.shared.isGetPurchase() || isPurchaseSuccess { return 0 }
+            return Self.bannerAdRowHeight
         default:
             return UITableView.automaticDimension
         }
@@ -1311,12 +1373,40 @@ extension HomeViewController: GADBannerViewDelegate {
     
     // Tells the delegate an ad request loaded an ad.
     func adViewDidReceiveAd(_ bannerView: GADBannerView) {
-        print("Ad received successfully")
+        resetBannerRetry(for: bannerView)
+        print("Ad received successfully: \(bannerView.adUnitID ?? "")")
+        DispatchQueue.main.async {
+            self.reloadBannerAdSection(for: bannerView)
+        }
     }
-    
+
     // Tells the delegate an ad request failed.
     func adView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: GADRequestError) {
-        print("Ad failed to load: \(error.localizedDescription)")
+        print("Ad failed to load (\(bannerView.adUnitID ?? "")): \(error.localizedDescription)")
+        scheduleBannerRetry(for: bannerView)
+        DispatchQueue.main.async {
+            self.reloadBannerAdSection(for: bannerView)
+        }
+    }
+
+    private func reloadBannerAdSection(for bannerView: GADBannerView) {
+        if bannerView === self.bannerView {
+            configureCurrentPlayingSong()
+            return
+        }
+
+        guard let bannerIndex = bannerAdViews.firstIndex(where: { $0 === bannerView }) else {
+            radiosroodTableView.reloadData()
+            return
+        }
+
+        let sectionTitle = bannerIndex == 0 ? "Native Ad First" : "Native Ad Second"
+        guard let section = homeHeaderArray.firstIndex(of: sectionTitle) else {
+            radiosroodTableView.reloadData()
+            return
+        }
+
+        radiosroodTableView.reloadSections(IndexSet(integer: section), with: .none)
     }
     
     // Tells the delegate that a full-screen view will be presented in response to the user clicking on an ad.

@@ -20,8 +20,7 @@ class BannerAdCell: UITableViewCell {
 
         vwMain.backgroundColor = .clear
         heightOfVw.constant = 65
-        vwMain.isHidden = true
-    
+        vwMain.isHidden = false
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
