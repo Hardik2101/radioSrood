@@ -16,6 +16,10 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
     private var subCategoryGroups: [SearchSubCategoryGroup] = []
     private var searchResults: [SearchModel] = []
     private var isSearching = false
+    private var isBrowseCategoriesLoaded = false
+    private var isFetchingBrowseCategories = false
+
+    private static let skeletonItemCount = 8
 
     private let lblTitle: UILabel = {
         let label = UILabel()
@@ -71,13 +75,26 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        fetchBrowseCategories()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
         updateBottomInset()
+
+        if !isBrowseCategoriesLoaded {
+            fetchBrowseCategories()
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        checkInternetForTabbar()
+    }
+
+    override func refreshAfterReconnect() {
+        guard !isBrowseCategoriesLoaded else { return }
+        fetchBrowseCategories()
     }
 
     override func viewDidLayoutSubviews() {
@@ -222,11 +239,23 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
     }
 
     private func fetchBrowseCategories() {
+        guard !isFetchingBrowseCategories else { return }
+        isFetchingBrowseCategories = true
+
+        if !isBrowseCategoriesLoaded {
+            collectionView.reloadData()
+        }
+
         DataHelper.getSearchBrowseAllData { [weak self] response in
             guard let self else { return }
             DispatchQueue.main.async {
-                self.categories = response?.playlistCategories ?? []
-                self.subCategoryGroups = response?.subCategories ?? []
+                self.isFetchingBrowseCategories = false
+
+                guard let response else { return }
+
+                self.categories = response.playlistCategories
+                self.subCategoryGroups = response.subCategories
+                self.isBrowseCategoriesLoaded = true
                 self.collectionView.reloadData()
             }
         }
@@ -323,12 +352,18 @@ class SearchViewController: UI_VC, OptionsViewControllerDelegate {
 
 extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        categories.count
+        isBrowseCategoriesLoaded ? categories.count : Self.skeletonItemCount
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchBrowseCategoryCell.reuseID, for: indexPath) as! SearchBrowseCategoryCell
-        cell.configure(with: categories[indexPath.item], index: indexPath.item)
+
+        if isBrowseCategoriesLoaded {
+            cell.configure(with: categories[indexPath.item], index: indexPath.item)
+        } else {
+            cell.showSkeleton()
+        }
+
         return cell
     }
 
@@ -340,6 +375,8 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard isBrowseCategoriesLoaded, indexPath.item < categories.count else { return }
+
         let category = categories[indexPath.item]
         let subPlaylists = subCategoryGroups.first(where: { $0.playlistTitle == category.title })?.subPlaylist ?? []
 

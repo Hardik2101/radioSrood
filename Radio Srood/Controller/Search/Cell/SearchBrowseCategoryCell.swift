@@ -52,6 +52,9 @@ final class SearchBrowseCategoryCell: UICollectionViewCell {
         return imageView
     }()
 
+    private var skeletonTitleView: UIView?
+    private var skeletonImageView: UIView?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.backgroundColor = .clear
@@ -72,6 +75,7 @@ final class SearchBrowseCategoryCell: UICollectionViewCell {
         coverImageView.image = nil
         titleLabel.text = nil
         cardView.backgroundColor = nil
+        hideSkeleton()
     }
 
     private func setupUI() {
@@ -97,6 +101,9 @@ final class SearchBrowseCategoryCell: UICollectionViewCell {
     }
 
     func configure(with category: SearchPlaylistCategory, index: Int) {
+        hideSkeleton()
+        titleLabel.isHidden = false
+        coverImageView.isHidden = false
         titleLabel.text = category.title
         cardView.backgroundColor = Self.cardBackgroundColor(at: index)
 
@@ -106,6 +113,93 @@ final class SearchBrowseCategoryCell: UICollectionViewCell {
             coverImageView.image = UIImage(named: "Lav_Radio_Logo.png")
         }
     }
+
+    func showSkeleton() {
+        hideSkeleton()
+        titleLabel.isHidden = true
+        coverImageView.isHidden = true
+        cardView.backgroundColor = UIColor.white.withAlphaComponent(0.07)
+
+        let titleSkeleton = ShimmerPlaceholderView(cornerRadius: 4)
+        cardView.addSubview(titleSkeleton)
+        NSLayoutConstraint.activate([
+            titleSkeleton.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 12),
+            titleSkeleton.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -20),
+            titleSkeleton.widthAnchor.constraint(equalToConstant: 72),
+            titleSkeleton.heightAnchor.constraint(equalToConstant: 14)
+        ])
+        skeletonTitleView = titleSkeleton
+
+        let imageSkeleton = ShimmerPlaceholderView(cornerRadius: 4)
+        cardView.addSubview(imageSkeleton)
+        NSLayoutConstraint.activate([
+            imageSkeleton.widthAnchor.constraint(equalToConstant: 56),
+            imageSkeleton.heightAnchor.constraint(equalToConstant: 56),
+            imageSkeleton.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: 8),
+            imageSkeleton.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: 8)
+        ])
+        skeletonImageView = imageSkeleton
+    }
+
+    private func hideSkeleton() {
+        skeletonTitleView?.removeFromSuperview()
+        skeletonImageView?.removeFromSuperview()
+        skeletonTitleView = nil
+        skeletonImageView = nil
+    }
+}
+
+private final class ShimmerPlaceholderView: UIView {
+    private let shimmerView = UIView()
+    private let gradient = CAGradientLayer()
+    private var didStartAnimation = false
+
+    init(cornerRadius: CGFloat) {
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        backgroundColor = UIColor.white.withAlphaComponent(0.07)
+        layer.cornerRadius = cornerRadius
+        clipsToBounds = true
+
+        shimmerView.backgroundColor = .clear
+        addSubview(shimmerView)
+
+        gradient.colors = [
+            UIColor.clear.cgColor,
+            UIColor.white.withAlphaComponent(0.25).cgColor,
+            UIColor.clear.cgColor
+        ]
+        gradient.startPoint = CGPoint(x: 0, y: 0.5)
+        gradient.endPoint = CGPoint(x: 1, y: 0.5)
+        shimmerView.layer.addSublayer(gradient)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        shimmerView.frame = CGRect(x: -bounds.width * 0.6, y: 0, width: bounds.width * 0.6, height: bounds.height)
+        gradient.frame = shimmerView.bounds
+        startAnimationIfNeeded()
+    }
+
+    private func startAnimationIfNeeded() {
+        guard !didStartAnimation, bounds.width > 0 else { return }
+        didStartAnimation = true
+
+        let animation = CABasicAnimation(keyPath: "position.x")
+        animation.fromValue = -shimmerView.bounds.width / 2
+        animation.toValue = bounds.width + shimmerView.bounds.width / 2
+        animation.duration = 1.3
+        animation.repeatCount = .infinity
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        shimmerView.layer.add(animation, forKey: "shimmerSlide")
+    }
+}
+
+extension SearchBrowseCategoryCell {
 
     static func cardBackgroundColor(at index: Int) -> UIColor {
         guard !cardPalette.isEmpty else {
