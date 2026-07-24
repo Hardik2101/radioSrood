@@ -177,7 +177,7 @@ enum SmartMixBuilder {
             group.enter()
             URLSession.shared.dataTask(with: url) { data, _, _ in
                 defer { group.leave() }
-                if let data, let image = UIImage(data: data) {
+                if let data = data, let image = UIImage(data: data) {
                     images[index] = image
                 }
             }.resume()
@@ -254,5 +254,51 @@ enum SmartMixBuilder {
         )
         image.draw(in: drawRect)
         context.restoreGState()
+    }
+
+    // MARK: - Playlist cover persistence
+
+    static func saveCoverImage(_ image: UIImage, playlistName: String) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.85) else { return nil }
+        let folder = coversDirectory()
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            return nil
+        }
+        let fileName = "cover_\(sanitizedFileName(playlistName))_\(Int(Date().timeIntervalSince1970)).jpg"
+        let fileURL = folder.appendingPathComponent(fileName)
+        do {
+            try data.write(to: fileURL)
+            return fileURL.path
+        } catch {
+            return nil
+        }
+    }
+
+    static func deleteCoverImage(at path: String) {
+        guard !path.isEmpty else { return }
+        try? FileManager.default.removeItem(atPath: path)
+    }
+
+    private static func coversDirectory() -> URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return docs.appendingPathComponent("SmartMixCovers", isDirectory: true)
+    }
+
+    private static func sanitizedFileName(_ name: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        var result = ""
+        for scalar in name.unicodeScalars {
+            if allowed.contains(scalar) {
+                result.append(Character(scalar))
+            } else {
+                result.append("_")
+            }
+            if result.count >= 40 {
+                break
+            }
+        }
+        return result.isEmpty ? "mix" : result
     }
 }

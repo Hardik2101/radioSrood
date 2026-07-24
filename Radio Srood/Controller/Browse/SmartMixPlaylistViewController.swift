@@ -566,6 +566,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
         if let index = playlists.firstIndex(where: { $0.name == playlist.title }) {
             // Toggle OFF — remove saved mix playlist.
+            SmartMixBuilder.deleteCoverImage(at: playlists[index].coverImagePath)
             playlists.remove(at: index)
             UserDefaultsManager.shared.playListsData = playlists
             isMixSaved = false
@@ -574,10 +575,23 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
             return
         }
 
-        // Toggle ON — save mix as a playlist.
+        // Toggle ON — save mix as a playlist with artist collage cover (not first song art).
         let newPlayList = PlayListModel()
         newPlayList.name = playlist.title
         newPlayList.songs = tracks.map { $0.convertToSongModel() }
+        if let collage = coverImageView.image {
+            newPlayList.coverImagePath = SmartMixBuilder.saveCoverImage(collage, playlistName: playlist.title) ?? ""
+        }
+        if newPlayList.coverImagePath.isEmpty {
+            SmartMixBuilder.collageImage(from: playlist.artistPhotoURLs, size: 400) { [weak self] image in
+                guard let self = self, let image = image else { return }
+                var updated = UserDefaultsManager.shared.playListsData
+                if let idx = updated.firstIndex(where: { $0.name == self.playlist.title }) {
+                    updated[idx].coverImagePath = SmartMixBuilder.saveCoverImage(image, playlistName: self.playlist.title) ?? ""
+                    UserDefaultsManager.shared.playListsData = updated
+                }
+            }
+        }
         playlists.append(newPlayList)
         UserDefaultsManager.shared.playListsData = playlists
         isMixSaved = true
