@@ -12,10 +12,17 @@ protocol SmartMixAddSongsDelegate: AnyObject {
 final class SmartMixAddSongsViewController: UIViewController {
     weak var delegate: SmartMixAddSongsDelegate?
     var existingTrackIDs: Set<Int> = []
+    /// Full artist catalog (same as Browse / Android add-songs list).
+    var allArtists: [ArtistProfileSummary] = []
 
-    private var results: [SearchModel] = []
+    private var defaultSongs: [Track] = []
+    private var displayedSongs: [Track] = []
     private var searchWorkItem: DispatchWorkItem?
     private var addedTrackIDs: Set<Int> = []
+    private var isSearching = false
+    private var isLoadingMore = false
+    private var nextArtistIndex = 0
+    private let artistBatchSize = 20
 
     private lazy var containerView: UIView = {
         let view = UIView()
@@ -87,17 +94,17 @@ final class SmartMixAddSongsViewController: UIViewController {
     private let emptyLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Search for songs to add"
+        label.text = "Loading songs..."
         label.textColor = UIColor(white: 0.5, alpha: 1)
         label.font = .systemFont(ofSize: 15)
         label.textAlignment = .center
+        label.isHidden = true
         return label
     }()
 
     private let activityIndicator: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: .medium)
+        let indicator = UIActivityIndicatorView(style: .white)
         indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.color = .white
         indicator.hidesWhenStopped = true
         return indicator
     }()
@@ -107,11 +114,7 @@ final class SmartMixAddSongsViewController: UIViewController {
         view.backgroundColor = UIColor.black.withAlphaComponent(0.45)
         addedTrackIDs = existingTrackIDs
         setupUI()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        searchField.becomeFirstResponder()
+        prepareArtistCatalog()
     }
 
     private func setupUI() {
@@ -145,19 +148,142 @@ final class SmartMixAddSongsViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 10),
             tableView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor),
 
             emptyLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
-            emptyLabel.topAnchor.constraint(equalTo: tableView.topAnchor, constant: 40),
+            emptyLabel.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
 
             activityIndicator.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
-            activityIndicator.topAnchor.constraint(equalTo: tableView.topAnchor, constant: 40)
+            activityIndicator.centerYAnchor.constraint(equalTo: tableView.centerYAnchor)
         ])
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(dimTapped(_:)))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
     }
+
+    // MARK: - Data
+
+    private func prepareArtistCatalog() {
+        emptyLabel.isHidden = true
+        activityIndicator.startAnimating()
+
+        if !allArtists.isEmpty {
+            loadNextArtistBatch(isInitial: true)
+            return
+        }
+
+        // Same full artist list API Android / Browse uses.
+        DataHelper.getArtistProfilesList { [weak self] response in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.allArtists = response?.artistProfilesList ?? []
+                if self.allArtists.isEmpty {
+                    self.activityIndicator.stopAnimating()
+                    self.emptyLabel.text = "No songs available"
+                    self.emptyLabel.isHidden = false
+                    return
+                }
+                self.loadNextArtistBatch(isInitial: true)
+            }
+        }
+    }
+
+    private var hasMoreArtists: Bool {
+        nextArtistIndex < allArtists.count
+    }
+
+    private func loadNextArtistBatch(isInitial: Bool) {
+        guard !isLoadingMore, hasMoreArtists else {
+            if isInitial {
+                activityIndicator.stopAnimating()
+                reloadList()
+            }
+            return
+        }
+
+        isLoadingMore = true
+        if isInitial {
+            activityIndicator.startAnimating()
+        }
+
+        let end = min(nextArtistIndex + artistBatchSize, allArtists.count)
+        let batch = Array(allArtists[nextArtistIndex..<end])
+        nextArtistIndex = end
+
+        let group = DispatchGroup()
+        var collected: [Track] = []
+        let lock = NSLock()
+
+        for artist in batch {
+            group.enter()
+            DataHelper.getArtistProfilePage(artistID: artist.artistid) { page in
+                defer { group.leave() }
+                guard let page = page else { return }
+                lock.lock()
+                collected.append(contentsOf: page.playbackTracks)
+                lock.unlock()
+            }
+        }
+
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            self.isLoadingMore = false
+            self.activityIndicator.stopAnimating()
+
+            let available = self.songsNotInMix(from: collected)
+            self.defaultSongs = self.mergeUnique(self.defaultSongs, available)
+            if !self.isSearching {
+                self.displayedSongs = self.defaultSongs
+            }
+            self.reloadList()
+        }
+    }
+
+    private func songsNotInMix(from tracks: [Track]) -> [Track] {
+        var seen = Set<Int>()
+        var result: [Track] = []
+        for track in tracks {
+            if let id = track.trackid {
+                if addedTrackIDs.contains(id) { continue }
+                if seen.contains(id) { continue }
+                seen.insert(id)
+            }
+            result.append(track)
+        }
+        return result
+    }
+
+    private func mergeUnique(_ existing: [Track], _ incoming: [Track]) -> [Track] {
+        var seen = Set(existing.compactMap { $0.trackid })
+        var merged = existing
+        for track in incoming {
+            if let id = track.trackid {
+                if seen.contains(id) { continue }
+                seen.insert(id)
+            }
+            merged.append(track)
+        }
+        return merged
+    }
+
+    private func reloadList() {
+        emptyLabel.isHidden = !displayedSongs.isEmpty
+        if isSearching {
+            emptyLabel.text = "No matching songs"
+        } else {
+            emptyLabel.text = "No more songs to add"
+        }
+        tableView.reloadData()
+    }
+
+    private func showDefaultList() {
+        isSearching = false
+        displayedSongs = defaultSongs
+        reloadList()
+    }
+
+    // MARK: - Actions
 
     @objc private func closeTapped() {
         dismiss(animated: true)
@@ -183,24 +309,37 @@ final class SmartMixAddSongsViewController: UIViewController {
     private func performSearch(_ query: String) {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 2 else {
-            results = []
-            emptyLabel.text = trimmed.isEmpty ? "Search for songs to add" : "Keep typing..."
-            emptyLabel.isHidden = false
-            tableView.reloadData()
+            showDefaultList()
             return
         }
 
+        isSearching = true
         emptyLabel.isHidden = true
         activityIndicator.startAnimating()
 
+        let q = trimmed.lowercased()
+        let localMatches = songsNotInMix(from: defaultSongs.filter { track in
+            let name = (track.track ?? "").lowercased()
+            let artist = (track.artist ?? "").lowercased()
+            return name.contains(q) || artist.contains(q)
+        })
+
+        if !localMatches.isEmpty {
+            displayedSongs = localMatches
+            reloadList()
+        }
+
+        // Global search like Android — any artist / song in the catalog.
         DataHelper.getSearchResults(query: trimmed) { [weak self] response in
             DispatchQueue.main.async {
-                guard let self else { return }
+                guard let self = self else { return }
+                let current = (self.searchField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                guard current.count >= 2 else { return }
+
                 self.activityIndicator.stopAnimating()
-                self.results = response ?? []
-                self.emptyLabel.isHidden = !self.results.isEmpty
-                self.emptyLabel.text = "No songs found"
-                self.tableView.reloadData()
+                let remote = self.songsNotInMix(from: (response ?? []).map { $0.convertToTrack() })
+                self.displayedSongs = self.mergeUnique(localMatches, remote)
+                self.reloadList()
             }
         }
     }
@@ -209,21 +348,32 @@ final class SmartMixAddSongsViewController: UIViewController {
 // MARK: - UITableView
 extension SmartMixAddSongsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        results.count
+        displayedSongs.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: SmartMixAddSongCell.reuseID, for: indexPath) as! SmartMixAddSongCell
-        let song = results[indexPath.row]
-        let alreadyAdded = addedTrackIDs.contains(song.trackid)
-        cell.configure(with: song, isAdded: alreadyAdded)
+        let song = displayedSongs[indexPath.row]
+        let trackID = song.trackid ?? -1
+        cell.configure(with: song, isAdded: false)
         cell.onAddTapped = { [weak self] in
-            guard let self, !alreadyAdded else { return }
-            self.addedTrackIDs.insert(song.trackid)
-            self.delegate?.smartMixAddSongsDidAdd(song.convertToTrack())
-            tableView.reloadRows(at: [indexPath], with: .none)
+            guard let self = self else { return }
+            if trackID >= 0 {
+                self.addedTrackIDs.insert(trackID)
+            }
+            self.delegate?.smartMixAddSongsDidAdd(song)
+            self.defaultSongs.removeAll { $0.trackid == trackID }
+            self.displayedSongs.removeAll { $0.trackid == trackID }
+            self.reloadList()
         }
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard !isSearching else { return }
+        if indexPath.row >= displayedSongs.count - 8 {
+            loadNextArtistBatch(isInitial: false)
+        }
     }
 }
 
@@ -322,10 +472,10 @@ final class SmartMixAddSongCell: UITableViewCell {
         ])
     }
 
-    func configure(with song: SearchModel, isAdded: Bool) {
+    func configure(with song: Track, isAdded: Bool) {
         titleLabel.text = song.track
         artistLabel.text = song.artist
-        if let url = URL(string: song.artcover_200.isEmpty ? song.artcover : song.artcover_200) {
+        if let url = song.thumbnailArtCoverURL {
             coverImageView.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
         } else {
             coverImageView.image = UIImage(named: "Lav_Radio_Logo.png")

@@ -7,6 +7,8 @@ import UIKit
 
 final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate {
     var playlist: SmartMixPlaylist!
+    /// Full artist catalog used by Add Songs (not only selected mix artists).
+    var allArtists: [ArtistProfileSummary] = []
 
     private var tracks: [Track] = []
     private var isShuffle = false
@@ -378,6 +380,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         let addVC = SmartMixAddSongsViewController()
         addVC.delegate = self
         addVC.existingTrackIDs = Set(tracks.compactMap { $0.trackid })
+        addVC.allArtists = allArtists.isEmpty ? playlist.artists : allArtists
         addVC.modalPresentationStyle = .overFullScreen
         addVC.modalTransitionStyle = .coverVertical
         present(addVC, animated: true)

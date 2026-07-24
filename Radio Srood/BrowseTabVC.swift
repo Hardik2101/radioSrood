@@ -887,6 +887,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
 
             let mixVC = SmartMixPlaylistViewController()
             mixVC.playlist = playlist
+            mixVC.allArtists = self.artistProfiles
             self.navigationController?.pushViewController(mixVC, animated: true)
         }
     }
