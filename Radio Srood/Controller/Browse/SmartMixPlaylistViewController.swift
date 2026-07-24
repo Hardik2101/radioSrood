@@ -4,6 +4,7 @@
 //
 
 import UIKit
+import Alamofire
 
 final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate {
     var playlist: SmartMixPlaylist!
@@ -12,11 +13,53 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
     private var tracks: [Track] = []
     private var isShuffle = false
+    private var isMixSaved = false
+    private var isDownloadingMix = false
     private var tableBottomConstraint: NSLayoutConstraint?
     private var headerTopSpacerHeightConstraint: NSLayoutConstraint?
 
     private let headerGradientLayer = CAGradientLayer()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
+
+    private lazy var downloadButton: UIButton = {
+        makeCircleAction(systemName: "arrow.down.to.line", action: #selector(downloadTapped), size: 44)
+    }()
+
+    private lazy var bookmarkButton: UIButton = {
+        makeCircleAction(systemName: "bookmark", action: #selector(bookmarkTapped), size: 44)
+    }()
+
+    private lazy var downloadProgressLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 13, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }()
+
+    private lazy var downloadOverlay: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.55)
+        view.isHidden = true
+
+        let spinner = UIActivityIndicatorView(style: .whiteLarge)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        spinner.startAnimating()
+
+        view.addSubview(spinner)
+        view.addSubview(downloadProgressLabel)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -16),
+            downloadProgressLabel.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 12),
+            downloadProgressLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            downloadProgressLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24)
+        ])
+        return view
+    }()
 
     private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -105,8 +148,8 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
     private lazy var actionStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [
-            makeCircleAction(systemName: "arrow.down.to.line", action: #selector(downloadTapped), size: 44),
-            makeCircleAction(systemName: "bookmark", action: #selector(bookmarkTapped), size: 44),
+            downloadButton,
+            bookmarkButton,
             makePlayButton(),
             makeCircleAction(systemName: "shuffle", action: #selector(shuffleTapped), size: 44),
             makeCircleAction(systemName: "plus", action: #selector(addSongsTapped), size: 44)
@@ -125,9 +168,11 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         setupHeaderGradient()
         setupTableView()
         setupHeaderView()
+        setupDownloadOverlay()
         setupLongPress()
         configureHeaderContent()
         loadCollage()
+        refreshActionButtonStates()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -265,6 +310,41 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         }
     }
 
+    private func setupDownloadOverlay() {
+        view.addSubview(downloadOverlay)
+        NSLayoutConstraint.activate([
+            downloadOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            downloadOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            downloadOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            downloadOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    private func refreshActionButtonStates() {
+        let playlists = UserDefaultsManager.shared.playListsData
+        isMixSaved = playlists.contains { $0.name == playlist.title }
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let bookmarkIcon = isMixSaved ? "bookmark.fill" : "bookmark"
+        bookmarkButton.setImage(UIImage(systemName: bookmarkIcon, withConfiguration: config), for: .normal)
+        bookmarkButton.tintColor = isMixSaved ? UIColor(red: 0.90, green: 0.12, blue: 0.18, alpha: 1) : .white
+
+        let allDownloaded = areAllTracksDownloaded()
+        let downloadIcon = allDownloaded ? "checkmark" : "arrow.down.to.line"
+        downloadButton.setImage(UIImage(systemName: downloadIcon, withConfiguration: config), for: .normal)
+        downloadButton.tintColor = allDownloaded ? UIColor.systemGreen : .white
+    }
+
+    private func areAllTracksDownloaded() -> Bool {
+        guard !tracks.isEmpty else { return false }
+        let saved = UserDefaultsManager.shared.localTracksData
+        for track in tracks {
+            guard let id = track.trackid else { return false }
+            let downloaded = saved.contains { $0.trackid == id && $0.isDownload }
+            if !downloaded { return false }
+        }
+        return true
+    }
+
     private func makeCircleAction(systemName: String, action: Selector, size: CGFloat) -> UIButton {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -365,15 +445,130 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     }
 
     @objc private func downloadTapped() {
-        let alert = UIAlertController(title: "Download", message: "Downloading mix tracks is available from each song’s options menu.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        guard !tracks.isEmpty else { return }
+        guard !isDownloadingMix else { return }
+
+        if areAllTracksDownloaded() {
+            showToast(message: "All songs already downloaded", font: .systemFont(ofSize: 12))
+            return
+        }
+
+        let purchase = IAPHandler.shared.isGetPurchase()
+        if !purchase {
+            let vc = mainStoryboard.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
+            vc.isshowbackButton = true
+            let navVC = UINavigationController(rootViewController: vc)
+            navVC.navigationBar.isHidden = true
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+            return
+        }
+
+        startDownloadingMix()
     }
 
     @objc private func bookmarkTapped() {
-        let alert = UIAlertController(title: "Saved", message: "Your Smart Mix is ready to play. Bookmark individual songs from the options menu.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        guard !tracks.isEmpty else { return }
+
+        var playlists = UserDefaultsManager.shared.playListsData
+
+        if let index = playlists.firstIndex(where: { $0.name == playlist.title }) {
+            // Toggle OFF — remove saved mix playlist.
+            playlists.remove(at: index)
+            UserDefaultsManager.shared.playListsData = playlists
+            isMixSaved = false
+            refreshActionButtonStates()
+            showToast(message: "Removed from My Music", font: .systemFont(ofSize: 12))
+            return
+        }
+
+        // Toggle ON — save mix as a playlist.
+        let newPlayList = PlayListModel()
+        newPlayList.name = playlist.title
+        newPlayList.songs = tracks.map { $0.convertToSongModel() }
+        playlists.append(newPlayList)
+        UserDefaultsManager.shared.playListsData = playlists
+        isMixSaved = true
+        refreshActionButtonStates()
+        showToast(message: "Playlist saved to My Music", font: .systemFont(ofSize: 12))
+    }
+
+    private func startDownloadingMix() {
+        let pending = tracks.filter { track in
+            guard let id = track.trackid else { return true }
+            let saved = UserDefaultsManager.shared.localTracksData
+            return !saved.contains { $0.trackid == id && $0.isDownload }
+        }
+
+        guard !pending.isEmpty else {
+            refreshActionButtonStates()
+            showToast(message: "All songs already downloaded", font: .systemFont(ofSize: 12))
+            return
+        }
+
+        isDownloadingMix = true
+        downloadOverlay.isHidden = false
+        downloadProgressLabel.isHidden = false
+        downloadProgressLabel.text = "Downloading 0/\(pending.count)"
+
+        downloadTracksSequentially(pending, index: 0, successCount: 0)
+    }
+
+    private func downloadTracksSequentially(_ pending: [Track], index: Int, successCount: Int) {
+        if index >= pending.count {
+            isDownloadingMix = false
+            downloadOverlay.isHidden = true
+            downloadProgressLabel.isHidden = true
+            refreshActionButtonStates()
+            showToast(
+                message: "Downloaded \(successCount) of \(pending.count) songs",
+                font: .systemFont(ofSize: 12)
+            )
+            return
+        }
+
+        let track = pending[index]
+        downloadProgressLabel.text = "Downloading \(index + 1)/\(pending.count)"
+
+        guard let mediaPath = track.mediaPath,
+              let encoded = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: songPath + encoded) else {
+            downloadTracksSequentially(pending, index: index + 1, successCount: successCount)
+            return
+        }
+
+        let name = url.lastPathComponent
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let destinationURL = documentsURL.appendingPathComponent(name)
+
+        AF.download(url, to: { _, _ in
+            (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
+        })
+        .response { [weak self] response in
+            guard let self = self else { return }
+            var nextSuccess = successCount
+            if response.error == nil {
+                nextSuccess += 1
+                self.markTrackDownloaded(track)
+                if let artcover = track.artcover {
+                    UserDefaults.standard.set(artcover, forKey: "\(url.deletingPathExtension().lastPathComponent)")
+                }
+            }
+            self.downloadTracksSequentially(pending, index: index + 1, successCount: nextSuccess)
+        }
+    }
+
+    private func markTrackDownloaded(_ track: Track) {
+        var savedTracks = UserDefaultsManager.shared.localTracksData
+        if let trackID = track.trackid,
+           let index = savedTracks.firstIndex(where: { $0.trackid == trackID }) {
+            savedTracks[index].isDownload = true
+        } else {
+            let song = track.convertToSongModel()
+            song.isDownload = true
+            savedTracks.append(song)
+        }
+        UserDefaultsManager.shared.localTracksData = savedTracks
     }
 
     @objc private func addSongsTapped() {
@@ -394,9 +589,12 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
-            guard let self, let text = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return }
+            guard let self = self,
+                  let text = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !text.isEmpty else { return }
             self.playlist.title = text
             self.titleLabel.text = text
+            self.refreshActionButtonStates()
         }))
         present(alert, animated: true)
     }
@@ -442,6 +640,16 @@ extension SmartMixPlaylistViewController: SmartMixAddSongsDelegate {
             return
         }
         tracks.append(track)
+        playlist.tracks = tracks
         refreshStats()
+        // Keep saved playlist in sync if already bookmarked.
+        if isMixSaved {
+            var playlists = UserDefaultsManager.shared.playListsData
+            if let index = playlists.firstIndex(where: { $0.name == playlist.title }) {
+                playlists[index].songs = tracks.map { $0.convertToSongModel() }
+                UserDefaultsManager.shared.playListsData = playlists
+            }
+        }
+        refreshActionButtonStates()
     }
 }
