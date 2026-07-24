@@ -22,8 +22,34 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
     private lazy var downloadButton: UIButton = {
-        makeCircleAction(systemName: "arrow.down.to.line", action: #selector(downloadTapped), size: 44)
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = UIColor(white: 0.16, alpha: 1)
+        button.layer.cornerRadius = 22
+        button.clipsToBounds = true
+        button.setImage(UIImage(named: "ic_download")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        button.tintColor = .white
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        button.addTarget(self, action: #selector(downloadTapped), for: .touchUpInside)
+        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        return button
     }()
+
+    private lazy var downloadProgressHost: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor(white: 0.16, alpha: 1)
+        view.layer.cornerRadius = 22
+        view.clipsToBounds = true
+        view.isHidden = true
+        view.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        return view
+    }()
+
+    private var circularProgressView: CircularProgressView!
 
     private lazy var bookmarkButton: UIButton = {
         makeCircleAction(systemName: "bookmark", action: #selector(bookmarkTapped), size: 44)
@@ -59,6 +85,26 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
             downloadProgressLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24)
         ])
         return view
+    }()
+
+    private lazy var downloadActionContainer: UIView = {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(downloadButton)
+        container.addSubview(downloadProgressHost)
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: 44),
+            container.heightAnchor.constraint(equalToConstant: 44),
+            downloadButton.topAnchor.constraint(equalTo: container.topAnchor),
+            downloadButton.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            downloadButton.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            downloadButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            downloadProgressHost.topAnchor.constraint(equalTo: container.topAnchor),
+            downloadProgressHost.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            downloadProgressHost.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            downloadProgressHost.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        return container
     }()
 
     private lazy var tableView: UITableView = {
@@ -148,7 +194,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
     private lazy var actionStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [
-            downloadButton,
+            downloadActionContainer,
             bookmarkButton,
             makePlayButton(),
             makeCircleAction(systemName: "shuffle", action: #selector(shuffleTapped), size: 44),
@@ -169,6 +215,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         setupTableView()
         setupHeaderView()
         setupDownloadOverlay()
+        setupCircularProgress()
         setupLongPress()
         configureHeaderContent()
         loadCollage()
@@ -320,6 +367,21 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         ])
     }
 
+    private func setupCircularProgress() {
+        let progress = CircularProgressView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        progress.translatesAutoresizingMaskIntoConstraints = false
+        progress.lineWidth = 3
+        progress.isHidden = true
+        downloadProgressHost.addSubview(progress)
+        NSLayoutConstraint.activate([
+            progress.topAnchor.constraint(equalTo: downloadProgressHost.topAnchor),
+            progress.leadingAnchor.constraint(equalTo: downloadProgressHost.leadingAnchor),
+            progress.trailingAnchor.constraint(equalTo: downloadProgressHost.trailingAnchor),
+            progress.bottomAnchor.constraint(equalTo: downloadProgressHost.bottomAnchor)
+        ])
+        circularProgressView = progress
+    }
+
     private func refreshActionButtonStates() {
         let playlists = UserDefaultsManager.shared.playListsData
         isMixSaved = playlists.contains { $0.name == playlist.title }
@@ -328,10 +390,40 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         bookmarkButton.setImage(UIImage(systemName: bookmarkIcon, withConfiguration: config), for: .normal)
         bookmarkButton.tintColor = isMixSaved ? UIColor(red: 0.90, green: 0.12, blue: 0.18, alpha: 1) : .white
 
-        let allDownloaded = areAllTracksDownloaded()
-        let downloadIcon = allDownloaded ? "checkmark" : "arrow.down.to.line"
-        downloadButton.setImage(UIImage(systemName: downloadIcon, withConfiguration: config), for: .normal)
-        downloadButton.tintColor = allDownloaded ? UIColor.systemGreen : .white
+        applyDownloadButtonAppearance(isDownloaded: areAllTracksDownloaded())
+    }
+
+    private func applyDownloadButtonAppearance(isDownloaded: Bool) {
+        if isDownloaded {
+            // Match Options / player finished look: green check + outer ring, no dark fill.
+            let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
+            let image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config)?
+                .withRenderingMode(.alwaysTemplate)
+            downloadButton.setImage(image, for: .normal)
+            downloadButton.tintColor = .systemGreen
+            downloadButton.backgroundColor = .clear
+            downloadButton.layer.cornerRadius = 22
+            downloadButton.layer.borderWidth = 2
+            downloadButton.layer.borderColor = UIColor.systemGreen.cgColor
+            downloadButton.clipsToBounds = true
+            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+            downloadButton.isUserInteractionEnabled = false
+        } else {
+            downloadButton.setImage(UIImage(named: "ic_download")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            downloadButton.tintColor = .white
+            downloadButton.backgroundColor = UIColor(white: 0.16, alpha: 1)
+            downloadButton.layer.cornerRadius = 22
+            downloadButton.layer.borderWidth = 0
+            downloadButton.layer.borderColor = nil
+            downloadButton.clipsToBounds = true
+            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+            downloadButton.isUserInteractionEnabled = true
+        }
+
+        downloadButton.isHidden = false
+        downloadProgressHost.isHidden = true
+        circularProgressView?.isHidden = true
+        circularProgressView?.resetProgress()
     }
 
     private func areAllTracksDownloaded() -> Bool {
@@ -511,29 +603,50 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         downloadProgressLabel.isHidden = false
         downloadProgressLabel.text = "Downloading 0/\(pending.count)"
 
-        downloadTracksSequentially(pending, index: 0, successCount: 0)
+        // Same progress UI pattern as Options / Music Player.
+        downloadButton.isHidden = true
+        downloadProgressHost.isHidden = false
+        circularProgressView.isHidden = false
+        circularProgressView.lineWidth = 3
+        circularProgressView.resetProgress()
+        circularProgressView.setProgress(0)
+
+        downloadTracksSequentially(pending, index: 0, successCount: 0, totalCount: pending.count)
     }
 
-    private func downloadTracksSequentially(_ pending: [Track], index: Int, successCount: Int) {
+    private func downloadTracksSequentially(_ pending: [Track], index: Int, successCount: Int, totalCount: Int) {
         if index >= pending.count {
-            isDownloadingMix = false
-            downloadOverlay.isHidden = true
-            downloadProgressLabel.isHidden = true
-            refreshActionButtonStates()
-            showToast(
-                message: "Downloaded \(successCount) of \(pending.count) songs",
-                font: .systemFont(ofSize: 12)
-            )
+            // Finish animation like OptionsViewController.
+            circularProgressView.setProgress(1.0)
+            circularProgressView.lineWidth = 3
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self = self else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self.isDownloadingMix = false
+                    self.downloadOverlay.isHidden = true
+                    self.downloadProgressLabel.isHidden = true
+                    self.downloadProgressHost.isHidden = true
+                    self.circularProgressView.resetProgress()
+                    self.circularProgressView.isHidden = true
+                    self.applyDownloadButtonAppearance(isDownloaded: self.areAllTracksDownloaded())
+                    self.showToast(
+                        message: "Downloaded \(successCount) of \(totalCount) songs",
+                        font: .systemFont(ofSize: 12)
+                    )
+                }
+            }
             return
         }
 
         let track = pending[index]
-        downloadProgressLabel.text = "Downloading \(index + 1)/\(pending.count)"
+        downloadProgressLabel.text = "Downloading \(index + 1)/\(totalCount)"
+        let overall = Float(index) / Float(max(totalCount, 1))
+        circularProgressView.setProgress(overall)
 
         guard let mediaPath = track.mediaPath,
               let encoded = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: songPath + encoded) else {
-            downloadTracksSequentially(pending, index: index + 1, successCount: successCount)
+            downloadTracksSequentially(pending, index: index + 1, successCount: successCount, totalCount: totalCount)
             return
         }
 
@@ -544,6 +657,14 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         AF.download(url, to: { _, _ in
             (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
         })
+        .downloadProgress { [weak self] progress in
+            guard let self = self else { return }
+            let base = Float(index) / Float(max(totalCount, 1))
+            let slice = Float(progress.fractionCompleted) / Float(max(totalCount, 1))
+            DispatchQueue.main.async {
+                self.circularProgressView.setProgress(base + slice)
+            }
+        }
         .response { [weak self] response in
             guard let self = self else { return }
             var nextSuccess = successCount
@@ -554,7 +675,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
                     UserDefaults.standard.set(artcover, forKey: "\(url.deletingPathExtension().lastPathComponent)")
                 }
             }
-            self.downloadTracksSequentially(pending, index: index + 1, successCount: nextSuccess)
+            self.downloadTracksSequentially(pending, index: index + 1, successCount: nextSuccess, totalCount: totalCount)
         }
     }
 
