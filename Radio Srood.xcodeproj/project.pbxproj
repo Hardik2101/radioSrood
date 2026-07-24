@@ -147,6 +147,12 @@
 		88B001182FADF201009CB334 /* ArtistProfileSroodArtistCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */; };
 		88B0011B2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0011A2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift */; };
 		88B0011D2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B0011C2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift */; };
+		88C002022FADF301009CB334 /* SmartMixArtistCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C002012FADF301009CB334 /* SmartMixArtistCell.swift */; };
+		88C002042FADF301009CB334 /* BrowseSmartMixCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C002032FADF301009CB334 /* BrowseSmartMixCell.swift */; };
+		88C002062FADF301009CB334 /* SmartMixBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C002052FADF301009CB334 /* SmartMixBuilder.swift */; };
+		88C002082FADF301009CB334 /* SmartMixPickArtistsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C002072FADF301009CB334 /* SmartMixPickArtistsViewController.swift */; };
+		88C0020A2FADF301009CB334 /* SmartMixPlaylistViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C002092FADF301009CB334 /* SmartMixPlaylistViewController.swift */; };
+		88C0020C2FADF301009CB334 /* SmartMixAddSongsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88C0020B2FADF301009CB334 /* SmartMixAddSongsViewController.swift */; };
 		88E295512F6185EF00CECD00 /* NoInternetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295502F6185EF00CECD00 /* NoInternetViewController.swift */; };
 		88E295572F61A3E200CECD00 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E295562F61A3E200CECD00 /* SplashViewController.swift */; };
 		B700ED772C750261006FF099 /* TabbarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B700ED762C750261006FF099 /* TabbarVC.swift */; };
@@ -375,6 +381,12 @@
 		88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileSroodArtistCell.swift; sourceTree = "<group>"; };
 		88B0011A2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileHorizontalCardCell.swift; sourceTree = "<group>"; };
 		88B0011C2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistProfileCarouselTableCell.swift; sourceTree = "<group>"; };
+		88C002012FADF301009CB334 /* SmartMixArtistCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMixArtistCell.swift; sourceTree = "<group>"; };
+		88C002032FADF301009CB334 /* BrowseSmartMixCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseSmartMixCell.swift; sourceTree = "<group>"; };
+		88C002052FADF301009CB334 /* SmartMixBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMixBuilder.swift; sourceTree = "<group>"; };
+		88C002072FADF301009CB334 /* SmartMixPickArtistsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMixPickArtistsViewController.swift; sourceTree = "<group>"; };
+		88C002092FADF301009CB334 /* SmartMixPlaylistViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMixPlaylistViewController.swift; sourceTree = "<group>"; };
+		88C0020B2FADF301009CB334 /* SmartMixAddSongsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMixAddSongsViewController.swift; sourceTree = "<group>"; };
 		88E295502F6185EF00CECD00 /* NoInternetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoInternetViewController.swift; sourceTree = "<group>"; };
 		88E295562F61A3E200CECD00 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		9749CAD6BC31B329F5CDC9B3 /* Pods_Radio_Srood.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Radio_Srood.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -865,6 +877,9 @@
 				88B001132FADF201009CB334 /* ArtistProfileSectionShowAllViewController.swift */,
 				88B001172FADF201009CB334 /* ArtistProfileSimilarArtistsShowAllViewController.swift */,
 				88B001102FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift */,
+				88C002072FADF301009CB334 /* SmartMixPickArtistsViewController.swift */,
+				88C002092FADF301009CB334 /* SmartMixPlaylistViewController.swift */,
+				88C0020B2FADF301009CB334 /* SmartMixAddSongsViewController.swift */,
 			);
 			path = Browse;
 			sourceTree = "<group>";
@@ -878,6 +893,8 @@
 				88B001152FADF201009CB334 /* ArtistProfileSimilarArtistsTableCell.swift */,
 				88B001192FADF201009CB334 /* ArtistProfileSroodArtistCell.swift */,
 				88B001062FADF201009CB334 /* BrowseArtistProfilesCell.swift */,
+				88C002012FADF301009CB334 /* SmartMixArtistCell.swift */,
+				88C002032FADF301009CB334 /* BrowseSmartMixCell.swift */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -887,6 +904,7 @@
 			children = (
 				88B001002FADF201009CB334 /* BrowseFeaturedPlaylistModel.swift */,
 				88B001022FADF201009CB334 /* ArtistProfileModels.swift */,
+				88C002052FADF301009CB334 /* SmartMixBuilder.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1491,6 +1509,12 @@
 				88B0011B2FADF201009CB334 /* ArtistProfileHorizontalCardCell.swift in Sources */,
 				88B0011D2FADF201009CB334 /* ArtistProfileCarouselTableCell.swift in Sources */,
 				88B001112FADF201009CB334 /* BrowseFeaturedPlaylistsShowAllViewController.swift in Sources */,
+				88C002022FADF301009CB334 /* SmartMixArtistCell.swift in Sources */,
+				88C002042FADF301009CB334 /* BrowseSmartMixCell.swift in Sources */,
+				88C002062FADF301009CB334 /* SmartMixBuilder.swift in Sources */,
+				88C002082FADF301009CB334 /* SmartMixPickArtistsViewController.swift in Sources */,
+				88C0020A2FADF301009CB334 /* SmartMixPlaylistViewController.swift in Sources */,
+				88C0020C2FADF301009CB334 /* SmartMixAddSongsViewController.swift in Sources */,
 				DC062BB429924928008245F2 /* MusicPlayerViewController.swift in Sources */,
 				3F9AD5D61EAF49BE009B1532 /* PlayerViewController.swift in Sources */,
 				3F9AB1491EAB3F68000D8FE3 /* config.swift in Sources */,

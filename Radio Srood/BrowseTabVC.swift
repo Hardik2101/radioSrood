@@ -66,6 +66,8 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
     var isRadioLoaded = false
     var featuredBrowsePlaylists: [BrowseFeaturedPlaylist] = []
     var artistProfiles: [ArtistProfileSummary] = []
+    var selectedSmartMixArtistIDs: Set<String> = []
+    private var smartMixLoadingOverlay: UIView?
 
     
     var timer = Timer()
@@ -599,6 +601,7 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
 
     func onClickShowAll(type: String) {
         switch type {
+        case Browseheader.smartMix.title:       openSmartMixPickArtists()
         case Browseheader.playlist.title:       featuredPlaylistsShowAll()
         case Browseheader.artistProfiles.title: openArtistList()
         case Browseheader.newMusic.title:       newReleasesShowAll()
@@ -703,6 +706,26 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
             cell.presentViewBrowse = self
             cell.artists = artistProfiles
             cell.reloadCollectionView()
+            return cell
+        }
+        return UITableViewCell()
+    }
+
+    func smartMixCell(with tableView: UITableView) -> UITableViewCell {
+        tableView.register(BrowseSmartMixCell.self, forCellReuseIdentifier: BrowseSmartMixCell.reuseID)
+        if let cell = tableView.dequeueReusableCell(withIdentifier: BrowseSmartMixCell.reuseID) as? BrowseSmartMixCell,
+           isArtistProfilesLoaded {
+            cell.selectionStyle = .none
+            cell.delegate = self
+
+            let artistsChanged = cell.artists.map { $0.artistid } != artistProfiles.map { $0.artistid }
+            if artistsChanged {
+                cell.artists = artistProfiles
+                cell.selectedArtistIDs = selectedSmartMixArtistIDs
+                cell.reloadCollectionView()
+            } else {
+                cell.applySelection(selectedSmartMixArtistIDs)
+            }
             return cell
         }
         return UITableViewCell()
@@ -818,6 +841,98 @@ class BrowseTabVC: UI_VC, OptionsViewControllerDelegate {
         profileVC.artistID = artistID
         profileVC.fallbackSummary = summary
         navigationController?.pushViewController(profileVC, animated: true)
+    }
+
+    func openSmartMixPickArtists() {
+        let pickVC = SmartMixPickArtistsViewController()
+        pickVC.allArtists = artistProfiles
+        pickVC.selectedArtistIDs = selectedSmartMixArtistIDs
+        pickVC.delegate = self
+        navigationController?.pushViewController(pickVC, animated: true)
+    }
+
+    func startSmartMix(with artists: [ArtistProfileSummary]? = nil) {
+        let selected: [ArtistProfileSummary]
+        if let artists, !artists.isEmpty {
+            selected = artists
+        } else {
+            selected = artistProfiles.filter { selectedSmartMixArtistIDs.contains($0.artistid) }
+        }
+
+        guard !selected.isEmpty else {
+            let alert = UIAlertController(
+                title: "Pick Artists",
+                message: "Select at least one artist to create your Smart Mix.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        showSmartMixLoading(true)
+        SmartMixBuilder.buildPlaylist(artists: selected) { [weak self] playlist in
+            guard let self else { return }
+            self.showSmartMixLoading(false)
+            guard let playlist else {
+                let alert = UIAlertController(
+                    title: "Smart Mix",
+                    message: "Couldn't build a mix right now. Please try again.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+                return
+            }
+
+            let mixVC = SmartMixPlaylistViewController()
+            mixVC.playlist = playlist
+            self.navigationController?.pushViewController(mixVC, animated: true)
+        }
+    }
+
+    private func showSmartMixLoading(_ show: Bool) {
+        let hostView = navigationController?.topViewController?.view ?? view
+        if show {
+            guard smartMixLoadingOverlay == nil else { return }
+            let overlay = UIView(frame: hostView?.bounds ?? .zero)
+            overlay.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+            overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+            let spinner = UIActivityIndicatorView(style: .large)
+            spinner.color = .white
+            spinner.translatesAutoresizingMaskIntoConstraints = false
+            spinner.startAnimating()
+
+            let label = UILabel()
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.text = "Creating your mix..."
+            label.textColor = .white
+            label.font = .systemFont(ofSize: 15, weight: .medium)
+
+            overlay.addSubview(spinner)
+            overlay.addSubview(label)
+            NSLayoutConstraint.activate([
+                spinner.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+                spinner.centerYAnchor.constraint(equalTo: overlay.centerYAnchor, constant: -12),
+                label.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 12),
+                label.centerXAnchor.constraint(equalTo: overlay.centerXAnchor)
+            ])
+
+            hostView?.addSubview(overlay)
+            smartMixLoadingOverlay = overlay
+        } else {
+            smartMixLoadingOverlay?.removeFromSuperview()
+            smartMixLoadingOverlay = nil
+        }
+    }
+
+    private func reloadSmartMixSection() {
+        guard let section = BrowseheaderArray.firstIndex(of: Browseheader.smartMix.title) else {
+            tblBrowse.reloadData()
+            return
+        }
+        tblBrowse.reloadSections(IndexSet(integer: section), with: .none)
     }
     
     let avPlayerViewController = AVPlayerViewController()
@@ -967,6 +1082,9 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
 
         switch BrowseheaderArray[indexPath.section] {
+        case Browseheader.smartMix.title:
+            if !isArtistProfilesLoaded { return skeletonCell(for: tableView, at: indexPath) }
+            return smartMixCell(with: tableView)
         case Browseheader.playlist.title:
             if !isPlaylistLoaded { return skeletonCell(for: tableView, at: indexPath) }
             return playlistsCell(with: tableView)
@@ -1011,6 +1129,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
 
         switch BrowseheaderArray[section] {
+        case Browseheader.smartMix.title:       return nil
         case Browseheader.playlist.title:       return setHeaderData(headerTitle: Browseheader.playlist.title)
         case Browseheader.artistProfiles.title: return setHeaderData(headerTitle: Browseheader.artistProfiles.title)
         case Browseheader.popularMusic.title:   return setHeaderData(headerTitle: Browseheader.popularMusic.title)
@@ -1024,6 +1143,8 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         if tableView == tblSearch { return 70 }
 
         switch BrowseheaderArray[indexPath.section] {
+        case Browseheader.smartMix.title:
+            return isArtistProfilesLoaded ? UITableView.automaticDimension : 420
         case Browseheader.playlist.title:
             return isPlaylistLoaded ? UITableView.automaticDimension : 180
         case Browseheader.artistProfiles.title:
@@ -1045,6 +1166,7 @@ extension BrowseTabVC: UITableViewDelegate, UITableViewDataSource {
         }
 
         switch BrowseheaderArray[section] {
+        case Browseheader.smartMix.title:       return CGFloat.leastNonzeroMagnitude
         case Browseheader.playlist.title:       return 27
         case Browseheader.artistProfiles.title: return 27
         case Browseheader.popularMusic.title:   return 27
@@ -1123,7 +1245,7 @@ extension BrowseTabVC: GADInterstitialDelegate {
         switch browseheader {
         case .playlist, .newMusic, .popularMusic:
             openMusicPlayerViewController()
-        case .artistProfiles:
+        case .smartMix, .artistProfiles:
             break
         case .radio:
             openRadioWithRecentViewController()
@@ -1241,5 +1363,51 @@ extension BrowseTabVC: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
+    }
+}
+
+// MARK: - Srood Smart Mix
+extension BrowseTabVC: BrowseSmartMixCellDelegate {
+    func smartMixCellDidToggleArtist(_ artist: ArtistProfileSummary) {
+        if selectedSmartMixArtistIDs.contains(artist.artistid) {
+            selectedSmartMixArtistIDs.remove(artist.artistid)
+        } else {
+            selectedSmartMixArtistIDs.insert(artist.artistid)
+        }
+        // Keep selection in sync without reloading the section (avoids square images).
+        if let section = BrowseheaderArray.firstIndex(of: Browseheader.smartMix.title),
+           let cell = tblBrowse.cellForRow(at: IndexPath(row: 0, section: section)) as? BrowseSmartMixCell {
+            cell.selectedArtistIDs = selectedSmartMixArtistIDs
+        }
+    }
+
+    func smartMixCellDidTapMore() {
+        openSmartMixPickArtists()
+    }
+
+    func smartMixCellDidTapStartMix() {
+        startSmartMix()
+    }
+}
+
+extension BrowseTabVC: SmartMixPickArtistsDelegate {
+    func smartMixPickArtistsDidUpdateSelection(_ selectedIDs: Set<String>) {
+        selectedSmartMixArtistIDs = selectedIDs
+        if let section = BrowseheaderArray.firstIndex(of: Browseheader.smartMix.title),
+           let cell = tblBrowse.cellForRow(at: IndexPath(row: 0, section: section)) as? BrowseSmartMixCell {
+            cell.applySelection(selectedIDs)
+        }
+    }
+
+    func smartMixPickArtistsDidRequestStartMix(_ selectedArtists: [ArtistProfileSummary]) {
+        selectedSmartMixArtistIDs = Set(selectedArtists.map { $0.artistid })
+        if let section = BrowseheaderArray.firstIndex(of: Browseheader.smartMix.title),
+           let cell = tblBrowse.cellForRow(at: IndexPath(row: 0, section: section)) as? BrowseSmartMixCell {
+            cell.applySelection(selectedSmartMixArtistIDs)
+        }
+        if navigationController?.topViewController is SmartMixPickArtistsViewController {
+            navigationController?.popViewController(animated: false)
+        }
+        startSmartMix(with: selectedArtists)
     }
 }

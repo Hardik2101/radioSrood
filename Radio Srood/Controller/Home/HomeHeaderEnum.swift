@@ -44,6 +44,7 @@ enum HomeHeader: Int, CaseIterable {
 
 
 enum Browseheader: Int, CaseIterable {
+    case smartMix
     case playlist
     case artistProfiles
     case popularMusic
@@ -55,6 +56,8 @@ enum Browseheader: Int, CaseIterable {
     
     var title: String {
         switch self {
+        case .smartMix:
+            return "Srood Smart Mix"
         case .playlist:
             return "Featured Playlists"
         case .artistProfiles:
@@ -76,6 +79,8 @@ enum Browseheader: Int, CaseIterable {
     
     var toHomeHeader: HomeHeader? {
         switch self {
+        case .smartMix:
+            return nil
         case .playlist:
             return .playlists
         case .artistProfiles:
