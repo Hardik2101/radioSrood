@@ -53,12 +53,22 @@ final class SmartMixTrackCell: UITableViewCell {
         return button
     }()
 
+    private let downloadProgressView: CircularProgressView = {
+        let size: CGFloat = 30
+        let v = CircularProgressView(frame: CGRect(x: 0, y: 0, width: size, height: size))
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.lineWidth = 3
+        v.isHidden = true
+        v.resetProgress()
+        return v
+    }()
+
     private let reorderImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = UIColor(white: 0.55, alpha: 1)
-        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 19, weight: .medium)
         imageView.image = UIImage(systemName: "line.horizontal.3", withConfiguration: config)?
             .withRenderingMode(.alwaysTemplate)
         imageView.isUserInteractionEnabled = false
@@ -90,6 +100,8 @@ final class SmartMixTrackCell: UITableViewCell {
         coverImageView.image = nil
         delegate = nil
         downloadButton.isUserInteractionEnabled = true
+        downloadProgressView.isHidden = true
+        downloadProgressView.resetProgress()
     }
 
     private func setupUI() {
@@ -103,6 +115,7 @@ final class SmartMixTrackCell: UITableViewCell {
         contentView.addSubview(coverImageView)
         contentView.addSubview(textStack)
         contentView.addSubview(downloadButton)
+        contentView.addSubview(downloadProgressView)
         contentView.addSubview(reorderImageView)
 
         NSLayoutConstraint.activate([
@@ -117,17 +130,26 @@ final class SmartMixTrackCell: UITableViewCell {
 
             downloadButton.trailingAnchor.constraint(equalTo: reorderImageView.leadingAnchor, constant: -4),
             downloadButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            downloadButton.widthAnchor.constraint(equalToConstant: 36),
-            downloadButton.heightAnchor.constraint(equalToConstant: 36),
+            downloadButton.widthAnchor.constraint(equalToConstant: 30),
+            downloadButton.heightAnchor.constraint(equalToConstant: 30),
+
+            downloadProgressView.centerXAnchor.constraint(equalTo: downloadButton.centerXAnchor),
+            downloadProgressView.centerYAnchor.constraint(equalTo: downloadButton.centerYAnchor),
+            downloadProgressView.widthAnchor.constraint(equalToConstant: 30),
+            downloadProgressView.heightAnchor.constraint(equalToConstant: 30),
 
             reorderImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             reorderImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            reorderImageView.widthAnchor.constraint(equalToConstant: 22),
-            reorderImageView.heightAnchor.constraint(equalToConstant: 22)
+            reorderImageView.widthAnchor.constraint(equalToConstant: 26),
+            reorderImageView.heightAnchor.constraint(equalToConstant: 26)
         ])
     }
 
     func configure(with track: Track, isDownloaded: Bool, isDownloading: Bool) {
+        configure(with: track, isDownloaded: isDownloaded, isDownloading: isDownloading, downloadProgress: 0)
+    }
+
+    func configure(with track: Track, isDownloaded: Bool, isDownloading: Bool, downloadProgress: Float) {
         titleLabel.text = track.track
         artistLabel.text = track.artist
 
@@ -141,34 +163,51 @@ final class SmartMixTrackCell: UITableViewCell {
             coverImageView.image = UIImage(named: "Lav_Radio_Logo.png")
         }
 
-        applyDownloadAppearance(isDownloaded: isDownloaded, isDownloading: isDownloading)
+        applyDownloadAppearance(isDownloaded: isDownloaded, isDownloading: isDownloading, downloadProgress: downloadProgress)
     }
 
-    func applyDownloadAppearance(isDownloaded: Bool, isDownloading: Bool) {
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+    func applyDownloadAppearance(isDownloaded: Bool, isDownloading: Bool, downloadProgress: Float) {
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         if isDownloaded {
+            downloadProgressView.isHidden = true
+            downloadProgressView.resetProgress()
             downloadButton.setImage(
                 UIImage(systemName: "checkmark.circle.fill", withConfiguration: config),
                 for: .normal
             )
             downloadButton.tintColor = .systemGreen
-            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+            downloadButton.backgroundColor = .clear
+            downloadButton.layer.cornerRadius = 15
+            downloadButton.layer.borderWidth = 2
+            downloadButton.layer.borderColor = UIColor.systemGreen.cgColor
+            downloadButton.clipsToBounds = true
+            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
             downloadButton.isUserInteractionEnabled = false
         } else if isDownloading {
-            downloadButton.setImage(
-                UIImage(named: "ic_download")?.withRenderingMode(.alwaysTemplate),
-                for: .normal
-            )
+            downloadProgressView.isHidden = false
+            downloadProgressView.setProgress(min(1, max(0, downloadProgress)))
+
+            // Hide the static icon while the progress ring is visible.
+            downloadButton.setImage(nil, for: .normal)
             downloadButton.tintColor = UIColor(white: 0.4, alpha: 1)
-            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+            downloadButton.backgroundColor = .clear
+            downloadButton.layer.borderWidth = 0
+            downloadButton.layer.borderColor = nil
+            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
             downloadButton.isUserInteractionEnabled = false
         } else {
+            downloadProgressView.isHidden = true
+            downloadProgressView.resetProgress()
             downloadButton.setImage(
                 UIImage(named: "ic_download")?.withRenderingMode(.alwaysTemplate),
                 for: .normal
             )
             downloadButton.tintColor = UIColor(white: 0.75, alpha: 1)
-            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+            downloadButton.backgroundColor = .clear
+            downloadButton.layer.borderWidth = 0
+            downloadButton.layer.borderColor = nil
+            // Slightly larger icon feel in the "not downloaded" state.
+            downloadButton.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
             downloadButton.isUserInteractionEnabled = true
         }
     }

@@ -17,6 +17,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     private var isMixSaved = false
     private var isDownloadingMix = false
     private var downloadingTrackIDs = Set<Int>()
+    private var downloadingProgressByTrackID: [Int: Float] = [:]
     private var tableBottomConstraint: NSLayoutConstraint?
     private var headerTopSpacerHeightConstraint: NSLayoutConstraint?
     private var adContainerHeightConstraint: NSLayoutConstraint?
@@ -662,9 +663,10 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
         if let trackID = track.trackid {
             downloadingTrackIDs.insert(trackID)
+            downloadingProgressByTrackID[trackID] = 0
         }
         if let cell = tableView.cellForRow(at: indexPath) as? SmartMixTrackCell {
-            cell.applyDownloadAppearance(isDownloaded: false, isDownloading: true)
+            cell.applyDownloadAppearance(isDownloaded: false, isDownloading: true, downloadProgress: 0)
         }
 
         let name = url.lastPathComponent
@@ -674,10 +676,24 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         AF.download(url, to: { _, _ in
             (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
         })
+        .downloadProgress { [weak self] progress in
+            guard let self = self else { return }
+            guard let trackID = track.trackid else { return }
+            let fraction = Float(progress.fractionCompleted)
+            self.downloadingProgressByTrackID[trackID] = fraction
+
+            DispatchQueue.main.async {
+                guard let row = self.tracks.firstIndex(where: { $0.trackid == trackID }) else { return }
+                if let cell = self.tableView.cellForRow(at: IndexPath(row: row, section: 0)) as? SmartMixTrackCell {
+                    cell.applyDownloadAppearance(isDownloaded: false, isDownloading: true, downloadProgress: fraction)
+                }
+            }
+        }
         .response { [weak self] response in
             guard let self = self else { return }
             if let trackID = track.trackid {
                 self.downloadingTrackIDs.remove(trackID)
+                self.downloadingProgressByTrackID.removeValue(forKey: trackID)
             }
             if response.error == nil {
                 self.markTrackDownloaded(track)
@@ -929,11 +945,13 @@ extension SmartMixPlaylistViewController: UITableViewDelegate, UITableViewDataSo
         let cell = tableView.dequeueReusableCell(withIdentifier: SmartMixTrackCell.reuseID, for: indexPath) as! SmartMixTrackCell
         let track = tracks[indexPath.row]
         let trackID = track.trackid ?? -1
+        let progress = downloadingProgressByTrackID[trackID] ?? 0
         cell.delegate = self
         cell.configure(
             with: track,
             isDownloaded: isTrackDownloaded(track),
-            isDownloading: downloadingTrackIDs.contains(trackID) || isDownloadingMix
+            isDownloading: downloadingTrackIDs.contains(trackID) || isDownloadingMix,
+            downloadProgress: progress
         )
         return cell
     }
