@@ -273,7 +273,14 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         headerTopSpacerHeightConstraint?.constant = view.safeAreaInsets.top
-        resizeHeaderIfNeeded()
+        let offsetBeforeHeaderResize = tableView.contentOffset
+        let didResizeHeader = resizeHeaderIfNeeded()
+        // Re-apply offset if header height changed (iOS sometimes adjusts offset during tableHeaderView updates).
+        if didResizeHeader {
+            DispatchQueue.main.async { [weak self] in
+                self?.restoreTableOffset(offsetBeforeHeaderResize)
+            }
+        }
         headerGradientLayer.frame = gradientHostView.bounds
     }
 
@@ -551,10 +558,11 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         tableView.addGestureRecognizer(longPress)
     }
 
-    private func resizeHeaderIfNeeded() {
-        guard let header = tableView.tableHeaderView else { return }
+    @discardableResult
+    private func resizeHeaderIfNeeded() -> Bool {
+        guard let header = tableView.tableHeaderView else { return false }
         let targetWidth = tableView.bounds.width
-        guard targetWidth > 0 else { return }
+        guard targetWidth > 0 else { return false }
 
         header.frame.size.width = targetWidth
         header.setNeedsLayout()
@@ -569,7 +577,9 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         if abs(header.frame.height - height) > 1 {
             header.frame.size.height = height
             tableView.tableHeaderView = header
+            return true
         }
+        return false
     }
 
     private var podcastTracks: [PodcastObject] {
@@ -628,13 +638,75 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
     private func deleteTrack(at index: Int) {
         guard tracks.indices.contains(index) else { return }
-        tracks.remove(at: index)
-        playlist.tracks = tracks
-        statsLabel.text = playlist.songCountText
-        updateTrackListTitle()
-        tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
-        syncSavedPlaylistIfNeeded()
-        refreshActionButtonStates()
+        
+        // Keep scroll stable by anchoring to the top-most visible row before deletion.
+        let visibleIndexPaths = tableView.indexPathsForVisibleRows ?? []
+        let anchorBefore = visibleIndexPaths.min(by: { $0.row < $1.row })
+        let previousOffset = tableView.contentOffset
+
+        var anchorOffsetFromTop: CGFloat?
+        if let anchorBefore,
+           let anchorCell = tableView.cellForRow(at: anchorBefore) {
+            // `frame.origin.y` is in content coordinates, while `contentOffset` is in scroll coordinates.
+            anchorOffsetFromTop = anchorCell.frame.origin.y - tableView.contentOffset.y
+        }
+
+        tableView.performBatchUpdates({
+            tracks.remove(at: index)
+            playlist.tracks = tracks
+            statsLabel.text = playlist.songCountText
+            updateTrackListTitle()
+            tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+        }, completion: { [weak self] _ in
+            guard let self else { return }
+            self.tableView.layoutIfNeeded()
+
+            var offsetToRestore = previousOffset
+
+            // Prefer anchor-based restoration when possible.
+            if let anchorBefore,
+               let offsetFromTop = anchorOffsetFromTop,
+               !self.tracks.isEmpty {
+                var newAnchorRow = anchorBefore.row
+                if index < anchorBefore.row {
+                    newAnchorRow = anchorBefore.row - 1
+                } else if index == anchorBefore.row {
+                    // When deleting the anchored row, the next item shifts into this row index.
+                    newAnchorRow = min(anchorBefore.row, self.tracks.count - 1)
+                }
+
+                let newIndexPath = IndexPath(row: newAnchorRow, section: 0)
+                if let newAnchorCell = self.tableView.cellForRow(at: newIndexPath) {
+                    let desiredY = newAnchorCell.frame.origin.y - offsetFromTop
+                    offsetToRestore = CGPoint(x: self.tableView.contentOffset.x, y: desiredY)
+                    self.restoreTableOffset(offsetToRestore)
+                } else {
+                    self.restoreTableOffset(previousOffset)
+                }
+            } else {
+                self.restoreTableOffset(previousOffset)
+            }
+
+            self.syncSavedPlaylistIfNeeded()
+            self.refreshActionButtonStates()
+
+            // One more restore after the current layout pass, to counteract any internal
+            // `UITableView` scroll adjustments during header/tableHeaderView updates.
+            let finalOffsetToRestore = offsetToRestore
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak self] in
+                self?.restoreTableOffset(finalOffsetToRestore)
+            }
+        })
+    }
+
+    private func restoreTableOffset(_ desiredOffset: CGPoint) {
+        let minY = -tableView.adjustedContentInset.top
+        let maxY = max(
+            minY,
+            tableView.contentSize.height - tableView.bounds.height + tableView.adjustedContentInset.bottom
+        )
+        let clampedY = min(max(desiredOffset.y, minY), maxY)
+        tableView.setContentOffset(CGPoint(x: desiredOffset.x, y: clampedY), animated: false)
     }
 
     private func downloadSingleTrack(_ track: Track, at indexPath: IndexPath) {
@@ -1000,13 +1072,23 @@ extension SmartMixPlaylistViewController: UITableViewDragDelegate, UITableViewDr
               let sourceIndexPath = item.sourceIndexPath,
               sourceIndexPath != destinationIndexPath else { return }
 
+        let offsetBeforeMove = tableView.contentOffset
+
         tableView.performBatchUpdates({
             let moved = tracks.remove(at: sourceIndexPath.row)
             tracks.insert(moved, at: destinationIndexPath.row)
             playlist.tracks = tracks
             tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
         }, completion: { [weak self] _ in
-            self?.syncSavedPlaylistIfNeeded()
+            guard let self else { return }
+            self.syncSavedPlaylistIfNeeded()
+            self.tableView.layoutIfNeeded()
+            self.restoreTableOffset(offsetBeforeMove)
+
+            // Counteract any late internal scroll adjustment after moveRow.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak self] in
+                self?.restoreTableOffset(offsetBeforeMove)
+            }
         })
         coordinator.drop(item.dragItem, toRowAt: destinationIndexPath)
     }
