@@ -5,6 +5,7 @@
 
 import UIKit
 import Alamofire
+import GoogleMobileAds
 
 final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate {
     var playlist: SmartMixPlaylist!
@@ -15,11 +16,38 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     private var isShuffle = false
     private var isMixSaved = false
     private var isDownloadingMix = false
+    private var downloadingTrackIDs = Set<Int>()
     private var tableBottomConstraint: NSLayoutConstraint?
     private var headerTopSpacerHeightConstraint: NSLayoutConstraint?
+    private var adContainerHeightConstraint: NSLayoutConstraint?
+    private var bannerView: GADBannerView?
 
     private let headerGradientLayer = CAGradientLayer()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
+
+    private let gradientHostView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        return view
+    }()
+
+    private lazy var adContainerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .black
+        view.clipsToBounds = true
+        return view
+    }()
+
+    private lazy var trackListTitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.textColor = .white
+        return label
+    }()
 
     private lazy var downloadButton: UIButton = {
         let button = UIButton(type: .system)
@@ -115,15 +143,18 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         table.showsVerticalScrollIndicator = false
         table.delegate = self
         table.dataSource = self
+        table.dragDelegate = self
+        table.dropDelegate = self
+        table.dragInteractionEnabled = true
         table.contentInsetAdjustmentBehavior = .never
-        table.rowHeight = 88
-        table.register(UINib(nibName: "SearchSongCell", bundle: nil), forCellReuseIdentifier: "SearchSongCell")
+        table.rowHeight = 72
+        table.register(SmartMixTrackCell.self, forCellReuseIdentifier: SmartMixTrackCell.reuseID)
         return table
     }()
 
     private lazy var headerView: UIView = {
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 520))
-        view.backgroundColor = .clear
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 620))
+        view.backgroundColor = .black
         return view
     }()
 
@@ -214,12 +245,15 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         setupHeaderGradient()
         setupTableView()
         setupHeaderView()
+        setupBannerAd()
         setupDownloadOverlay()
         setupCircularProgress()
         setupLongPress()
         configureHeaderContent()
         loadCollage()
         refreshActionButtonStates()
+        view.bringSubviewToFront(downloadOverlay)
+        view.bringSubviewToFront(backButton)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -239,7 +273,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         super.viewDidLayoutSubviews()
         headerTopSpacerHeightConstraint?.constant = view.safeAreaInsets.top
         resizeHeaderIfNeeded()
-        headerGradientLayer.frame = headerView.bounds
+        headerGradientLayer.frame = gradientHostView.bounds
     }
 
     override func fixMiniplayerSpace() {
@@ -262,10 +296,11 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         ]
         headerGradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
         headerGradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
-        headerView.layer.insertSublayer(headerGradientLayer, at: 0)
+        gradientHostView.layer.insertSublayer(headerGradientLayer, at: 0)
     }
 
     private func setupTableView() {
+        view.backgroundColor = .black
         view.addSubview(tableView)
         view.addSubview(backButton)
 
@@ -296,6 +331,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     }
 
     private func setupHeaderView() {
+        headerView.addSubview(gradientHostView)
         headerView.addSubview(headerTopSpacer)
         headerView.addSubview(coverImageView)
         headerView.addSubview(titleLabel)
@@ -303,9 +339,13 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         headerView.addSubview(subtitleLabel)
         headerView.addSubview(statsLabel)
         headerView.addSubview(actionStack)
+        headerView.addSubview(adContainerView)
+        headerView.addSubview(trackListTitleLabel)
 
         let spacerHeight = headerTopSpacer.heightAnchor.constraint(equalToConstant: 0)
         headerTopSpacerHeightConstraint = spacerHeight
+        let adHeight = adContainerView.heightAnchor.constraint(equalToConstant: 0)
+        adContainerHeightConstraint = adHeight
 
         NSLayoutConstraint.activate([
             headerTopSpacer.topAnchor.constraint(equalTo: headerView.topAnchor),
@@ -338,17 +378,62 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
             actionStack.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 18),
             actionStack.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 36),
             actionStack.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -36),
-            actionStack.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -18),
-            actionStack.heightAnchor.constraint(equalToConstant: 58)
+            actionStack.heightAnchor.constraint(equalToConstant: 58),
+
+            gradientHostView.topAnchor.constraint(equalTo: headerView.topAnchor),
+            gradientHostView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            gradientHostView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            gradientHostView.bottomAnchor.constraint(equalTo: actionStack.bottomAnchor, constant: 12),
+
+            adContainerView.topAnchor.constraint(equalTo: actionStack.bottomAnchor, constant: 16),
+            adContainerView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            adContainerView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            adHeight,
+
+            trackListTitleLabel.topAnchor.constraint(equalTo: adContainerView.bottomAnchor, constant: 16),
+            trackListTitleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            trackListTitleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            trackListTitleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8)
         ])
 
         tableView.tableHeaderView = headerView
+    }
+
+    private func setupBannerAd() {
+        let unitID = GOOGLE_ADMOB_ForMusicPlayer
+        guard SHOW_BANNER_ADMOB, !unitID.isEmpty else {
+            adContainerHeightConstraint?.constant = 0
+            adContainerView.isHidden = true
+            resizeHeaderIfNeeded()
+            return
+        }
+
+        adContainerView.isHidden = false
+        adContainerHeightConstraint?.constant = 50
+
+        let banner = GADBannerView(adSize: kGADAdSizeBanner)
+        banner.adUnitID = unitID
+        banner.rootViewController = self
+        banner.translatesAutoresizingMaskIntoConstraints = false
+        adContainerView.addSubview(banner)
+        NSLayoutConstraint.activate([
+            banner.centerXAnchor.constraint(equalTo: adContainerView.centerXAnchor),
+            banner.centerYAnchor.constraint(equalTo: adContainerView.centerYAnchor)
+        ])
+        banner.load(GADRequest())
+        bannerView = banner
+        resizeHeaderIfNeeded()
     }
 
     private func configureHeaderContent() {
         titleLabel.text = playlist.title
         subtitleLabel.text = playlist.subtitle
         statsLabel.text = playlist.songCountText
+        updateTrackListTitle()
+    }
+
+    private func updateTrackListTitle() {
+        trackListTitleLabel.text = "Track List (\(tracks.count))"
     }
 
     private func loadCollage() {
@@ -459,7 +544,8 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
 
     private func setupLongPress() {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        longPress.minimumPressDuration = 0.3
+        // Longer than table drag so reordering keeps priority.
+        longPress.minimumPressDuration = 0.85
         longPress.cancelsTouchesInView = false
         tableView.addGestureRecognizer(longPress)
     }
@@ -520,7 +606,96 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
     private func refreshStats() {
         playlist.tracks = tracks
         statsLabel.text = playlist.songCountText
+        updateTrackListTitle()
         tableView.reloadData()
+        syncSavedPlaylistIfNeeded()
+    }
+
+    private func syncSavedPlaylistIfNeeded() {
+        guard isMixSaved else { return }
+        var playlists = UserDefaultsManager.shared.playListsData
+        if let index = playlists.firstIndex(where: { $0.name == playlist.title }) {
+            playlists[index].songs = tracks.map { $0.convertToSongModel() }
+            UserDefaultsManager.shared.playListsData = playlists
+        }
+    }
+
+    private func isTrackDownloaded(_ track: Track) -> Bool {
+        guard let id = track.trackid else { return false }
+        return UserDefaultsManager.shared.localTracksData.contains { $0.trackid == id && $0.isDownload }
+    }
+
+    private func deleteTrack(at index: Int) {
+        guard tracks.indices.contains(index) else { return }
+        tracks.remove(at: index)
+        playlist.tracks = tracks
+        statsLabel.text = playlist.songCountText
+        updateTrackListTitle()
+        tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+        syncSavedPlaylistIfNeeded()
+        refreshActionButtonStates()
+    }
+
+    private func downloadSingleTrack(_ track: Track, at indexPath: IndexPath) {
+        if isTrackDownloaded(track) {
+            showToast(message: "Already downloaded", font: .systemFont(ofSize: 12))
+            return
+        }
+
+        let purchase = IAPHandler.shared.isGetPurchase()
+        if !purchase {
+            let vc = mainStoryboard.instantiateViewController(withIdentifier: "IAPVC") as! IAPVC
+            vc.isshowbackButton = true
+            let navVC = UINavigationController(rootViewController: vc)
+            navVC.navigationBar.isHidden = true
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+            return
+        }
+
+        guard let mediaPath = track.mediaPath,
+              let encoded = mediaPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: songPath + encoded) else {
+            showToast(message: "Invalid track URL", font: .systemFont(ofSize: 12))
+            return
+        }
+
+        if let trackID = track.trackid {
+            downloadingTrackIDs.insert(trackID)
+        }
+        if let cell = tableView.cellForRow(at: indexPath) as? SmartMixTrackCell {
+            cell.applyDownloadAppearance(isDownloaded: false, isDownloading: true)
+        }
+
+        let name = url.lastPathComponent
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let destinationURL = documentsURL.appendingPathComponent(name)
+
+        AF.download(url, to: { _, _ in
+            (destinationURL, [.removePreviousFile, .createIntermediateDirectories])
+        })
+        .response { [weak self] response in
+            guard let self = self else { return }
+            if let trackID = track.trackid {
+                self.downloadingTrackIDs.remove(trackID)
+            }
+            if response.error == nil {
+                self.markTrackDownloaded(track)
+                if let artcover = track.artcover {
+                    UserDefaults.standard.set(artcover, forKey: "\(url.deletingPathExtension().lastPathComponent)")
+                }
+                self.showToast(message: "Download completed", font: .systemFont(ofSize: 12))
+            } else {
+                self.showToast(message: "Download failed", font: .systemFont(ofSize: 12))
+            }
+            if let trackID = track.trackid,
+               let row = self.tracks.firstIndex(where: { $0.trackid == trackID }) {
+                self.tableView.reloadRows(at: [IndexPath(row: row, section: 0)], with: .none)
+            } else {
+                self.tableView.reloadData()
+            }
+            self.refreshActionButtonStates()
+        }
     }
 
     @objc private func popBack() {
@@ -643,6 +818,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
                     self.circularProgressView.resetProgress()
                     self.circularProgressView.isHidden = true
                     self.applyDownloadButtonAppearance(isDownloaded: self.areAllTracksDownloaded())
+                    self.tableView.reloadData()
                     self.showToast(
                         message: "Downloaded \(successCount) of \(totalCount) songs",
                         font: .systemFont(ofSize: 12)
@@ -750,21 +926,80 @@ extension SmartMixPlaylistViewController: UITableViewDelegate, UITableViewDataSo
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchSongCell", for: indexPath) as! SearchSongCell
-        cell.selectionStyle = .none
+        let cell = tableView.dequeueReusableCell(withIdentifier: SmartMixTrackCell.reuseID, for: indexPath) as! SmartMixTrackCell
         let track = tracks[indexPath.row]
-        let coverURL = track.thumbnailArtCoverURL?.absoluteString ?? track.artcover_200 ?? track.artcover ?? ""
-        if let url = URL(string: coverURL) {
-            cell.imgArtist.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-            cell.imgBg.af_setImage(withURL: url, placeholderImage: UIImage(named: "Lav_Radio_Logo.png"))
-        }
-        cell.lblSongName.text = track.track
-        cell.lblArtistName.text = track.artist
+        let trackID = track.trackid ?? -1
+        cell.delegate = self
+        cell.configure(
+            with: track,
+            isDownloaded: isTrackDownloaded(track),
+            isDownloading: downloadingTrackIDs.contains(trackID) || isDownloadingMix
+        )
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         openPlayer(at: indexPath.row)
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
+        let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completion in
+            self?.deleteTrack(at: indexPath.row)
+            completion(true)
+        }
+        delete.backgroundColor = UIColor(red: 0.90, green: 0.12, blue: 0.18, alpha: 1)
+        return UISwipeActionsConfiguration(actions: [delete])
+    }
+}
+
+// MARK: - Drag & Drop reorder
+extension SmartMixPlaylistViewController: UITableViewDragDelegate, UITableViewDropDelegate {
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        let item = UIDragItem(itemProvider: NSItemProvider())
+        item.localObject = indexPath
+        return [item]
+    }
+
+    func tableView(_ tableView: UITableView, dragPreviewParametersForRowAt indexPath: IndexPath) -> UIDragPreviewParameters? {
+        let params = UIDragPreviewParameters()
+        params.backgroundColor = .clear
+        return params
+    }
+
+    func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        guard session.localDragSession != nil else {
+            return UITableViewDropProposal(operation: .forbidden)
+        }
+        return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+    }
+
+    func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
+        guard let destinationIndexPath = coordinator.destinationIndexPath,
+              let item = coordinator.items.first,
+              let sourceIndexPath = item.sourceIndexPath,
+              sourceIndexPath != destinationIndexPath else { return }
+
+        tableView.performBatchUpdates({
+            let moved = tracks.remove(at: sourceIndexPath.row)
+            tracks.insert(moved, at: destinationIndexPath.row)
+            playlist.tracks = tracks
+            tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
+        }, completion: { [weak self] _ in
+            self?.syncSavedPlaylistIfNeeded()
+        })
+        coordinator.drop(item.dragItem, toRowAt: destinationIndexPath)
+    }
+}
+
+// MARK: - Track cell
+extension SmartMixPlaylistViewController: SmartMixTrackCellDelegate {
+    func smartMixTrackCellDidTapDownload(_ cell: SmartMixTrackCell) {
+        guard let indexPath = tableView.indexPath(for: cell),
+              tracks.indices.contains(indexPath.row) else { return }
+        downloadSingleTrack(tracks[indexPath.row], at: indexPath)
     }
 }
 
@@ -775,16 +1010,7 @@ extension SmartMixPlaylistViewController: SmartMixAddSongsDelegate {
             return
         }
         tracks.append(track)
-        playlist.tracks = tracks
         refreshStats()
-        // Keep saved playlist in sync if already bookmarked.
-        if isMixSaved {
-            var playlists = UserDefaultsManager.shared.playListsData
-            if let index = playlists.firstIndex(where: { $0.name == playlist.title }) {
-                playlists[index].songs = tracks.map { $0.convertToSongModel() }
-                UserDefaultsManager.shared.playListsData = playlists
-            }
-        }
         refreshActionButtonStates()
     }
 }
