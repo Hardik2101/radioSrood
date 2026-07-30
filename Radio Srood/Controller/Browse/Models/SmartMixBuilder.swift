@@ -38,21 +38,31 @@ enum SmartMixBuilder {
         guard !names.isEmpty else { return "Smart Mix" }
         if names.count == 1 { return names[0] }
         if names.count == 2 { return "\(names[0]) & \(names[1])" }
-        let head = names.dropLast().joined(separator: ", ")
-        return "\(head) & \(names.last!)"
+        if names.count <= 4 {
+            let head = names.dropLast().joined(separator: ", ")
+            return "\(head) & \(names.last!)"
+        }
+        // Show only first 4 first-names, then "& more".
+        let head = names.prefix(4).joined(separator: ", ")
+        return "\(head) & more"
     }
 
     static func mixSubtitle(for artists: [ArtistProfileSummary]) -> String {
         let names = artists.map { $0.artist }
         guard !names.isEmpty else { return "Personalized mix" }
-        if names.count == 1 {
-            return "Personalized mix featuring \(names[0])"
+        if names.count <= 5 {
+            if names.count == 1 {
+                return "Personalized mix featuring \(names[0])"
+            }
+            if names.count == 2 {
+                return "Personalized mix featuring \(names[0]), \(names[1])"
+            }
+            let head = names.dropLast().joined(separator: ", ")
+            return "Personalized mix featuring \(head), \(names.last!)"
         }
-        if names.count == 2 {
-            return "Personalized mix featuring \(names[0]), \(names[1])"
-        }
-        let head = names.dropLast().joined(separator: ", ")
-        return "Personalized mix featuring \(head), \(names.last!)"
+        // Show only first 5 full names, then "and more".
+        let head = names.prefix(5).joined(separator: ", ")
+        return "Personalized mix featuring \(head) and more"
     }
 
     static func buildPlaylist(

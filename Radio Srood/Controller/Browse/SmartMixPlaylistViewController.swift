@@ -194,6 +194,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         label.font = .systemFont(ofSize: 26, weight: .bold)
         label.textColor = .white
         label.numberOfLines = 2
+        label.textAlignment = .center
         return label
     }()
 
@@ -204,7 +205,18 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         button.setImage(UIImage(systemName: "pencil", withConfiguration: config), for: .normal)
         button.addTarget(self, action: #selector(editTitleTapped), for: .touchUpInside)
+        button.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 28).isActive = true
         return button
+    }()
+
+    private lazy var titleRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, editTitleButton])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 8
+        return stack
     }()
 
     private let subtitleLabel: UILabel = {
@@ -212,7 +224,8 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = UIColor(white: 0.65, alpha: 1)
-        label.numberOfLines = 2
+        label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
 
@@ -221,6 +234,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 13, weight: .regular)
         label.textColor = UIColor(white: 0.5, alpha: 1)
+        label.textAlignment = .center
         return label
     }()
 
@@ -342,8 +356,7 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
         headerView.addSubview(gradientHostView)
         headerView.addSubview(headerTopSpacer)
         headerView.addSubview(coverImageView)
-        headerView.addSubview(titleLabel)
-        headerView.addSubview(editTitleButton)
+        headerView.addSubview(titleRowStack)
         headerView.addSubview(subtitleLabel)
         headerView.addSubview(statsLabel)
         headerView.addSubview(actionStack)
@@ -366,16 +379,12 @@ final class SmartMixPlaylistViewController: UI_VC, OptionsViewControllerDelegate
             coverImageView.widthAnchor.constraint(equalToConstant: 250),
             coverImageView.heightAnchor.constraint(equalToConstant: 250),
 
-            titleLabel.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
+            titleRowStack.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 20),
+            titleRowStack.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            titleRowStack.leadingAnchor.constraint(greaterThanOrEqualTo: headerView.leadingAnchor, constant: 20),
+            titleRowStack.trailingAnchor.constraint(lessThanOrEqualTo: headerView.trailingAnchor, constant: -20),
 
-            editTitleButton.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
-            editTitleButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            editTitleButton.widthAnchor.constraint(equalToConstant: 28),
-            editTitleButton.heightAnchor.constraint(equalToConstant: 28),
-            editTitleButton.trailingAnchor.constraint(lessThanOrEqualTo: headerView.trailingAnchor, constant: -20),
-
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+            subtitleLabel.topAnchor.constraint(equalTo: titleRowStack.bottomAnchor, constant: 6),
             subtitleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             subtitleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
 
